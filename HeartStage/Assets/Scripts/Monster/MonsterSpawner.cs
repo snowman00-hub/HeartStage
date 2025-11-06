@@ -6,32 +6,30 @@ using Cysharp.Threading.Tasks.CompilerServices;
 public class MonsterSpawner : MonoBehaviour
 {
     [Header("Reference")]
-    [SerializeField] private GameObject monsterPrefab;
+    [SerializeField] private AssetReference monsterPrefab;
 
     [Header("Field")]
     private MonsterData monsterData;
     private int spawneTimeTest = 1;
-    private Vector3 spawnPosTest = new Vector3(0, 0, 0);
-
-
     private async void Start()
     {
-        await SpawnMonster(spawneTimeTest);
+        await SpawnMonstersLoop(spawneTimeTest);
+    }
+    private async UniTask SpawnMonstersLoop(int spawneTimeTest)
+    {
+        while (true)
+        {
+            await SpawnMonster(spawneTimeTest);
+        }
     }
 
     private async UniTask SpawnMonster(int spawneTimeTest)
     {
-        await UniTask.Delay(spawneTimeTest * 1000);
-        var monster = InstantiateAsync(monsterPrefab, spawnPosTest, Quaternion.identity);
-    }
+        int randomRange = Random.Range(0, Screen.width);
+        Vector3 screenPosition = new Vector3(randomRange, Screen.height, Camera.main.nearClipPlane);
+        Vector3 spawnPosTest = Camera.main.ScreenToWorldPoint(screenPosition);
 
-    private void Destroy()
-    {
-        Destroy(this.gameObject, 2);
+        await UniTask.Delay(spawneTimeTest * 2000);
+        await Addressables.InstantiateAsync(monsterPrefab, spawnPosTest, Quaternion.identity);
     }
-    private void OnDestroy()
-    {
-        
-    }
-
 }
