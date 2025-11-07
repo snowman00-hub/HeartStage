@@ -1,9 +1,14 @@
-﻿using UnityEngine;
+﻿using NUnit.Framework;
+using UnityEngine;
 using UnityEngine.AI;
+using System.Collections.Generic;
 using static UnityEngine.GraphicsBuffer;
 
 public class MonsterNavMeshAgent : MonoBehaviour
 {
+    [Header("Reference")]
+    public List<Transform> targetPoints;
+
     [Header("Field")]
     private Transform target;
     private NavMeshAgent navMeshAgent;
@@ -15,9 +20,13 @@ public class MonsterNavMeshAgent : MonoBehaviour
         navMeshAgent.updateUpAxis = false;
     }
 
-    public void SetUp(Transform target)
+    public void SetUp()
     {
-        this.target = target;
+        if(targetPoints != null && targetPoints.Count > 0)
+        {
+            var randomIndex = Random.Range(0, targetPoints.Count);            
+            this.target = targetPoints[randomIndex];
+        }     
     }
 
     private void Update()

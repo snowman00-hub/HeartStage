@@ -11,6 +11,7 @@ public class MonsterSpawner : MonoBehaviour
     [SerializeField] private AssetReference monsterPrefab;
     [SerializeField] private MonsterData monsterData;
     [SerializeField] private Transform target;
+    [SerializeField] private List<Transform> targetPoints;
 
     [Header("Field")]
     private int spawneTimeTest = 1;
@@ -84,7 +85,8 @@ public class MonsterSpawner : MonoBehaviour
                 monsterDataController.Init(monsterData); 
 
                 var monsterNav = monster.GetComponent<MonsterNavMeshAgent>();
-                monsterNav.SetUp(target);
+                monsterNav.targetPoints = targetPoints;
+                monsterNav.SetUp();
 
                 monster.SetActive(true);
                 Debug.Log($"몬스터 활성화 완료 - HP: {monsterDataController.hp}");
