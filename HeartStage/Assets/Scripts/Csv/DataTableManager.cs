@@ -1,24 +1,29 @@
-﻿using System.Collections.Generic;
+﻿using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.PlayerLoop;
 
 public static class DataTableManger
 {
     private static readonly Dictionary<string, DataTable> tables = new Dictionary<string, DataTable>();
+    private static UniTask _initialization;
+
+    public static UniTask Initialization => _initialization;
+
 
     static DataTableManger()
     {
-        Init();
+        _initialization = InitAsync();
     }
 
-    private static void Init()
+    public static async UniTask InitAsync()
     {
         foreach (var id in DataTableIds.StringTableIds)
         {
             var table = new StringTable();
-            table.Load(id);
+            await table.LoadAsync(id);
             tables.Add(id, table);
         }
-
     }
 
     public static StringTable StringTable

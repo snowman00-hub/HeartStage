@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 public class StringTable : DataTable
 {
@@ -11,34 +14,43 @@ public class StringTable : DataTable
         public string String { get; set; }
     }
 
-    private readonly Dictionary<string, string> dictionary = new Dictionary<string, string>();
+    private readonly Dictionary<string, string> table = new Dictionary<string, string>();
 
-    public override void Load(string filename)
+    public override async UniTask LoadAsync(string filename)
     {
-        dictionary.Clear();
+        table.Clear();
+        AsyncOperationHandle<TextAsset> handle = Addressables.LoadAssetAsync<TextAsset>(filename);
+        TextAsset ta = await handle.Task;
 
-        var path = string.Format(FormatPath, filename);
-        var textAsset = Resources.Load<TextAsset>(path);
-        var list = LoadCSV<Data>(textAsset.text);
+        if (!ta)
+        {
+            Debug.LogError($"TextAsset 로드 실패: {filename}");
+        }
+
+        var list = LoadCSV<Data>(ta.text);
+
         foreach (var item in list)
         {
-            if (!dictionary.ContainsKey(item.Id))
+            if (!table.ContainsKey(item.Id))
             {
-                dictionary.Add(item.Id, item.String);
+                table.Add(item.Id, item.String);
             }
             else
             {
-                Debug.LogError($"키 중복: {item.Id}");
+                Debug.LogError("몬스터 아이디 중복!");
             }
         }
+
+
+        Addressables.Release(handle);
     }
 
     public string Get(string key)
     {
-        if (!dictionary.ContainsKey(key))
+        if (!table.ContainsKey(key))
         {
             return Unknown;
         }
-        return dictionary[key];
+        return table[key];
     }
 }

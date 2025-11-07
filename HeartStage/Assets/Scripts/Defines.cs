@@ -3,11 +3,6 @@
     Korean,
 }
 
-public class StringIds
-{
-    public static readonly string Test = "Test";
-}
-
 public static class DataTableIds
 {
     public static readonly string[] StringTableIds =
@@ -15,7 +10,14 @@ public static class DataTableIds
         "StringTableKr",
     };
 
+    public static readonly string[] CsvTableIds =
+    {
+        "ItemTable",
+    };
+
     public static string String => StringTableIds[0];
+
+    public static string Item => CsvTableIds[0];
 }
 
 public class Tag

@@ -3,12 +3,11 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 
 public abstract class DataTable
 {
-    public static readonly string FormatPath = "DataTables/{0}";
-
-    public abstract void Load(string filename);
+    public abstract UniTask LoadAsync(string filename);
 
     public static List<T> LoadCSV<T>(string csvText)
     {
