@@ -2,6 +2,7 @@
 
 public class testMissile : MonoBehaviour
 {
+	private string missileName;
 	private float moveSpeed;
 	private Vector3 dir;
 	private float damage;
@@ -11,7 +12,7 @@ public class testMissile : MonoBehaviour
 		if (collision.CompareTag(Tag.Enemy))
 		{
 			Destroy(collision.gameObject);
-			Destroy(gameObject);
+			PoolManager.Instance.Release(missileName, gameObject);
 		}
     }
 
@@ -20,8 +21,10 @@ public class testMissile : MonoBehaviour
 		transform.position += dir * moveSpeed * Time.deltaTime;
     }
 
-    public void SetMissile(float speed, Vector3 dir, float damage)
+    public void SetMissile(string name,Vector3 startPos, float speed, Vector3 dir, float damage)
 	{
+		missileName = name;
+		transform.position = startPos;
 		moveSpeed = speed;
 		this.dir = dir;
 		this.damage = damage;

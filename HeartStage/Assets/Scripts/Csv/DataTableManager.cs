@@ -18,7 +18,6 @@ public static class DataTableManger
             table.Load(id);
             tables.Add(id, table);
         }
-
     }
 
     public static StringTable StringTable
