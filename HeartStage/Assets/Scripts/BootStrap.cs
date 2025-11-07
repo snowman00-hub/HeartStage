@@ -8,6 +8,6 @@ public class BootStrap : MonoBehaviour
     {
         await ResourceManager.Instance.PreloadLabelAsync(AddressableLabel.Stage);
         Debug.Log("씬 로드 시작");
-        await Addressables.LoadSceneAsync("testScene");
+        await Addressables.LoadSceneAsync("testScene"); // addressable 이름
     }
 }
