@@ -10,12 +10,16 @@ public class MonsterSpawner : MonoBehaviour
     [Header("Reference")]
     [SerializeField] private AssetReference monsterPrefab;
     [SerializeField] private MonsterData monsterData;
+    [SerializeField] private Transform target;
 
     [Header("Field")]
     private int spawneTimeTest = 1;
+
     private List<GameObject> monsterList = new List<GameObject>();
     public List<GameObject> MonsterList => monsterList;
-    [SerializeField] private int poolSize = 20;
+
+    [SerializeField] private int poolSize = 1;
+    [SerializeField] private int maxMonsterCount = 1;
 
     private async void Start()
     {
@@ -26,7 +30,24 @@ public class MonsterSpawner : MonoBehaviour
     {
         while (true)
         {
-            await SpawnMonster(spawneTimeTest);
+            int activeMonsterCount = 0; 
+            foreach (var monster in monsterList)
+            {
+                if (monster.activeInHierarchy)
+                {
+                    activeMonsterCount++;
+                }
+            }
+
+            if (activeMonsterCount < maxMonsterCount)
+            {
+                await SpawnMonster(spawneTimeTest);
+            }
+
+            else
+            {
+                await UniTask.Delay(spawneTimeTest * 1000); 
+            }
         }
     }
 
@@ -35,23 +56,17 @@ public class MonsterSpawner : MonoBehaviour
         for (int i = 0; i < poolSize; i++)
         {
             int randomRange = Random.Range(0, Screen.width);
-            int randomHeight = Random.Range(0, Screen.height); // Test
             int height = Screen.height; 
             
-            Vector3 screenPosition = new Vector3(randomRange, randomHeight, Camera.main.nearClipPlane);
+            Vector3 screenPosition = new Vector3(randomRange, height - 100, 0);
             Vector3 spawnPos = Camera.main.ScreenToWorldPoint(screenPosition);
+            spawnPos.z = 0f;
 
             var handle = Addressables.InstantiateAsync(monsterPrefab, spawnPos, Quaternion.identity);
             await handle.Task;
             var monster = handle.Result;
 
-            monsterList.Add(monster);            
-
-            var monsterDataController = monster.GetComponent<MonsterDataController>();
-            if(monsterDataController != null)
-            {
-                monsterDataController.Init(monsterData);
-            }
+            monsterList.Add(monster);         
 
             monster.SetActive(false);
         }
@@ -61,14 +76,19 @@ public class MonsterSpawner : MonoBehaviour
     {
         await UniTask.Delay(spawneTimeTest * 2000); // Test
 
-        foreach(var monster in monsterList)
+        foreach (var monster in monsterList)
         {
             if (!monster.activeInHierarchy && monster != null)
             {
                 var monsterDataController = monster.GetComponent<MonsterDataController>();
                 monsterDataController.Init(monsterData); // Monster Init
 
+                var monsterNav = monster.GetComponent<MonsterNavMeshAgent>();
+                monsterNav.SetUp(target);
+
                 monster.SetActive(true);
+                Debug.Log($"몬스터 활성화 완료 - HP: {monsterDataController.hp}");
+
                 return;
             }
         }
@@ -79,5 +99,16 @@ public class MonsterSpawner : MonoBehaviour
         {
             Addressables.ReleaseInstance(monster);
         }
+    }
+
+    private void Update()
+    {
+        //foreach (var monster in monsterList)
+        //{
+        //    if (monster != null)
+        //    {
+        //        Debug.Log($"몬스터 활성화: {monster.activeInHierarchy}, 위치: {monster.transform.position}");
+        //    }
+        //}
     }
 }

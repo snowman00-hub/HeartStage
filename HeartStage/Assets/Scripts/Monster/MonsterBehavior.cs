@@ -4,8 +4,8 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 {
     [Header("Field")]
     private MonsterDataController monsterDataController;
-    private bool isAlive = false;
-    private void Start()
+    private bool isAlive = true;
+    private void Awake()
     {
         monsterDataController = GetComponent<MonsterDataController>();
     }
@@ -38,7 +38,7 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         if (Keyboard.current.digit1Key.wasPressedThisFrame)
         {
             OnDamage(10);
-            Debug.Log($"데미지를 입었습니다!. \n현재 남은 HP : {monsterDataController.hp}");
+            //Debug.Log($"데미지를 입었습니다!. \n현재 남은 HP : {monsterDataController.hp}");
         }
     }
 }
