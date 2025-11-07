@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Text;
+using UnityEngine;
 using UnityEngine.InputSystem;
 public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 {
@@ -33,12 +34,28 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         Debug.Log("몬스터가 사망했습니다.");
     }
 
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        string tagName = string.Empty;
+
+        var sb = new StringBuilder();
+        sb.Clear();
+        sb.Append("Enemy");
+
+        tagName = sb.ToString();
+
+        if (!other.CompareTag(tagName))
+        {
+            var target = other.GetComponent<IDamageable>();
+            if (target != null)
+            {
+                target.OnDamage(monsterDataController.att);
+                Debug.Log($"몬스터가 {other.name}을 공격했습니다! 데미지: {monsterDataController.att}");
+            }
+        }
+    }
     private void Update()
     {
-        if (Keyboard.current.digit1Key.wasPressedThisFrame)
-        {
-            OnDamage(10);
-            //Debug.Log($"데미지를 입었습니다!. \n현재 남은 HP : {monsterDataController.hp}");
-        }
+
     }
 }

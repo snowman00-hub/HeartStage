@@ -6,13 +6,13 @@ public class TestObject : MonoBehaviour, IDamageable
     public int hp;
     private void OnEnable()
     {
-        hp = 100;
+        hp = maxHp;
     }
     public void Die()
     {        
         Destroy(gameObject);
+        Debug.Log($"{gameObject.name}이 죽었습니다.");
     }
-
     public void OnDamage(int damage)
     {
         hp -= damage;
@@ -20,5 +20,5 @@ public class TestObject : MonoBehaviour, IDamageable
         {
             Die();
         }
-    }
+    }    
 }

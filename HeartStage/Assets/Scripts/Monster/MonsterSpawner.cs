@@ -89,7 +89,6 @@ public class MonsterSpawner : MonoBehaviour
                 monsterNav.SetUp();
 
                 monster.SetActive(true);
-                Debug.Log($"몬스터 활성화 완료 - HP: {monsterDataController.hp}");
 
                 return;
             }
