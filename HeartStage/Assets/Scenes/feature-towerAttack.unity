@@ -883,7 +883,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8702366982223408517, guid: ac9c5400521ad9e439ca8217e0df59c7, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 5.99
+      value: 4.56
       objectReference: {fileID: 0}
     - target: {fileID: 8702366982223408517, guid: ac9c5400521ad9e439ca8217e0df59c7, type: 3}
       propertyPath: m_LocalPosition.z
@@ -1221,8 +1221,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3afd60c70ba72c4bae8d1afb929fba4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  missileName: testMissile
-  missilePrefab: {fileID: 5191635478990899226, guid: 52f193831cc0c974a9bd2035ad2407c3, type: 3}
+  missileName: MissileTest
+  missilePrefabRef:
+    m_AssetGUID: 52f193831cc0c974a9bd2035ad2407c3
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_SubObjectGUID: 
+    m_EditorAssetChanged: 0
   data: {fileID: 11400000, guid: ddf33486d1f4d8b418a5e7ceec3c9777, type: 2}
 --- !u!58 &1867836346
 CircleCollider2D:

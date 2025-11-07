@@ -12,7 +12,7 @@ public class testMissile : MonoBehaviour
 		if (collision.CompareTag(Tag.Enemy))
 		{
 			Destroy(collision.gameObject);
-			//PoolManager.Instance.Release(missileName, gameObject);
+			PoolManager.Instance.Release(missileName, gameObject);
 		}
     }
 
