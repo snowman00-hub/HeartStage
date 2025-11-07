@@ -4,7 +4,7 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 {
     [Header("Field")]
     private MonsterDataController monsterDataController;
-    private bool isAlive = true;
+    //private bool isAlive = true;
     private void Awake()
     {
         monsterDataController = GetComponent<MonsterDataController>();
@@ -28,7 +28,7 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     public void Die()
     {
         // 몬스터 Die 애니메이션 처리
-        isAlive = false;
+        //isAlive = false;
         gameObject.SetActive(false);
         Debug.Log("몬스터가 사망했습니다.");
     }
