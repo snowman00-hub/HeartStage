@@ -1,87 +1,95 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Pool;
+﻿//using Cysharp.Threading.Tasks;
+//using System.Collections.Generic;
+//using UnityEngine;
+//using UnityEngine.AddressableAssets;
+//using UnityEngine.Pool;
 
-public class PoolManager : MonoBehaviour
-{
-    public static PoolManager Instance { get; private set; }
+//public class PoolManager : MonoBehaviour
+//{
+//    public static PoolManager Instance { get; private set; }
 
-    private Dictionary<string, IObjectPool<GameObject>> poolDict = new Dictionary<string, IObjectPool<GameObject>>();
+//    private Dictionary<string, IObjectPool<GameObject>> poolDict = new Dictionary<string, IObjectPool<GameObject>>();
 
-    private void Awake()
-    {
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
-        {
-            Destroy(gameObject);
-            return;
-        }
-    }
+//    private void Awake()
+//    {
+//        if (Instance == null)
+//        {
+//            Instance = this;
+//        }
+//        else
+//        {
+//            Destroy(gameObject);
+//            return;
+//        }
+//    }
 
-    public void CreatePool(string key, GameObject prefab, int defaultCapacity = 30, int maxSize = 300)
-    {
-        if (poolDict.ContainsKey(key))
-            return;
+//    public async UniTask CreatePool(string key, AssetReferenceGameObject prefabRef, int defaultCapacity = 30, int maxSize = 300)
+//    {
+//        if (poolDict.ContainsKey(key))
+//            return;
 
-        var parentGo = new GameObject();
-        parentGo.name = key;
-        parentGo.transform.SetParent(transform);
+//        var parentGo = new GameObject();
+//        parentGo.name = key;
+//        parentGo.transform.SetParent(transform);
 
-        var pool = new ObjectPool<GameObject>(
-            createFunc: () => Instantiate(prefab, parentGo.transform),
-            actionOnGet: obj => obj.SetActive(true),
-            actionOnRelease: obj => obj.SetActive(false),
-            actionOnDestroy: obj => Destroy(obj),
-            collectionCheck: false,
-            defaultCapacity: defaultCapacity,
-            maxSize: maxSize
-        );
+//        GameObject prefab = await prefabRef.LoadAssetAsync().Task;
 
-        poolDict.Add(key, pool);
-        WarmUp(key, prefab, defaultCapacity);
-    }
+//        var pool = new ObjectPool<GameObject>(
+//           createFunc: () =>
+//           {
+//               var obj = Instantiate(prefab, parentGo.transform);
+//               return obj;
+//           },
+//           actionOnGet: obj => obj.SetActive(true),
+//           actionOnRelease: obj => obj.SetActive(false),
+//           actionOnDestroy: obj => Addressables.ReleaseInstance(obj),
+//           collectionCheck: false,
+//           defaultCapacity: defaultCapacity,
+//           maxSize: maxSize
+//        );
 
-    public GameObject Get(string key, GameObject prefab)
-    {
-        if (!poolDict.ContainsKey(key))
-        {
-            CreatePool(key, prefab);
-        }
+//        poolDict.Add(key, pool);
+//        WarmUp(key, prefabRef, defaultCapacity);
+//    }
 
-        return poolDict[key].Get();
-    }
+//    public GameObject Get(string key, AssetReferenceGameObject prefabRef)
+//    {
+//        if (!poolDict.ContainsKey(key))
+//        {
+//            CreatePool(key, prefabRef);
+//        }
 
-    private void WarmUp(string key, GameObject prefab, int count)
-    {
-        if (!poolDict.ContainsKey(key))
-            CreatePool(key, prefab);
+//        return poolDict[key].Get();
+//    }
 
-        var pool = poolDict[key];
+//    private void WarmUp(string key, AssetReferenceGameObject prefabRef, int count)
+//    {
+//        if (!poolDict.ContainsKey(key))
+//            CreatePool(key, prefabRef);
 
-        List<GameObject> temp = new List<GameObject>();
-        for (int i = 0; i < count; i++)
-        {
-            var obj = pool.Get();
-            temp.Add(obj);
-        }
+//        var pool = poolDict[key];
 
-        foreach (var obj in temp)
-            pool.Release(obj);
-    }
+//        List<GameObject> temp = new List<GameObject>();
+//        for (int i = 0; i < count; i++)
+//        {
+//            var obj = pool.Get();
+//            temp.Add(obj);
+//        }
 
-    public void Release(string key, GameObject obj)
-    {
-        if (poolDict.ContainsKey(key))
-        {
-            poolDict[key].Release(obj);
-        }
-        else
-        {
-            Debug.Log("파괴됨");
-            Destroy(obj); // 혹시 모를 예외 대비
-        }
-    }
-}
+//        foreach (var obj in temp)
+//            pool.Release(obj);
+//    }
+
+//    public void Release(string key, GameObject obj)
+//    {
+//        if (poolDict.ContainsKey(key))
+//        {
+//            poolDict[key].Release(obj);
+//        }
+//        else
+//        {
+//            Debug.Log("파괴됨");
+//            Destroy(obj); // 혹시 모를 예외 대비
+//        }
+//    }
+//}
