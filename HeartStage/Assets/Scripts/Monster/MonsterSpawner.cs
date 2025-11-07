@@ -81,7 +81,7 @@ public class MonsterSpawner : MonoBehaviour
             if (!monster.activeInHierarchy && monster != null)
             {
                 var monsterDataController = monster.GetComponent<MonsterDataController>();
-                monsterDataController.Init(monsterData); // Monster Init
+                monsterDataController.Init(monsterData); 
 
                 var monsterNav = monster.GetComponent<MonsterNavMeshAgent>();
                 monsterNav.SetUp(target);
@@ -101,14 +101,4 @@ public class MonsterSpawner : MonoBehaviour
         }
     }
 
-    private void Update()
-    {
-        //foreach (var monster in monsterList)
-        //{
-        //    if (monster != null)
-        //    {
-        //        Debug.Log($"몬스터 활성화: {monster.activeInHierarchy}, 위치: {monster.transform.position}");
-        //    }
-        //}
-    }
 }

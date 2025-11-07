@@ -13,8 +13,8 @@ GameObject:
   - component: {fileID: 3745245224689555149}
   - component: {fileID: -5882017795419080499}
   - component: {fileID: -149043658923393310}
-  - component: {fileID: -4494542606854362744}
-  - component: {fileID: -8369161695354279757}
+  - component: {fileID: 4656943785299508727}
+  - component: {fileID: -1536293371848839124}
   m_Layer: 3
   m_Name: MonsterPrefab
   m_TagString: Untagged
@@ -78,8 +78,8 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 815071339
-  m_SortingLayer: 1
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
   m_SortingOrder: 1
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -142,19 +142,7 @@ CapsuleCollider:
   m_Height: 1
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &-4494542606854362744
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1444616156539764780}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f551acddf1f4bbe4c80c2c820dcc8a32, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!195 &-8369161695354279757
+--- !u!195 &4656943785299508727
 NavMeshAgent:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -176,3 +164,15 @@ NavMeshAgent:
   m_BaseOffset: 0.5
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!114 &-1536293371848839124
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1444616156539764780}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f551acddf1f4bbe4c80c2c820dcc8a32, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

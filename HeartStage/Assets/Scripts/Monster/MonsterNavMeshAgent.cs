@@ -8,18 +8,16 @@ public class MonsterNavMeshAgent : MonoBehaviour
     private Transform target;
     private NavMeshAgent navMeshAgent;
 
-    public void SetUp(Transform target)
-    { 
-        this.target = target;
-
+    private void Start()
+    {
         navMeshAgent = GetComponent<NavMeshAgent>();
         navMeshAgent.updateRotation = false;
         navMeshAgent.updateUpAxis = false;
-        navMeshAgent.updatePosition = false;
+    }
 
-        Vector3 pos = transform.position;
-        pos.z = 0f;
-        transform.position = pos;
+    public void SetUp(Transform target)
+    {
+        this.target = target;
     }
 
     private void Update()
@@ -27,13 +25,6 @@ public class MonsterNavMeshAgent : MonoBehaviour
         if (target != null)
         {
             navMeshAgent.SetDestination(target.position);
-        }
-
-        Vector3 pos = transform.position;
-        if (pos.z != 0f)
-        {
-            pos.z = 0f;
-            transform.position = pos;
         }
     }
 }
