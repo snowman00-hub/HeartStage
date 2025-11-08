@@ -4,7 +4,6 @@ using UnityEngine.AddressableAssets;
 
 public class testTowerAttack : MonoBehaviour
 {
-    public string missileName = "MissileTest"; // asset 네임과 동일해야 함.
     public AssetReferenceGameObject missilePrefabRef;
 
     public testTowerData data;
@@ -30,7 +29,7 @@ public class testTowerAttack : MonoBehaviour
 
     private void Start()
     {
-        PoolManager.Instance.CreatePool(missileName);
+        PoolManager.Instance.CreatePool(data.assetName);
     }
 
     private void Update()
@@ -49,9 +48,9 @@ public class testTowerAttack : MonoBehaviour
 
     private void Fire(Vector3 targetPos)
     {
-        GameObject missile = PoolManager.Instance.Get(missileName);
+        GameObject missile = PoolManager.Instance.Get(data.assetName);
         var dir = (targetPos - transform.position).normalized;
-        missile.GetComponent<testMissile>().SetMissile(missileName, transform.position, data.projectileSpeed, dir, data.damage);
+        missile.GetComponent<testMissile>().SetMissile(data.assetName, transform.position, data.projectileSpeed, dir, data.damage);
     }
 
     private GameObject GetClosestEnemy()

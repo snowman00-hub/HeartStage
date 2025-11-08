@@ -10,6 +10,7 @@ public class BootStrap : MonoBehaviour
     private async UniTask Start()
     {
         await ResourceManager.Instance.PreloadLabelAsync(AddressableLabel.Stage);
+        //await DataTableManger.Initialization;
 
         string targetScene = "";
 #if UNITY_EDITOR
