@@ -27,7 +27,7 @@ public class testTowerAttack : MonoBehaviour
 
     private void Start()
     {
-        var csvData = DataTableManger.CharacterTable.Get(11);
+        var csvData = DataTableManager.CharacterTable.Get(11);
         data = ResourceManager.Instance.Get<CharacterData>(csvData.data_AssetName);
         data.UpdateData(csvData);
         var bulletGo = ResourceManager.Instance.Get<GameObject>(data.bullet_PrefabName);
