@@ -79,7 +79,7 @@ public class MonsterSpawner : MonoBehaviour
         {
             if (!monster.activeInHierarchy && monster != null)
             {
-                monsterData.Init(111011); // test 
+                // monsterData.Init(111011); // test 
 
                 var monsterBehavior = monster.GetComponent<MonsterBehavior>();
                 monsterBehavior.Init(monsterData);
