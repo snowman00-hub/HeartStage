@@ -6,9 +6,9 @@ public class csvTest : MonoBehaviour
     private async UniTaskVoid Start()
     {
         // 반드시 초기화가 끝날 때까지 기다림
-        await DataTableManger.Initialization;
+        await DataTableManager.Initialization;
 
-        var table = DataTableManger.StringTable;
+        var table = DataTableManager.StringTable;
         if (table == null)
         {
             Debug.LogError("StringTable이 초기화되지 않았습니다.");

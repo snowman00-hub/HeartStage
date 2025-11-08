@@ -9,7 +9,6 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     public void Init(MonsterData data)
     {
         monsterData = data;
-        Debug.Log($"몬스터 초기화 HP: {monsterData.hp}, ATT: {monsterData.att}");
     }
 
     public void Attack()
@@ -49,10 +48,5 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
                 Debug.Log($"몬스터가 {other.name}을 공격했습니다! 데미지: {monsterData.att}");
             }
         }
-    }
-
-    private void Update()
-    {
-
     }
 }

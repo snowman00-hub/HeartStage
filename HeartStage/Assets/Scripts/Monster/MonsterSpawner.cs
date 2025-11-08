@@ -79,7 +79,7 @@ public class MonsterSpawner : MonoBehaviour
         {
             if (!monster.activeInHierarchy && monster != null)
             {
-                monsterData.Init(); 
+                monsterData.Init(111011); // test 
 
                 var monsterBehavior = monster.GetComponent<MonsterBehavior>();
                 monsterBehavior.Init(monsterData);
@@ -89,7 +89,21 @@ public class MonsterSpawner : MonoBehaviour
                 monsterNav.SetUp();
 
                 monster.SetActive(true);
-
+                Debug.Log(
+                    $"소환된 몬스터 정보 - " +
+                    $"ID: {monsterData.id}, " +
+                    $"이름: {monsterData.monsterName}, " +
+                    $"타입: {monsterData.monsterType}, " +
+                    $"HP: {monsterData.hp}, " +
+                    $"공격력: {monsterData.att}, " +
+                    $"공격타입: {monsterData.attType}, " +
+                    $"공격속도: {monsterData.attackSpeed}, " +
+                    $"공격범위: {monsterData.attackRange}, " +
+                    $"탄속: {monsterData.bulletSpeed}, " +
+                    $"이동속도: {monsterData.moveSpeed}, " +
+                    $"최소경험치: {monsterData.minExp}, " +
+                    $"최대경험치: {monsterData.maxExp}"
+                );
                 return;
             }
         }
