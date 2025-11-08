@@ -41,7 +41,6 @@ public class StringTable : DataTable
             }
         }
 
-
         Addressables.Release(handle);
     }
 
