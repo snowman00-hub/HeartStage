@@ -8,7 +8,7 @@ public class ItemTable : DataTable
 {
     public static readonly string Unknown = "키 없음";
 
-    private readonly Dictionary<int, ItemData> table = new Dictionary<int, ItemData>();
+    private readonly Dictionary<int, ItemCSVData> table = new Dictionary<int, ItemCSVData>();
 
     public override async UniTask LoadAsync(string filename)
     {
@@ -21,7 +21,7 @@ public class ItemTable : DataTable
             Debug.LogError($"TextAsset 로드 실패: {filename}");
         }
 
-        var list = LoadCSV<ItemData>(ta.text);
+        var list = LoadCSV<ItemCSVData>(ta.text);
 
         foreach (var item in list)
         {
@@ -39,7 +39,7 @@ public class ItemTable : DataTable
         Addressables.Release(handle);
     }
 
-    public ItemData Get(int key)
+    public ItemCSVData Get(int key)
     {
         if (!table.ContainsKey(key))
         {

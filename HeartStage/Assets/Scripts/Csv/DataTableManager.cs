@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.PlayerLoop;
 
-public static class DataTableManger
+public static class DataTableManager
 {
     private static readonly Dictionary<string, DataTable> tables = new Dictionary<string, DataTable>();
     private static UniTask _initialization;
@@ -11,32 +11,18 @@ public static class DataTableManger
     public static UniTask Initialization => _initialization;
 
 
-    static DataTableManger()
+    static DataTableManager()
     {
         _initialization = InitAsync();
     }
 
     public static async UniTask InitAsync()
     {
-        foreach (var id in DataTableIds.StringTableIds)
-        {
-            var table = new StringTable();
-            await table.LoadAsync(id);
-            tables.Add(id, table);
-        }
         foreach (var id in DataTableIds.CsvTableIds)
         {
             var table = new ItemTable();
             await table.LoadAsync(id);
             tables.Add(id, table);
-        }
-    }
-
-    public static StringTable StringTable
-    {
-        get
-        {
-            return Get<StringTable>(DataTableIds.String);
         }
     }
 
