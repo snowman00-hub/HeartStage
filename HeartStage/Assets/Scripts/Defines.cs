@@ -8,12 +8,11 @@ public static class DataTableIds
     public static readonly string[] CsvTableIds =
     {
         "ItemTable",
-        "MonsterTable",
     };
 
     public static string Item => CsvTableIds[0];
 
-    public static string Monster => CsvTableIds[1];
+    public static string Monster => "MonsterTable";
 }
 
 public class Tag

@@ -17,16 +17,17 @@ public static class DataTableManager
 
     public static async UniTask InitAsync()
     {
-        foreach (var id in DataTableIds.CsvTableIds)
         {
             var table = new ItemTable();
-            await table.LoadAsync(id);
-            tables.Add(id, table);
+            await table.LoadAsync(DataTableIds.Item);
+            tables.Add(DataTableIds.Item, table);
         }
 
-        var monsterTable = new MonsterTable();
-        await monsterTable.LoadAsync(DataTableIds.Monster);
-        tables.Add(DataTableIds.Monster, monsterTable);
+        {
+            var monsterTable = new MonsterTable();
+            await monsterTable.LoadAsync(DataTableIds.Monster);
+            tables.Add(DataTableIds.Monster, monsterTable);
+        }
     }
 
     public static ItemTable ItemTable
