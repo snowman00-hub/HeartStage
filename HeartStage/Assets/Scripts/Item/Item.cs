@@ -1,52 +1,51 @@
-﻿using UnityEngine;
-using Cysharp.Threading.Tasks;
-using UnityEngine.ResourceManagement.AsyncOperations;
+﻿using Cysharp.Threading.Tasks;
+using System.Threading;
+using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 public class Item : MonoBehaviour
 {
-    [SerializeField]private ItemData m_itemData;
+    [SerializeField]private ItemCSVData itemCSVData;
 
-    private SpriteRenderer m_spriteRenderer;
-    private Animator m_animator;
+    [SerializeField] private ItemData _itemData;
 
-    private AsyncOperationHandle<Sprite>? m_imageHandle;
-    private AsyncOperationHandle<RuntimeAnimatorController>? m_animatorHandle;
+    private SpriteRenderer _spriteRenderer;
+    private Animator _animator;
+
+    private AsyncOperationHandle<Sprite>? _imageHandle;
+    private AsyncOperationHandle<RuntimeAnimatorController>? _animatorHandle;
 
     private void Awake()
     {
-        m_spriteRenderer = GetComponent<SpriteRenderer>();
-        m_animator = GetComponent<Animator>();
+        _spriteRenderer = GetComponent<SpriteRenderer>();
+        _animator = GetComponent<Animator>();
+        if (_spriteRenderer) _spriteRenderer.enabled = false;
     }
 
-    private async UniTaskVoid Start()
+    public async UniTaskVoid Init(ItemCSVData data, CancellationToken ct = default)
     {
-        var ct = this.GetCancellationTokenOnDestroy();
-
-        if (m_spriteRenderer)
-        {
-            m_spriteRenderer.enabled = false;
-        }
+        _itemData.Init(data);
 
         try 
         {
-            if(!string.IsNullOrEmpty(m_itemData.Sprite.AssetGUID))
+            if(!string.IsNullOrEmpty(_itemData.Sprite.AssetGUID))
             {
-                m_imageHandle = m_itemData.Sprite.LoadAssetAsync();
-                var sprite = await m_imageHandle.Value.ToUniTask(cancellationToken: ct);
-                if (m_spriteRenderer)
+                _imageHandle = _itemData.Sprite.LoadAssetAsync();
+                var sprite = await _imageHandle.Value.ToUniTask(cancellationToken: ct);
+                if (_spriteRenderer)
                 {
-                    m_spriteRenderer.sprite = sprite;
-                    m_spriteRenderer.enabled = true;
+                    _spriteRenderer.sprite = sprite;
+                    _spriteRenderer.enabled = true;
                 }
             }
-            if(!string.IsNullOrEmpty(m_itemData.Animation.AssetGUID))
+            if(!string.IsNullOrEmpty(_itemData.Animation.AssetGUID))
             {
-                m_animatorHandle = m_itemData.Animation.LoadAssetAsync();
-                var animatorController = await m_animatorHandle.Value.ToUniTask(cancellationToken: ct);
-                if (m_animator)
+                _animatorHandle = _itemData.Animation.LoadAssetAsync();
+                var animatorController = await _animatorHandle.Value.ToUniTask(cancellationToken: ct);
+                if (_animator)
                 {
-                    m_animator.runtimeAnimatorController = animatorController;
+                    _animator.runtimeAnimatorController = animatorController;
                 }
             }
         }
@@ -62,15 +61,15 @@ public class Item : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (m_imageHandle.HasValue)
+        if (_imageHandle.HasValue)
         { 
-            Addressables.Release(m_imageHandle.Value);
+            Addressables.Release(_imageHandle.Value);
         }
-        if(m_animatorHandle.HasValue)
+        if(_animatorHandle.HasValue)
         {
-            Addressables.Release(m_animatorHandle.Value);
+            Addressables.Release(_animatorHandle.Value);
         }
-        m_imageHandle = null;
-        m_animatorHandle = null;
+        _imageHandle = null;
+        _animatorHandle = null;
     }
 }

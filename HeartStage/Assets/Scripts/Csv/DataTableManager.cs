@@ -1,6 +1,7 @@
 ﻿using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.PlayerLoop;
 
 public static class DataTableManager
 {
@@ -16,9 +17,9 @@ public static class DataTableManager
 
     public static async UniTask InitAsync()
     {
-        foreach (var id in DataTableIds.StringTableIds)
+        foreach (var id in DataTableIds.CsvTableIds)
         {
-            var table = new StringTable();
+            var table = new ItemTable();
             await table.LoadAsync(id);
             tables.Add(id, table);
         }
@@ -28,13 +29,14 @@ public static class DataTableManager
         tables.Add(DataTableIds.Monster, monsterTable);
     }
 
-    public static StringTable StringTable
+    public static ItemTable ItemTable
     {
         get
         {
-            return Get<StringTable>(DataTableIds.String);
+            return Get<ItemTable>(DataTableIds.Item);
         }
     }
+    
     public static MonsterTable MonsterTable
     {
         get
@@ -52,5 +54,4 @@ public static class DataTableManager
         }
         return tables[id] as T;
     }
-
 }
