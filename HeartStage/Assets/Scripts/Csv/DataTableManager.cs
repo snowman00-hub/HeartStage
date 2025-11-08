@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public static class DataTableManger
+public static class DataTableManager
 {
     private static readonly Dictionary<string, DataTable> tables = new Dictionary<string, DataTable>();
     private static UniTask _initialization;
 
     public static UniTask Initialization => _initialization;
 
-    static DataTableManger()
+    static DataTableManager()
     {
         _initialization = InitAsync();
     }
@@ -22,6 +22,10 @@ public static class DataTableManger
             await table.LoadAsync(id);
             tables.Add(id, table);
         }
+
+        var monsterTable = new MonsterTable();
+        await monsterTable.LoadAsync(DataTableIds.Monster);
+        tables.Add(DataTableIds.Monster, monsterTable);
     }
 
     public static StringTable StringTable
@@ -29,6 +33,13 @@ public static class DataTableManger
         get
         {
             return Get<StringTable>(DataTableIds.String);
+        }
+    }
+    public static MonsterTable MonsterTable
+    {
+        get
+        {
+            return Get<MonsterTable>(DataTableIds.Monster);
         }
     }
 
@@ -41,4 +52,5 @@ public static class DataTableManger
         }
         return tables[id] as T;
     }
+
 }
