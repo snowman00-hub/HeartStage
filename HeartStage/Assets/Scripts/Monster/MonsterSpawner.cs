@@ -79,8 +79,10 @@ public class MonsterSpawner : MonoBehaviour
         {
             if (!monster.activeInHierarchy && monster != null)
             {
-                var monsterDataController = monster.GetComponent<MonsterDataController>();
-                monsterDataController.Init(monsterData); 
+                monsterData.Init(); 
+
+                var monsterBehavior = monster.GetComponent<MonsterBehavior>();
+                monsterBehavior.Init(monsterData);
 
                 var monsterNav = monster.GetComponent<MonsterNavMeshAgent>();
                 monsterNav.targetPoints = targetPoints;

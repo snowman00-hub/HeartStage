@@ -7,4 +7,12 @@ public class MonsterData : ScriptableObject
     public int hp = 100;
     public int att = 5;
     public float moveSpeed = 1f;
+
+    public void Init() 
+    {
+        //test
+        hp = 100;
+        att = 5;
+        moveSpeed = 1f;
+    }
 }

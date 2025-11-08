@@ -3,12 +3,13 @@ using UnityEngine;
 public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 {
     [Header("Field")]
-    private MonsterDataController monsterDataController;
+    private MonsterData monsterData;
     //private bool isAlive = true;
 
-    private void Awake()
+    public void Init(MonsterData data)
     {
-        monsterDataController = GetComponent<MonsterDataController>();
+        monsterData = data;
+        Debug.Log($"몬스터 초기화 HP: {monsterData.hp}, ATT: {monsterData.att}");
     }
 
     public void Attack()
@@ -18,12 +19,12 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 
     public void OnDamage(int damage)
     {
-        if(monsterDataController != null)
+        if(monsterData != null)
         {
-            monsterDataController.hp -= damage;
+            monsterData.hp -= damage;
         }
 
-        if(monsterDataController.hp <= 0)
+        if(monsterData.hp <= 0)
         {
             Die();
         }
@@ -39,21 +40,13 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        string tagName = string.Empty;
-
-        var sb = new StringBuilder();
-        sb.Clear();
-        sb.Append("Enemy");
-
-        tagName = sb.ToString();
-
-        if (!other.CompareTag(tagName))
+        if (other.CompareTag(Tag.Wall))
         {
             var target = other.GetComponent<IDamageable>();
             if (target != null)
             {
-                target.OnDamage(monsterDataController.att);
-                Debug.Log($"몬스터가 {other.name}을 공격했습니다! 데미지: {monsterDataController.att}");
+                target.OnDamage(monsterData.att);
+                Debug.Log($"몬스터가 {other.name}을 공격했습니다! 데미지: {monsterData.att}");
             }
         }
     }
