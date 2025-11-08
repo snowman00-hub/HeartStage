@@ -22,6 +22,13 @@ public static class DataTableManger
             await table.LoadAsync(id);
             tables.Add(id, table);
         }
+
+        {
+            var table = new CharacterTable();
+            var id = DataTableIds.Character;
+            await table.LoadAsync(id);
+            tables.Add(id, table);
+        }
     }
 
     public static StringTable StringTable
@@ -29,6 +36,14 @@ public static class DataTableManger
         get
         {
             return Get<StringTable>(DataTableIds.String);
+        }
+    }
+
+    public static CharacterTable CharacterTable
+    {
+        get
+        {
+            return Get<CharacterTable>(DataTableIds.Character);
         }
     }
 

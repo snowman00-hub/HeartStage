@@ -1,12 +1,10 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 
 public class testTowerAttack : MonoBehaviour
 {
-    public AssetReferenceGameObject missilePrefabRef;
+    public CharacterData data;
 
-    public testTowerData data;
     private float attackTimer = 0f;
 
     private List<GameObject> enemys = new List<GameObject>();
@@ -29,13 +27,15 @@ public class testTowerAttack : MonoBehaviour
 
     private void Start()
     {
-        PoolManager.Instance.CreatePool(data.assetName);
+        data.UpdateData(DataTableManger.CharacterTable.Get(11));
+        var bulletGo = ResourceManager.Instance.Get<GameObject>(data.bullet_PrefabName);
+        PoolManager.Instance.CreatePool(data.ID.ToString(), bulletGo);
     }
 
     private void Update()
     {
         attackTimer += Time.deltaTime;
-        if (enemys.Count > 0 && attackTimer >= data.attackInterval)
+        if (enemys.Count > 0 && attackTimer >= data.atk_interval)
         {
             GameObject target = GetClosestEnemy();
             if (target != null)
@@ -48,9 +48,9 @@ public class testTowerAttack : MonoBehaviour
 
     private void Fire(Vector3 targetPos)
     {
-        GameObject missile = PoolManager.Instance.Get(data.assetName);
+        GameObject missile = PoolManager.Instance.Get(data.ID.ToString());
         var dir = (targetPos - transform.position).normalized;
-        missile.GetComponent<testMissile>().SetMissile(data.assetName, transform.position, data.projectileSpeed, dir, data.damage);
+        missile.GetComponent<testMissile>().SetMissile(data.ID.ToString(), transform.position, data.bullet_speed, dir, data.atk_dmg);
     }
 
     private GameObject GetClosestEnemy()
