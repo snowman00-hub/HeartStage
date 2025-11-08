@@ -1,7 +1,6 @@
 ﻿using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.PlayerLoop;
 
 public static class DataTableManger
 {
@@ -9,7 +8,6 @@ public static class DataTableManger
     private static UniTask _initialization;
 
     public static UniTask Initialization => _initialization;
-
 
     static DataTableManger()
     {
