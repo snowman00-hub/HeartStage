@@ -1,8 +1,6 @@
-﻿using NUnit.Framework;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.AI;
 using System.Collections.Generic;
-using static UnityEngine.GraphicsBuffer;
 
 public class MonsterNavMeshAgent : MonoBehaviour
 {
@@ -37,4 +35,3 @@ public class MonsterNavMeshAgent : MonoBehaviour
         }
     }
 }
-

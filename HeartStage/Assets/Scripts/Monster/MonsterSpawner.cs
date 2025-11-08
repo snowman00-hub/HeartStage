@@ -2,8 +2,6 @@
 using Cysharp.Threading.Tasks;
 using UnityEngine.AddressableAssets;
 using System.Collections.Generic;
-using Cysharp.Threading.Tasks.CompilerServices;
-using NUnit.Framework;
 
 public class MonsterSpawner : MonoBehaviour
 {
@@ -101,5 +99,4 @@ public class MonsterSpawner : MonoBehaviour
             Addressables.ReleaseInstance(monster);
         }
     }
-
 }

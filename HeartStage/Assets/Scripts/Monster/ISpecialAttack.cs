@@ -1,6 +1,4 @@
-using UnityEngine;
-
-public interface ISpecialAttack 
+﻿public interface ISpecialAttack 
 {
     
 }

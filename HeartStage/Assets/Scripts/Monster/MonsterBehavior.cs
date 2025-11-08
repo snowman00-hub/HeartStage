@@ -1,19 +1,21 @@
 ﻿using System.Text;
 using UnityEngine;
-using UnityEngine.InputSystem;
 public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 {
     [Header("Field")]
     private MonsterDataController monsterDataController;
     //private bool isAlive = true;
+
     private void Awake()
     {
         monsterDataController = GetComponent<MonsterDataController>();
     }
+
     public void Attack()
     {
         // 애니메이션 처리        
     }
+
     public void OnDamage(int damage)
     {
         if(monsterDataController != null)
@@ -26,6 +28,7 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
             Die();
         }
     }
+
     public void Die()
     {
         // 몬스터 Die 애니메이션 처리
@@ -54,6 +57,7 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
             }
         }
     }
+
     private void Update()
     {
 
