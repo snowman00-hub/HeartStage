@@ -13,6 +13,7 @@ public class CharacterData : ScriptableObject
     public float crt_chance;
     public float crt_hit_rate;
     public string bullet_PrefabName;
+    public string data_AssetName;
 
     public void UpdateData(CharacterCSVData csvData)
     {
@@ -26,5 +27,6 @@ public class CharacterData : ScriptableObject
         crt_chance = csvData.crt_chance;
         crt_hit_rate = csvData.crt_hit_rate;
         bullet_PrefabName = csvData.bullet_PrefabName;
+        data_AssetName = csvData.data_AssetName;
     }
 }

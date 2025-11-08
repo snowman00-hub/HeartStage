@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class testTowerAttack : MonoBehaviour
 {
-    public CharacterData data;
+    private CharacterData data;
 
     private float attackTimer = 0f;
 
@@ -27,7 +27,9 @@ public class testTowerAttack : MonoBehaviour
 
     private void Start()
     {
-        data.UpdateData(DataTableManger.CharacterTable.Get(11));
+        var csvData = DataTableManger.CharacterTable.Get(11);
+        data = ResourceManager.Instance.Get<CharacterData>(csvData.data_AssetName);
+        data.UpdateData(csvData);
         var bulletGo = ResourceManager.Instance.Get<GameObject>(data.bullet_PrefabName);
         PoolManager.Instance.CreatePool(data.ID.ToString(), bulletGo);
     }

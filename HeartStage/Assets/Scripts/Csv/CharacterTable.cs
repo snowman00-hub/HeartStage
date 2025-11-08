@@ -17,6 +17,7 @@ public class CharacterCSVData
     public float crt_chance { get; set; }
     public float crt_hit_rate { get; set; }
     public string bullet_PrefabName { get; set; }
+    public string data_AssetName { get; set; }
 }
 
 public class CharacterTable : DataTable

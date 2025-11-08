@@ -7,6 +7,8 @@ using UnityEditor;
 
 public class BootStrap : MonoBehaviour
 {
+    private const string Key = "LastPlayedScenePath";
+
     private async UniTask Start()
     {
         await ResourceManager.Instance.PreloadLabelAsync(AddressableLabel.Stage);
@@ -14,7 +16,9 @@ public class BootStrap : MonoBehaviour
 
         string targetScene = "";
 #if UNITY_EDITOR
-        targetScene = PlayStartingSceneSetter.GetLastScene();
+        string lastScene = EditorPrefs.GetString(Key, "");
+        if (!string.IsNullOrEmpty(lastScene))
+            targetScene = lastScene;
 #endif
 
         if (string.IsNullOrEmpty(targetScene))

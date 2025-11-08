@@ -2,11 +2,11 @@
 using UnityEditor.SceneManagement;
 
 [InitializeOnLoad]
-public static class PlayStartingSceneSetter
+public static class EditPlayScene
 {
     private const string Key = "LastPlayedScenePath";
 
-    static PlayStartingSceneSetter()
+    static EditPlayScene()
     {
         EditorApplication.playModeStateChanged += OnPlayModeChanged;
     }
