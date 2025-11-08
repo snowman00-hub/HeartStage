@@ -28,6 +28,13 @@ public static class DataTableManager
             await monsterTable.LoadAsync(DataTableIds.Monster);
             tables.Add(DataTableIds.Monster, monsterTable);
         }
+
+        {
+            var table = new CharacterTable();
+            var id = DataTableIds.Character;
+            await table.LoadAsync(id);
+            tables.Add(id, table);
+        }
     }
 
     public static ItemTable ItemTable
@@ -43,6 +50,14 @@ public static class DataTableManager
         get
         {
             return Get<MonsterTable>(DataTableIds.Monster);
+        }
+    }
+
+    public static CharacterTable CharacterTable
+    {
+        get
+        {
+            return Get<CharacterTable>(DataTableIds.Character);
         }
     }
 

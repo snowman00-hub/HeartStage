@@ -22,16 +22,14 @@ public class PoolManager : MonoBehaviour
         }
     }
 
-    public void CreatePool(string assetName, int defaultCapacity = 30, int maxSize = 300)
+    public void CreatePool(string id, GameObject prefab, int defaultCapacity = 30, int maxSize = 300)
     {
-        if (poolDict.ContainsKey(assetName))
+        if (poolDict.ContainsKey(id))
             return;
 
         var parentGo = new GameObject();
-        parentGo.name = assetName;
+        parentGo.name = id;
         parentGo.transform.SetParent(transform);
-
-        GameObject prefab = ResourceManager.Instance.Get<GameObject>(assetName);
 
         var pool = new ObjectPool<GameObject>(
            createFunc: () =>
@@ -47,8 +45,8 @@ public class PoolManager : MonoBehaviour
            maxSize: maxSize
         );
 
-        poolDict.Add(assetName, pool);
-        WarmUp(assetName, defaultCapacity);
+        poolDict.Add(id, pool);
+        WarmUp(id, defaultCapacity);
     }
 
     public GameObject Get(string key)
@@ -62,9 +60,9 @@ public class PoolManager : MonoBehaviour
         return poolDict[key].Get();
     }
 
-    private void WarmUp(string assetName, int count)
+    private void WarmUp(string id, int count)
     {
-        var pool = poolDict[assetName];
+        var pool = poolDict[id];
 
         List<GameObject> temp = new List<GameObject>();
         for (int i = 0; i < count; i++)
@@ -77,11 +75,11 @@ public class PoolManager : MonoBehaviour
             pool.Release(obj);
     }
 
-    public void Release(string assetName, GameObject obj)
+    public void Release(string id, GameObject obj)
     {
-        if (poolDict.ContainsKey(assetName))
+        if (poolDict.ContainsKey(id))
         {
-            poolDict[assetName].Release(obj);
+            poolDict[id].Release(obj);
         }
         else
         {

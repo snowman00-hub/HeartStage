@@ -25,6 +25,7 @@ public class MonsterSpawner : MonoBehaviour
         await InitializePool();
         await SpawnMonstersLoop(spawneTimeTest);
     }
+
     private async UniTask SpawnMonstersLoop(int spawneTimeTest)
     {
         while (true)

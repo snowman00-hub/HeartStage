@@ -12,6 +12,7 @@ public static class DataTableIds
 
     public static string Item => CsvTableIds[0];
 
+    public static string Character => "CharacterTable";
     public static string Monster => "MonsterTable";
 }
 
