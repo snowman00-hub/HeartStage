@@ -3,6 +3,7 @@
 [CreateAssetMenu(fileName = "CharacterData", menuName = "Scriptable Objects/CharacterData")]
 public class CharacterData : ScriptableObject
 {
+    // hp 대미지 int로 변경
     public int ID;
     public float atk_dmg;
     public float atk_interval;

@@ -4,6 +4,7 @@ using UnityEngine;
 public class testTowerAttack : MonoBehaviour
 {
     private CharacterData data;
+    private CharacterBuffController buffController;
 
     private float attackTimer = 0f;
 
@@ -32,6 +33,9 @@ public class testTowerAttack : MonoBehaviour
         data.UpdateData(csvData);
         var bulletGo = ResourceManager.Instance.Get<GameObject>(data.bullet_PrefabName);
         PoolManager.Instance.CreatePool(data.ID.ToString(), bulletGo);
+
+        buffController = GetComponent<CharacterBuffController>();
+        buffController.SetData(data);
     }
 
     private void Update()
@@ -75,5 +79,4 @@ public class testTowerAttack : MonoBehaviour
 
         return closest;
     }
-    // test
 }
