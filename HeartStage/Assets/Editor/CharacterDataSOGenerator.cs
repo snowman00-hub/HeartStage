@@ -1,14 +1,16 @@
-﻿using UnityEditor;
-using UnityEngine;
-using System.IO;
+﻿using CsvHelper;
 using System.Globalization;
-using CsvHelper;
+using System.IO;
 using System.Linq;
+using UnityEditor;
+using UnityEditor.AddressableAssets;
+using UnityEditor.AddressableAssets.Settings;
+using UnityEngine;
 
 public class CharacterDataSOGenerator : EditorWindow
 {
     private string csvFilePath = "Assets/DataTables/CharacterTable.csv"; // CSV 경로
-    private string saveFolderPath = "Assets/Datas/TestData/"; // SO 저장 경로
+    private string saveFolderPath = "Assets/ScriptableObject/CharacterData/"; // SO 저장 경로
 
     [MenuItem("Tools/Generate CharacterData SO")]
     private static void ShowWindow()
@@ -56,6 +58,16 @@ public class CharacterDataSOGenerator : EditorWindow
                 so.UpdateData(record);
 
                 AssetDatabase.CreateAsset(so, assetPath);
+
+                // Addressable로 등록
+                AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.Settings;
+                if (settings != null)
+                {
+                    string guid = AssetDatabase.AssetPathToGUID(assetPath);
+                    AddressableAssetEntry entry = settings.CreateOrMoveEntry(guid, settings.DefaultGroup);
+                    entry.address = Path.GetFileNameWithoutExtension(assetPath);
+                    entry.SetLabel(AddressableLabel.Stage, true, true);
+                }
             }
         }
 

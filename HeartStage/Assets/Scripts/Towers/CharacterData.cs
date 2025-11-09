@@ -29,4 +29,22 @@ public class CharacterData : ScriptableObject
         bullet_PrefabName = csvData.bullet_PrefabName;
         data_AssetName = csvData.data_AssetName;
     }
+
+    public CharacterCSVData ToCSVData()
+    {
+        CharacterCSVData csvData = new CharacterCSVData();
+        csvData.ID = ID;
+        csvData.atk_dmg = atk_dmg;
+        csvData.atk_interval = atk_interval;
+        csvData.atk_range = atk_range;
+        csvData.bullet_speed = bullet_speed;
+        csvData.bullet_count = bullet_count;
+        csvData.hp = hp;
+        csvData.crt_chance = crt_chance;
+        csvData.crt_hit_rate= crt_hit_rate;
+        csvData.bullet_PrefabName = bullet_PrefabName;
+        csvData.data_AssetName = data_AssetName;
+
+        return csvData;
+    }
 }
