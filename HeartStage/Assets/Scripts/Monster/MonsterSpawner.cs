@@ -80,7 +80,7 @@ public class MonsterSpawner : MonoBehaviour
         {
             if (!monster.activeInHierarchy && monster != null)
             {
-                monsterData.Init(111011); // test 
+                // monsterData.Init(111011); // test 
 
                 var monsterBehavior = monster.GetComponent<MonsterBehavior>();
                 monsterBehavior.Init(monsterData);
@@ -113,7 +113,10 @@ public class MonsterSpawner : MonoBehaviour
     {
         foreach (var monster in monsterList)
         {
-            Addressables.ReleaseInstance(monster);
+            if (monster != null && monster.gameObject != null)
+            {
+                Addressables.ReleaseInstance(monster);
+            }
         }
     }
 }
