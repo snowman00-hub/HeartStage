@@ -113,7 +113,10 @@ public class MonsterSpawner : MonoBehaviour
     {
         foreach (var monster in monsterList)
         {
-            Addressables.ReleaseInstance(monster);
+            if (monster != null && monster.gameObject != null)
+            {
+                Addressables.ReleaseInstance(monster);
+            }
         }
     }
 }

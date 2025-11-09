@@ -1,4 +1,4 @@
-#if UNITY_EDITOR
+ï»¿#if UNITY_EDITOR
 using UnityEngine;
 using UnityEditor;
 using Cysharp.Threading.Tasks;
@@ -21,20 +21,20 @@ public class MonsterDataTools : EditorWindow
 
         EditorGUI.BeginDisabledGroup(_isProcessing);
 
-        GUILayout.Label("1. µ¥ÀÌÅÍÅ×ÀÌºí¿¡¼­ SO ÀÚµ¿ »ı¼º", EditorStyles.boldLabel);
-        EditorGUILayout.HelpBox("MonsterTableÀÇ ¸ğµç µ¥ÀÌÅÍ¸¦ ÀĞ¾î¼­ MonsterData SO¸¦ ÀÚµ¿ »ı¼ºÇÕ´Ï´Ù.", MessageType.Info);
+        GUILayout.Label("1. ë°ì´í„°í…Œì´ë¸”ì—ì„œ SO ìë™ ìƒì„±", EditorStyles.boldLabel);
+        EditorGUILayout.HelpBox("MonsterTableì˜ ëª¨ë“  ë°ì´í„°ë¥¼ ì½ì–´ì„œ MonsterData SOë¥¼ ìë™ ìƒì„±í•©ë‹ˆë‹¤.", MessageType.Info);
 
-        if (GUILayout.Button("µ¥ÀÌÅÍÅ×ÀÌºí ¡æ SO »ı¼º", GUILayout.Height(40)))
+        if (GUILayout.Button("ë°ì´í„°í…Œì´ë¸” â†’ SO ìƒì„±", GUILayout.Height(40)))
         {
             CreateSOFromDataTable();
         }
 
         GUILayout.Space(20);
 
-        GUILayout.Label("2. SO µ¥ÀÌÅÍ·Î µ¥ÀÌÅÍÅ×ÀÌºí µ¤¾î¾²±â", EditorStyles.boldLabel);
-        EditorGUILayout.HelpBox("ÇÁ·ÎÁ§Æ® ³» ¸ğµç MonsterData SO¸¦ Ã£¾Æ¼­ µ¥ÀÌÅÍÅ×ÀÌºíÀ» µ¤¾î¾²°í CSV·Î ÀúÀåÇÕ´Ï´Ù.", MessageType.Info);
+        GUILayout.Label("2. SO ë°ì´í„°ë¡œ ë°ì´í„°í…Œì´ë¸” ë®ì–´ì“°ê¸°", EditorStyles.boldLabel);
+        EditorGUILayout.HelpBox("í”„ë¡œì íŠ¸ ë‚´ ëª¨ë“  MonsterData SOë¥¼ ì°¾ì•„ì„œ ë°ì´í„°í…Œì´ë¸”ì„ ë®ì–´ì“°ê³  CSVë¡œ ì €ì¥í•©ë‹ˆë‹¤.", MessageType.Info);
 
-        if (GUILayout.Button("SO ¡æ µ¥ÀÌÅÍÅ×ÀÌºí µ¤¾î¾²±â", GUILayout.Height(40)))
+        if (GUILayout.Button("SO â†’ ë°ì´í„°í…Œì´ë¸” ë®ì–´ì“°ê¸°", GUILayout.Height(40)))
         {
             OverwriteDataTableFromSO();
         }
@@ -43,7 +43,7 @@ public class MonsterDataTools : EditorWindow
 
         if (_isProcessing)
         {
-            EditorGUILayout.HelpBox("ÀÛ¾÷ ÁøÇà Áß...", MessageType.Info);
+            EditorGUILayout.HelpBox("ì‘ì—… ì§„í–‰ ì¤‘...", MessageType.Info);
         }
     }
 
@@ -59,11 +59,11 @@ public class MonsterDataTools : EditorWindow
             var monsterTable = DataTableManager.MonsterTable;
             if (monsterTable == null)
             {
-                Debug.LogError("MonsterTableÀÌ ÃÊ±âÈ­µÇÁö ¾Ê¾Ò½À´Ï´Ù.");
+                Debug.LogError("MonsterTableì´ ì´ˆê¸°í™”ë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤.");
                 return;
             }
 
-            string folderPath = "Assets/ScriptableObjects/Monsters";
+            string folderPath = "Assets/ScriptableObject/Monsters";
             EnsureFolderExists(folderPath);
 
             int createCount = 0;
@@ -80,12 +80,12 @@ public class MonsterDataTools : EditorWindow
                 if (existingSO == null)
                 {
                     AssetDatabase.CreateAsset(so, assetPath);
-                    Debug.Log($"»õ SO »ı¼º: {data.mon_name} (ID: {data.id})");
+                    Debug.Log($"ìƒˆ SO ìƒì„±: {data.mon_name} (ID: {data.id})");
                 }
                 else
                 {
                     EditorUtility.SetDirty(so);
-                    Debug.Log($"±âÁ¸ SO ¾÷µ¥ÀÌÆ®: {data.mon_name} (ID: {data.id})");
+                    Debug.Log($"ê¸°ì¡´ SO ì—…ë°ì´íŠ¸: {data.mon_name} (ID: {data.id})");
                 }
 
                 createCount++;
@@ -93,11 +93,11 @@ public class MonsterDataTools : EditorWindow
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log($"MonsterData SO ÀÛ¾÷ ¿Ï·á! ÃÑ {createCount}°³ Ã³¸®µÊ");
+            Debug.Log($"MonsterData SO ì‘ì—… ì™„ë£Œ! ì´ {createCount}ê°œ ì²˜ë¦¬ë¨");
         }
         catch (System.Exception e)
         {
-            Debug.LogError($"SO »ı¼º ½ÇÆĞ: {e.Message}");
+            Debug.LogError($"SO ìƒì„± ì‹¤íŒ¨: {e.Message}");
         }
         finally
         {
@@ -118,14 +118,14 @@ public class MonsterDataTools : EditorWindow
             var monsterTable = DataTableManager.MonsterTable;
             if (monsterTable == null)
             {
-                Debug.LogError("MonsterTableÀÌ ÃÊ±âÈ­µÇÁö ¾Ê¾Ò½À´Ï´Ù.");
+                Debug.LogError("MonsterTableì´ ì´ˆê¸°í™”ë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤.");
                 return;
             }
 
             string[] guids = AssetDatabase.FindAssets("t:MonsterData");
             if (guids.Length == 0)
             {
-                Debug.LogWarning("MonsterData SO¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.");
+                Debug.LogWarning("MonsterData SOë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.");
                 return;
             }
 
@@ -141,25 +141,25 @@ public class MonsterDataTools : EditorWindow
                     var tableData = so.ToTableData();
                     monsterTable.UpdateOrAdd(tableData);
                     updateCount++;
-                    Debug.Log($"Å×ÀÌºí ¾÷µ¥ÀÌÆ®: {so.monsterName} (ID: {so.id})");
+                    Debug.Log($"í…Œì´ë¸” ì—…ë°ì´íŠ¸: {so.monsterName} (ID: {so.id})");
                 }
             }
 
-            string csvPath = EditorUtility.SaveFilePanel("Monster CSV ÀúÀå", "Assets", "monster_data_updated", "csv");
+            string csvPath = EditorUtility.SaveFilePanel("Monster CSV ì €ì¥", "Assets", "monster_data_updated", "csv");
             if (!string.IsNullOrEmpty(csvPath))
             {
                 monsterTable.SaveToCSV(csvPath);
-                Debug.Log($"¼º°ø! {updateCount}°³ SO µ¥ÀÌÅÍ¸¦ Å×ÀÌºí¿¡ ¹İ¿µÇÏ°í {csvPath}¿¡ ÀúÀåÇß½À´Ï´Ù.");
+                Debug.Log($"ì„±ê³µ! {updateCount}ê°œ SO ë°ì´í„°ë¥¼ í…Œì´ë¸”ì— ë°˜ì˜í•˜ê³  {csvPath}ì— ì €ì¥í–ˆìŠµë‹ˆë‹¤.");
                 AssetDatabase.Refresh();
             }
             else
             {
-                Debug.Log($"{updateCount}°³ SO µ¥ÀÌÅÍ¸¦ Å×ÀÌºí¿¡ ¹İ¿µÇß½À´Ï´Ù. (CSV ÀúÀå Ãë¼ÒµÊ)");
+                Debug.Log($"{updateCount}ê°œ SO ë°ì´í„°ë¥¼ í…Œì´ë¸”ì— ë°˜ì˜í–ˆìŠµë‹ˆë‹¤. (CSV ì €ì¥ ì·¨ì†Œë¨)");
             }
         }
         catch (System.Exception e)
         {
-            Debug.LogError($"Å×ÀÌºí µ¤¾î¾²±â ½ÇÆĞ: {e.Message}");
+            Debug.LogError($"í…Œì´ë¸” ë®ì–´ì“°ê¸° ì‹¤íŒ¨: {e.Message}");
         }
         finally
         {
@@ -168,7 +168,7 @@ public class MonsterDataTools : EditorWindow
         }
     }
 
-    // ÇïÆÛ ¸Ş¼­µåµé
+    // í—¬í¼ ë©”ì„œë“œë“¤
     private async UniTask EnsureInitialized()
     {
         if (_isInitialized)
@@ -180,10 +180,10 @@ public class MonsterDataTools : EditorWindow
 
     private void EnsureFolderExists(string folderPath)
     {
-        if (!AssetDatabase.IsValidFolder("Assets/ScriptableObjects"))
-            AssetDatabase.CreateFolder("Assets", "ScriptableObjects");
+        if (!AssetDatabase.IsValidFolder("Assets/ScriptableObject"))
+            AssetDatabase.CreateFolder("Assets", "ScriptableObject");
         if (!AssetDatabase.IsValidFolder(folderPath))
-            AssetDatabase.CreateFolder("Assets/ScriptableObjects", "Monsters");
+            AssetDatabase.CreateFolder("Assets/ScriptableObject", "Monsters");
     }
 
     private void AssignDataToSO(MonsterData so, Data data)
