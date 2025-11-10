@@ -12,6 +12,7 @@ public class CharacterAttack : MonoBehaviour
     private float cleanupTimer = 0f;
 
     private CircleCollider2D circleCollider;
+    private SpriteRenderer spriteRenderer;
 
     private void Awake()
     {
@@ -32,12 +33,16 @@ public class CharacterAttack : MonoBehaviour
         var projectileInstance = Instantiate(projectilePrefab, combined.transform);
         projectileInstance.transform.localPosition = Vector3.zero;
         // 풀 생성: "완성된 조합 프리팹"으로 등록
-        PoolManager.Instance.CreatePool(data.bullet_PrefabName, combined);
+        PoolManager.Instance.CreatePool(data.projectile_AssetName, combined);
         // 히트 이펙트 풀 생성
         var hitEffectGo = ResourceManager.Instance.Get<GameObject>(data.hitEffect_AssetName);
         PoolManager.Instance.CreatePool(data.hitEffect_AssetName, hitEffectGo);
         // 범위 설정
         circleCollider.radius = data.atk_range;
+        // 캐릭터 스프라이트 변경
+        spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        var texture = ResourceManager.Instance.Get<Texture2D>(data.image_AssetName);
+        spriteRenderer.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
     }
 
     private void Update()
@@ -65,13 +70,13 @@ public class CharacterAttack : MonoBehaviour
 
     private void Fire(Vector3 targetPos)
     {
-        GameObject projectile = PoolManager.Instance.Get(data.bullet_PrefabName);
+        GameObject projectile = PoolManager.Instance.Get(data.projectile_AssetName);
         if (projectile == null)
             return;
 
         var dir = (targetPos - transform.position).normalized;
         projectile.GetComponent<CharacterProjectile>()
-            .SetMissile(data.bullet_PrefabName, data.hitEffect_AssetName, transform.position, dir, data.bullet_speed, data.atk_dmg);
+            .SetMissile(data.projectile_AssetName, data.hitEffect_AssetName, transform.position, dir, data.bullet_speed, data.atk_dmg);
     }
 
     private GameObject GetClosestEnemy()

@@ -65,9 +65,12 @@ public class CharacterProjectile : MonoBehaviour
         var particle = hitGo.GetComponent<ParticleSystem>();
         particle.Play();
 
-        await UniTask.WaitUntil(() => particle.IsAlive() == false);
+        await UniTask.WaitUntil(() => particle == null || particle.IsAlive() == false);
 
-        PoolManager.Instance.Release(hitEffectId, hitGo);
+        if (hitGo != null)
+        {
+            PoolManager.Instance.Release(hitEffectId, hitGo);
+        }
     }
 
     private async UniTaskVoid AutoReleaseAfterDelay(float delay, CancellationToken token)
