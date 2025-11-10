@@ -3,6 +3,9 @@ using UnityEngine;
 
 public class CharacterAttack : MonoBehaviour
 {
+    [HideInInspector]
+    public int id = 11010101; // 테스트 id
+
     private CharacterData data;
     private List<GameObject> monsters = new List<GameObject>();
     private float nextAttackTime;
@@ -18,7 +21,7 @@ public class CharacterAttack : MonoBehaviour
     private void Start()
     {
         // CSV → ScriptableObject 반영
-        var csvData = DataTableManager.CharacterTable.Get(11010101);
+        var csvData = DataTableManager.CharacterTable.Get(id);
         data = ResourceManager.Instance.Get<CharacterData>(csvData.data_AssetName);
         data.UpdateData(csvData);
         // bullet 프리팹과 projectile 프리팹 로드
@@ -46,7 +49,7 @@ public class CharacterAttack : MonoBehaviour
             monsters.RemoveAll(m => m == null); // 죽은 몬스터 정리
         }
 
-        if (monsters.Count == 0) 
+        if (monsters.Count == 0)
             return;
 
         if (Time.time < nextAttackTime)
@@ -68,7 +71,7 @@ public class CharacterAttack : MonoBehaviour
 
         var dir = (targetPos - transform.position).normalized;
         projectile.GetComponent<CharacterProjectile>()
-            .SetMissile(data.bullet_PrefabName,data.hitEffect_AssetName, transform.position, dir, data.bullet_speed, data.atk_dmg);
+            .SetMissile(data.bullet_PrefabName, data.hitEffect_AssetName, transform.position, dir, data.bullet_speed, data.atk_dmg);
     }
 
     private GameObject GetClosestEnemy()
