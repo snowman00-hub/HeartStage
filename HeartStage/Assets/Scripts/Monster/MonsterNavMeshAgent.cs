@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.AI;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 
 public class MonsterNavMeshAgent : MonoBehaviour
 {
@@ -10,12 +11,14 @@ public class MonsterNavMeshAgent : MonoBehaviour
     [Header("Field")]
     private Transform target;
     private NavMeshAgent navMeshAgent;
+    public bool isChasingPlayer = false;
 
     private void Start()
     {
         navMeshAgent = GetComponent<NavMeshAgent>();
         navMeshAgent.updateRotation = false;
         navMeshAgent.updateUpAxis = false;
+        isChasingPlayer = true;
     }
 
     public void SetUp()
@@ -26,10 +29,19 @@ public class MonsterNavMeshAgent : MonoBehaviour
             this.target = targetPoints[randomIndex];
         }     
     }
+    public void ClearTarget()
+    {
+        target = null;
+    }
+
+    public void RestoreTarget()
+    {
+        SetUp(); 
+    }
 
     private void Update()
     {
-        if (target != null)
+        if (target != null && isChasingPlayer && !navMeshAgent.isStopped)
         {
             navMeshAgent.SetDestination(target.position);
         }

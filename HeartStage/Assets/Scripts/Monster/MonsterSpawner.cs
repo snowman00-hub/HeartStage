@@ -2,6 +2,7 @@
 using Cysharp.Threading.Tasks;
 using UnityEngine.AddressableAssets;
 using System.Collections.Generic;
+using TMPro.EditorUtilities;
 
 public class MonsterSpawner : MonoBehaviour
 {
@@ -55,18 +56,13 @@ public class MonsterSpawner : MonoBehaviour
 
     private void SpawnProjectile()
     {
-        if (PoolManager.Instance == null)
-        {
-            Debug.LogError("PoolManager.Instance가 null입니다!");
-            return;
-        }
-        if (monsterProjectilePrefab == null)
-        {
-            Debug.LogError("monsterProjectilePrefab이 null입니다! 인스펙터에서 프리팹을 할당하세요.");
-            return;
-        }
         PoolManager.Instance.CreatePool(MonsterProjectilePoolId, monsterProjectilePrefab, 100);
-        var projectile = PoolManager.Instance.Get(MonsterProjectilePoolId);
+
+        for (int i = 0; i < 100; i++)
+        {
+            var projectile = PoolManager.Instance.Get(MonsterProjectilePoolId);
+            projectile.SetActive(false);
+        }
     }
 
     private async UniTask InitializePool()
@@ -109,21 +105,21 @@ public class MonsterSpawner : MonoBehaviour
                 monsterNav.SetUp();
 
                 monster.SetActive(true);
-                Debug.Log(
-                    $"소환된 몬스터 정보 - " +
-                    $"ID: {monsterData.id}, " +
-                    $"이름: {monsterData.monsterName}, " +
-                    $"타입: {monsterData.monsterType}, " +
-                    $"HP: {monsterData.hp}, " +
-                    $"공격력: {monsterData.att}, " +
-                    $"공격타입: {monsterData.attType}, " +
-                    $"공격속도: {monsterData.attackSpeed}, " +
-                    $"공격범위: {monsterData.attackRange}, " +
-                    $"탄속: {monsterData.bulletSpeed}, " +
-                    $"이동속도: {monsterData.moveSpeed}, " +
-                    $"최소경험치: {monsterData.minExp}, " +
-                    $"최대경험치: {monsterData.maxExp}"
-                );
+                //Debug.Log(
+                //    $"소환된 몬스터 정보 - " +
+                //    $"ID: {monsterData.id}, " +
+                //    $"이름: {monsterData.monsterName}, " +
+                //    $"타입: {monsterData.monsterType}, " +
+                //    $"HP: {monsterData.hp}, " +
+                //    $"공격력: {monsterData.att}, " +
+                //    $"공격타입: {monsterData.attType}, " +
+                //    $"공격속도: {monsterData.attackSpeed}, " +
+                //    $"공격범위: {monsterData.attackRange}, " +
+                //    $"탄속: {monsterData.bulletSpeed}, " +
+                //    $"이동속도: {monsterData.moveSpeed}, " +
+                //    $"최소경험치: {monsterData.minExp}, " +
+                //    $"최대경험치: {monsterData.maxExp}"
+                //);
                 return;
             }
         }

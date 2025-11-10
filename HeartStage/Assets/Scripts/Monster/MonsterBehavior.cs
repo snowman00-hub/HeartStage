@@ -8,11 +8,26 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 
     [Header("Field")]
     private MonsterData monsterData;
-    private const string MonsterProjectilePoolId = "MonsterProjectile"; // 임시 아이디
-
+    private const string MonsterProjectilePoolId = "MonsterProjectile"; // 임시 아이디 
+    float attackCooldown = 0;
     public void Init(MonsterData data)
     {
         monsterData = data;
+    }
+
+    private void Update()
+    {
+        if (monsterData == null)
+            return;
+
+        MonsterMoveControll();
+
+        attackCooldown -= Time.deltaTime;
+        if (attackCooldown <= 0f)
+        {
+            Attack();
+            attackCooldown = monsterData.attackSpeed;
+        }
     }
 
     public void Attack()
@@ -45,41 +60,14 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 
     public void Die()
     {
-        // 몬스터 Die 애니메이션 처리
-        //isAlive = false;
         gameObject.SetActive(false);
         Debug.Log("몬스터가 사망했습니다.");
-    }
-
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        if (other.CompareTag(Tag.Wall))
-        {
-            var agent = GetComponent<MonsterNavMeshAgent>();
-            if (agent != null)
-            {
-                agent.enabled = false;
-            }
-
-            Attack();
-        }
-    }
-
-    private void OnTriggerExit2D(Collider2D other)
-    {
-        if (other.CompareTag(Tag.Wall))
-        {
-            var agent = GetComponent<MonsterNavMeshAgent>();
-            if (agent != null)
-            {
-                agent.enabled = true;
-            }
-        }
     }
 
     private void MeleeAttack()
     {
         // 애니메이션 처리
+        Debug.Log($"attackRange: {monsterData.attackRange}");
         Collider2D hit = Physics2D.OverlapCircle(transform.position, monsterData.attackRange, LayerMask.GetMask(Tag.Wall));
 
         if(hit != null)
@@ -95,6 +83,7 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     private void RangedAttack()
     {
         // 애니메이션 처리
+        Debug.Log($"attackRange: {monsterData.attackRange}");
         Collider2D hit = Physics2D.OverlapCircle(transform.position, monsterData.attackRange, LayerMask.GetMask(Tag.Wall));
         
         if (hit != null)
@@ -108,14 +97,67 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
                 projectileObj.transform.position = transform.position;
                 projectileObj.transform.rotation = Quaternion.identity;
 
-                var projectile = GetComponent<MonsterProjectile>();
+                var projectile = projectileObj.GetComponent<MonsterProjectile>();
                 if (projectile != null)
                 {
-                    projectile.Init(direction, monsterData.bulletSpeed);
+                    projectile.Init(direction, monsterData.bulletSpeed, monsterData.att);
                 }
 
                 projectileObj.SetActive(true);
             }
         }
     }
+
+    private bool IsEnemyInRange()
+    {
+        Collider2D hit = Physics2D.OverlapCircle(transform.position, monsterData.attackRange, LayerMask.GetMask(Tag.Wall));
+        return hit != null;
+    }
+
+    private void MonsterMoveControll()
+    {
+        bool enemyInRange = IsEnemyInRange();
+        if (enemyInRange)
+        {
+            StopMove();
+        }
+        else
+        {
+            ResumeMove();
+        }
+    }
+
+    private void StopMove()
+    {
+        var agent = GetComponent<MonsterNavMeshAgent>();
+        if (agent != null && agent.isChasingPlayer)
+        {
+            agent.isChasingPlayer = false;
+            agent.ClearTarget();
+
+            var nav  = agent.GetComponent<UnityEngine.AI.NavMeshAgent>();
+            if (nav != null)
+            {
+                nav.isStopped = true;
+                nav.ResetPath();
+            }
+        }
+    }
+
+    private void ResumeMove()
+    {
+        var agent = GetComponent<MonsterNavMeshAgent>();
+        if (agent != null && !agent.isChasingPlayer)
+        {
+            agent.isChasingPlayer = true;
+            agent.RestoreTarget();
+
+            var nav = agent.GetComponent<UnityEngine.AI.NavMeshAgent>();
+            if (nav != null)
+            {
+                nav.isStopped = false;                
+            }
+        }
+    }
+
 }
