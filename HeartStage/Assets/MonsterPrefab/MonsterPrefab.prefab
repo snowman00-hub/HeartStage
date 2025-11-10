@@ -17,7 +17,7 @@ GameObject:
   - component: {fileID: 703487995423973710}
   m_Layer: 3
   m_Name: MonsterPrefab
-  m_TagString: Enemy
+  m_TagString: Monster
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -140,6 +140,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   targetPoints: []
+  isChasingPlayer: 0
 --- !u!70 &1635635017141523680
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
