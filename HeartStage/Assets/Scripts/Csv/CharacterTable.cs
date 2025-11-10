@@ -30,6 +30,8 @@ public class CharacterCSVData
     public string Info { get; set; }
     public string bullet_PrefabName { get; set; }
     public string data_AssetName { get; set; }
+    public string projectile_AssetName { get; set; }
+    public string hitEffect_AssetName { get; set; }
 }
 
 public class CharacterTable : DataTable

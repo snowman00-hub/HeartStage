@@ -17,15 +17,26 @@ public class CharacterAttack : MonoBehaviour
 
     private void Start()
     {
+        // CSV → ScriptableObject 반영
         var csvData = DataTableManager.CharacterTable.Get(11010101);
         data = ResourceManager.Instance.Get<CharacterData>(csvData.data_AssetName);
         data.UpdateData(csvData);
-
-        var bulletGo = ResourceManager.Instance.Get<GameObject>(data.bullet_PrefabName);
-        PoolManager.Instance.CreatePool(data.ID.ToString(), bulletGo);
-
+        // bullet 프리팹과 projectile 프리팹 로드
+        var bulletPrefab = ResourceManager.Instance.Get<GameObject>(data.bullet_PrefabName);
+        var projectilePrefab = ResourceManager.Instance.Get<GameObject>(data.projectile_AssetName);
+        // 런타임 조립: bullet 안에 projectile 추가
+        var combined = Instantiate(bulletPrefab);
+        var projectileInstance = Instantiate(projectilePrefab, combined.transform);
+        projectileInstance.transform.localPosition = Vector3.zero;
+        // 풀 생성: "완성된 조합 프리팹"으로 등록
+        PoolManager.Instance.CreatePool(data.bullet_PrefabName, combined);
+        // 히트 이펙트 풀 생성
+        var hitEffectGo = ResourceManager.Instance.Get<GameObject>(data.hitEffect_AssetName);
+        PoolManager.Instance.CreatePool(data.hitEffect_AssetName, hitEffectGo);
+        // 범위 설정
         circleCollider.radius = data.atk_range;
     }
+
 
     private void Update()
     {
@@ -52,13 +63,13 @@ public class CharacterAttack : MonoBehaviour
 
     private void Fire(Vector3 targetPos)
     {
-        GameObject projectile = PoolManager.Instance.Get(data.ID.ToString());
+        GameObject projectile = PoolManager.Instance.Get(data.bullet_PrefabName);
         if (projectile == null)
             return;
 
         var dir = (targetPos - transform.position).normalized;
         projectile.GetComponent<CharacterProjectile>()
-            .SetMissile(data.ID.ToString(), transform.position, dir, data.bullet_speed, data.atk_dmg);
+            .SetMissile(data.bullet_PrefabName,data.hitEffect_AssetName, transform.position, dir, data.bullet_speed, data.atk_dmg);
     }
 
     private GameObject GetClosestEnemy()

@@ -26,6 +26,8 @@ public class CharacterData : ScriptableObject
     public string Info;
     public string bullet_PrefabName;
     public string data_AssetName;
+    public string projectile_AssetName;
+    public string hitEffect_AssetName;
 
     public void UpdateData(CharacterCSVData csvData)
     {
@@ -52,6 +54,8 @@ public class CharacterData : ScriptableObject
         Info = csvData.Info;
         bullet_PrefabName = csvData.bullet_PrefabName;
         data_AssetName = csvData.data_AssetName;
+        projectile_AssetName = csvData.projectile_AssetName;
+        hitEffect_AssetName = csvData.hitEffect_AssetName;
     }
 
     public CharacterCSVData ToCSVData()
@@ -80,6 +84,8 @@ public class CharacterData : ScriptableObject
         csvData.Info = Info;
         csvData.bullet_PrefabName = bullet_PrefabName;
         csvData.data_AssetName = data_AssetName;
+        csvData.projectile_AssetName = projectile_AssetName;
+        csvData.hitEffect_AssetName = hitEffect_AssetName;
 
         return csvData;
     }
