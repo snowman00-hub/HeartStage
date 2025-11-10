@@ -19,7 +19,7 @@ public static class DataTableIds
 public class Tag
 {
     public static readonly string Player = "Player";
-    public static readonly string Enemy = "Enemy";
+    public static readonly string Monster = "Monster";
     public static readonly string Wall = "Wall";
 }
 

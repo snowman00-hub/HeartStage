@@ -8,14 +8,26 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 public class CharacterCSVData
 {
     public int ID { get; set; }
-    public float atk_dmg { get; set; }
-    public float atk_interval { get; set; }
+    public string ch_name { get; set; }
+    public int ch_level { get; set; }
+    public int ch_level_count { get; set; }
+    public int rank { get; set; }
+    public int atk_name { get; set; }
+    public int atk_info { get; set; }
+    public int atk_effect { get; set; }
+    public int atk_dmg { get; set; }
+    public float atk_speed { get; set; }
     public float atk_range { get; set; }
     public float bullet_speed { get; set; }
-    public float bullet_count { get; set; }
-    public float hp { get; set; }
+    public int bullet_count { get; set; }
+    public int Stamina { get; set; }
     public float crt_chance { get; set; }
-    public float crt_hit_rate { get; set; }
+    public float crt_dmg { get; set; }
+    public int passive_id { get; set; }
+    public int skill_id { get; set; }
+    public int synergy_id { get; set; }
+    public int Unlock { get; set; }
+    public string Info { get; set; }
     public string bullet_PrefabName { get; set; }
     public string data_AssetName { get; set; }
 }

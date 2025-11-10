@@ -4,7 +4,7 @@ using UnityEngine;
 public class testTowerAttack : MonoBehaviour
 {
     private CharacterData data;
-    private CharacterBuffController buffController;
+    //private CharacterBuffController buffController;
 
     private float attackTimer = 0f;
 
@@ -12,7 +12,7 @@ public class testTowerAttack : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag(Tag.Enemy))
+        if (collision.CompareTag(Tag.Monster))
         {
             enemys.Add(collision.gameObject);
         }
@@ -20,7 +20,7 @@ public class testTowerAttack : MonoBehaviour
 
     private void OnTriggerExit2D(Collider2D collision)
     {
-        if (collision.CompareTag(Tag.Enemy))
+        if (collision.CompareTag(Tag.Monster))
         {
             enemys.Remove(collision.gameObject);
         }
@@ -34,14 +34,14 @@ public class testTowerAttack : MonoBehaviour
         var bulletGo = ResourceManager.Instance.Get<GameObject>(data.bullet_PrefabName);
         PoolManager.Instance.CreatePool(data.ID.ToString(), bulletGo);
 
-        buffController = GetComponent<CharacterBuffController>();
-        buffController.SetData(data);
+        //buffController = GetComponent<CharacterBuffController>();
+        //buffController.SetData(data);
     }
 
     private void Update()
     {
         attackTimer += Time.deltaTime;
-        if (enemys.Count > 0 && attackTimer >= data.atk_interval)
+        //if (enemys.Count > 0 && attackTimer >= data.atk_interval)
         {
             GameObject target = GetClosestEnemy();
             if (target != null)
