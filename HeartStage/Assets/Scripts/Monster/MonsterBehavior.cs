@@ -1,6 +1,8 @@
-﻿using System.Text;
+﻿using NUnit.Framework;
+using System.Text;
 using UnityEditor;
 using UnityEngine;
+using System.Collections.Generic;
 public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 {
     [Header("Reference")]
@@ -10,9 +12,22 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     private MonsterData monsterData;
     private const string MonsterProjectilePoolId = "MonsterProjectile"; // 임시 아이디 
     float attackCooldown = 0;
+
+    private List<IBossMonsterSkill> bossSkillList = new List<IBossMonsterSkill>();
+    private bool isBoss = false;
+    private float skillCoolTime = 15f;
+
+
     public void Init(MonsterData data)
     {
         monsterData = data;
+        isBoss = IsBossMonster(data.id);
+
+
+        if (isBoss)
+        {
+            InitializeBossSkills(data.id); // 보스 스킬 초기화
+        }
     }
 
     private void Update()
@@ -27,6 +42,16 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         {
             Attack();
             attackCooldown = monsterData.attackSpeed;
+        }
+
+        if (isBoss)
+        {
+            skillCoolTime -= Time.deltaTime;
+            if (skillCoolTime <= 0f && bossSkillList.Count > 0)
+            {
+                UseBossSkills();
+                skillCoolTime = 15f;
+            }
         }
     }
 
@@ -60,14 +85,13 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 
     public void Die()
     {
-        gameObject.SetActive(false);
+        PoolManager.Instance.Release(monsterData.id.ToString(), gameObject);        
         Debug.Log("몬스터가 사망했습니다.");
     }
 
     private void MeleeAttack()
     {
-        // 애니메이션 처리
-        Debug.Log($"attackRange: {monsterData.attackRange}");
+        // 애니메이션 처리        
         Collider2D hit = Physics2D.OverlapCircle(transform.position, monsterData.attackRange, LayerMask.GetMask(Tag.Wall));
 
         if(hit != null)
@@ -82,8 +106,7 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 
     private void RangedAttack()
     {
-        // 애니메이션 처리
-        Debug.Log($"attackRange: {monsterData.attackRange}");
+        // 애니메이션 처리        
         Collider2D hit = Physics2D.OverlapCircle(transform.position, monsterData.attackRange, LayerMask.GetMask(Tag.Wall));
         
         if (hit != null)
@@ -160,4 +183,29 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         }
     }
 
+    private bool IsBossMonster(int id)
+    {
+        return id == 121042;
+    }
+
+    private void InitializeBossSkills(int bossId)
+    {
+        switch(bossId)
+        {
+            case 121042:
+                bossSkillList.Add(new DeceptionBossSKill(bossId.ToString(), 5));
+                break;
+        }
+    }
+
+    private void UseBossSkills()
+    {
+        foreach(var skill in bossSkillList)
+        {
+            skill.useSkill(this);
+            Debug.Log($"보스 스킬 : {skill} 사용");
+        }
+    }
+
 }
+
