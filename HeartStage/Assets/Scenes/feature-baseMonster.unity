@@ -1415,6 +1415,50 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1 &1817602735
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1817602736}
+  - component: {fileID: 1817602737}
+  m_Layer: 0
+  m_Name: PoolManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1817602736
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1817602735}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -4.1363187, y: 1.7465541, z: -0.053202044}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1817602737
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1817602735}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2cf4e1a7be63dab4796d00d7a98ec9ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1885339917
 GameObject:
   m_ObjectHideFlags: 0
@@ -1712,11 +1756,15 @@ PrefabInstance:
     - target: {fileID: 5148941320140235055, guid: 33d6cdedb5389cd4f8e2d811a82cfa88, type: 3}
       propertyPath: monsterData
       value: 
-      objectReference: {fileID: 11400000, guid: a73319de8b6d46f4cba71cd866fad81e, type: 2}
+      objectReference: {fileID: 11400000, guid: 5e04da24a3cb89349bfe120b5c5b5ae9, type: 2}
     - target: {fileID: 5148941320140235055, guid: 33d6cdedb5389cd4f8e2d811a82cfa88, type: 3}
       propertyPath: maxMonsterCount
       value: 20
       objectReference: {fileID: 0}
+    - target: {fileID: 5148941320140235055, guid: 33d6cdedb5389cd4f8e2d811a82cfa88, type: 3}
+      propertyPath: monsterProjectilePrefab
+      value: 
+      objectReference: {fileID: 4296434275817023623, guid: a1357a38544f63f47a4b8ea56f51e949, type: 3}
     - target: {fileID: 5148941320140235055, guid: 33d6cdedb5389cd4f8e2d811a82cfa88, type: 3}
       propertyPath: targetPoints.Array.size
       value: 9
@@ -1819,3 +1867,4 @@ SceneRoots:
   - {fileID: 151555423}
   - {fileID: 1490697747}
   - {fileID: 505151061}
+  - {fileID: 1817602736}
