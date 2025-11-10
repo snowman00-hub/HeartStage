@@ -37,7 +37,6 @@ public class CharacterAttack : MonoBehaviour
         circleCollider.radius = data.atk_range;
     }
 
-
     private void Update()
     {
         cleanupTimer += Time.deltaTime;
