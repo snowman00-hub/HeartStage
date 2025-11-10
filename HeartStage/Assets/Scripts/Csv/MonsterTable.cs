@@ -1,4 +1,4 @@
-using Cysharp.Threading.Tasks;
+ï»¿using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,6 +6,18 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using System.IO;
+
+public enum atk_type
+{
+    closeRange = 1,
+    longRange = 2
+}
+
+public enum mon_type
+{
+    normal = 1,
+    boss = 2
+}
 
 public class Data
 {
@@ -37,7 +49,7 @@ public class MonsterTable : DataTable
 
         if (!ta)
         {
-            Debug.LogError($"TextAsset ·Îµå ½ÇÆĞ: {filename}");
+            Debug.LogError($"TextAsset ë¡œë“œ ì‹¤íŒ¨: {filename}");
             return;
         }
 
@@ -51,7 +63,7 @@ public class MonsterTable : DataTable
             }
             else
             {
-                Debug.LogError($"¸ó½ºÅÍ ¾ÆÀÌµğ Áßº¹: {item.id}");
+                Debug.LogError($"ëª¬ìŠ¤í„° ì•„ì´ë”” ì¤‘ë³µ: {item.id}");
             }
         }
 
@@ -62,7 +74,7 @@ public class MonsterTable : DataTable
     {
         if (!table.ContainsKey(monsterId))
         {
-            Debug.LogWarning($"¸ó½ºÅÍ ¾ÆÀÌµğ¸¦ Ã£À» ¼ö ¾øÀ½: {monsterId}");
+            Debug.LogWarning($"ëª¬ìŠ¤í„° ì•„ì´ë””ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŒ: {monsterId}");
             return null;
         }
         return table[monsterId];
@@ -72,22 +84,22 @@ public class MonsterTable : DataTable
         table[data.id] = data;
     }
 
-    // Å×ÀÌºíÀÇ ¸ğµç µ¥ÀÌÅÍ °¡Á®¿À±â (SO »ı¼º¿ë)
+    // í…Œì´ë¸”ì˜ ëª¨ë“  ë°ì´í„° ê°€ì ¸ì˜¤ê¸° (SO ìƒì„±ìš©)
     public IEnumerable<Data> GetAllData()
     {
         return table.Values;
     }
 
-    // CSV·Î ÀúÀå
+    // CSVë¡œ ì €ì¥
     public void SaveToCSV(string filePath)
     {
         var dataList = table.Values.ToList();
 
         var csv = new StringBuilder();
-        // CSV Çì´õ
+        // CSV í—¤ë”
         csv.AppendLine("id,mon_name,mon_type,stage_num,atk_type,atk_dmg,atk_speed,atk_range,bullet_speed,hp,speed,skill_id,min_level,max_level");
 
-        // µ¥ÀÌÅÍ Çà
+        // ë°ì´í„° í–‰
         foreach (var data in dataList)
         {
             csv.AppendLine($"{data.id},{data.mon_name},{data.mon_type},{data.stage_num},{data.atk_type},{data.atk_dmg},{data.atk_speed},{data.atk_range},{data.bullet_speed},{data.hp},{data.speed},{data.skill_id},{data.min_level},{data.max_level}");

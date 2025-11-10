@@ -1,10 +1,14 @@
 ﻿using System.Text;
+using UnityEditor;
 using UnityEngine;
 public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 {
+    [Header("Reference")]
+    [SerializeField] private GameObject projectilePrefab;
+
     [Header("Field")]
     private MonsterData monsterData;
-    //private bool isAlive = true;
+    private const string MonsterProjectilePoolId = "MonsterProjectile"; // 임시 아이디
 
     public void Init(MonsterData data)
     {
@@ -12,18 +16,28 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     }
 
     public void Attack()
-    {
-        // 애니메이션 처리        
+    {     
+        switch (monsterData.attType)
+        {
+            case 1:
+                MeleeAttack();
+                break;
+            case 2:
+                RangedAttack();
+                break;
+            default:               
+                break;
+        }
     }
 
     public void OnDamage(int damage)
     {
-        if(monsterData != null)
+        if (monsterData != null)
         {
             monsterData.hp -= damage;
         }
 
-        if(monsterData.hp <= 0)
+        if (monsterData.hp <= 0)
         {
             Die();
         }
@@ -41,11 +55,66 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     {
         if (other.CompareTag(Tag.Wall))
         {
-            var target = other.GetComponent<IDamageable>();
-            if (target != null)
+            var agent = GetComponent<MonsterNavMeshAgent>();
+            if (agent != null)
             {
-                target.OnDamage(monsterData.att);
-                Debug.Log($"몬스터가 {other.name}을 공격했습니다! 데미지: {monsterData.att}");
+                agent.enabled = false;
+            }
+
+            Attack();
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        if (other.CompareTag(Tag.Wall))
+        {
+            var agent = GetComponent<MonsterNavMeshAgent>();
+            if (agent != null)
+            {
+                agent.enabled = true;
+            }
+        }
+    }
+
+    private void MeleeAttack()
+    {
+        // 애니메이션 처리
+        Collider2D hit = Physics2D.OverlapCircle(transform.position, monsterData.attackRange, LayerMask.GetMask(Tag.Wall));
+
+        if(hit != null)
+        {
+            var target = hit.GetComponent<IDamageable>();
+            if(target != null)
+            {
+               target.OnDamage(monsterData.att);
+            }
+        }
+    }
+
+    private void RangedAttack()
+    {
+        // 애니메이션 처리
+        Collider2D hit = Physics2D.OverlapCircle(transform.position, monsterData.attackRange, LayerMask.GetMask(Tag.Wall));
+        
+        if (hit != null)
+        {
+            Vector3 targetPosition = hit.transform.position;
+            Vector3 direction = (targetPosition - transform.position).normalized;
+
+            var projectileObj = PoolManager.Instance.Get(MonsterProjectilePoolId);
+            if (projectileObj != null)
+            {
+                projectileObj.transform.position = transform.position;
+                projectileObj.transform.rotation = Quaternion.identity;
+
+                var projectile = GetComponent<MonsterProjectile>();
+                if (projectile != null)
+                {
+                    projectile.Init(direction, monsterData.bulletSpeed);
+                }
+
+                projectileObj.SetActive(true);
             }
         }
     }

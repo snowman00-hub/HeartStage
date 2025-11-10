@@ -10,9 +10,11 @@ public class MonsterSpawner : MonoBehaviour
     [SerializeField] private MonsterData monsterData;
     [SerializeField] private Transform target;
     [SerializeField] private List<Transform> targetPoints;
+    [SerializeField] private GameObject monsterProjectilePrefab;
 
     [Header("Field")]
     private int spawneTimeTest = 1;
+    private const string MonsterProjectilePoolId = "MonsterProjectile"; // 임시 아이디 
 
     private List<GameObject> monsterList = new List<GameObject>();
     public List<GameObject> MonsterList => monsterList;
@@ -51,6 +53,22 @@ public class MonsterSpawner : MonoBehaviour
         }
     }
 
+    private void SpawnProjectile()
+    {
+        if (PoolManager.Instance == null)
+        {
+            Debug.LogError("PoolManager.Instance가 null입니다!");
+            return;
+        }
+        if (monsterProjectilePrefab == null)
+        {
+            Debug.LogError("monsterProjectilePrefab이 null입니다! 인스펙터에서 프리팹을 할당하세요.");
+            return;
+        }
+        PoolManager.Instance.CreatePool(MonsterProjectilePoolId, monsterProjectilePrefab, 100);
+        var projectile = PoolManager.Instance.Get(MonsterProjectilePoolId);
+    }
+
     private async UniTask InitializePool()
     {
         for (int i = 0; i < poolSize; i++)
@@ -70,6 +88,7 @@ public class MonsterSpawner : MonoBehaviour
 
             monster.SetActive(false);
         }
+        SpawnProjectile();
     }
 
     private async UniTask SpawnMonster(int spawneTimeTest)
