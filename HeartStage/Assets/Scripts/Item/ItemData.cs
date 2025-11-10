@@ -7,15 +7,15 @@ public class ItemData : ScriptableObject
 {
     public int ID;
     public string Name;
-    public AssetReferenceT<Sprite> Sprite;
-    public AssetReferenceT<RuntimeAnimatorController> Animation;
+    public string SpriteTestID;
+    public string AnimationTestID;
 
     public void Init(ItemCSVData data)
     {
         ID = data.ID;
         Name = data.Name;
-        Sprite = new AssetReferenceT<Sprite>(data.SpriteTestID);
-        Animation = new AssetReferenceT<RuntimeAnimatorController>(data.AnimationTestID);
+        SpriteTestID = data.SpriteTestID;
+        AnimationTestID = data.AnimationTestID;
     }
 }
 

@@ -27,11 +27,14 @@ public class Item : MonoBehaviour
     {
         _itemData.Init(data);
 
-        try 
+        var itemspriteRef = new AssetReferenceT<Sprite>(_itemData.SpriteTestID);
+        var itemanimatorRef = new AssetReferenceT<RuntimeAnimatorController>(_itemData.AnimationTestID);
+
+        try
         {
-            if(!string.IsNullOrEmpty(_itemData.Sprite.AssetGUID))
+            if(!string.IsNullOrEmpty(itemspriteRef.AssetGUID))
             {
-                _imageHandle = _itemData.Sprite.LoadAssetAsync();
+                _imageHandle = itemspriteRef.LoadAssetAsync();
                 var sprite = await _imageHandle.Value.ToUniTask(cancellationToken: ct);
                 if (_spriteRenderer)
                 {
@@ -39,9 +42,9 @@ public class Item : MonoBehaviour
                     _spriteRenderer.enabled = true;
                 }
             }
-            if(!string.IsNullOrEmpty(_itemData.Animation.AssetGUID))
+            if(!string.IsNullOrEmpty(itemanimatorRef.AssetGUID))
             {
-                _animatorHandle = _itemData.Animation.LoadAssetAsync();
+                _animatorHandle = itemanimatorRef.LoadAssetAsync();
                 var animatorController = await _animatorHandle.Value.ToUniTask(cancellationToken: ct);
                 if (_animator)
                 {
