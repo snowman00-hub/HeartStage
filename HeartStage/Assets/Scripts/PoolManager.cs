@@ -49,15 +49,15 @@ public class PoolManager : MonoBehaviour
         WarmUp(id, defaultCapacity);
     }
 
-    public GameObject Get(string key)
+    public GameObject Get(string id)
     {
-        if (!poolDict.ContainsKey(key))
+        if (!poolDict.ContainsKey(id))
         {
-            Debug.LogError($"[ObjectPool] 키 없음 {key}");
+            Debug.LogError($"[ObjectPool] 키 없음 {id}");
             return null;
         }
 
-        return poolDict[key].Get();
+        return poolDict[id].Get();
     }
 
     private void WarmUp(string id, int count)

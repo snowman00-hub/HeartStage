@@ -8,6 +8,13 @@ public class CharacterAttack : MonoBehaviour
     private float nextAttackTime;
     private float cleanupTimer = 0f;
 
+    private CircleCollider2D circleCollider;
+
+    private void Awake()
+    {
+        circleCollider = GetComponent<CircleCollider2D>();
+    }
+
     private void Start()
     {
         var csvData = DataTableManager.CharacterTable.Get(11010101);
@@ -16,6 +23,8 @@ public class CharacterAttack : MonoBehaviour
 
         var bulletGo = ResourceManager.Instance.Get<GameObject>(data.bullet_PrefabName);
         PoolManager.Instance.CreatePool(data.ID.ToString(), bulletGo);
+
+        circleCollider.radius = data.atk_range;
     }
 
     private void Update()

@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class CharacterProjectile : MonoBehaviour
 {
-    public string id;
+    private string id;
     private int damage;
     private float moveSpeed;
     private Vector3 dir;
