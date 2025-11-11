@@ -85,7 +85,8 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 
     public void Die()
     {
-        PoolManager.Instance.Release(monsterData.id.ToString(), gameObject);        
+        gameObject.SetActive(false);
+       // PoolManager.Instance.Release(monsterData.id.ToString(), gameObject);        
         Debug.Log("몬스터가 사망했습니다.");
     }
 
