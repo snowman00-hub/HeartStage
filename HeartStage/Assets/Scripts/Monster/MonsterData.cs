@@ -15,6 +15,7 @@ public class MonsterData : ScriptableObject
     public int moveSpeed;
     public int minExp;
     public int maxExp;
+    public string image_AssetName;
 
     public void Init(int monsterId) 
     {
@@ -42,6 +43,7 @@ public class MonsterData : ScriptableObject
         monsterType = data.mon_type;
         minExp = data.min_level;
         maxExp = data.max_level;
+        image_AssetName = data.image_AssetName;
     }
 
     public MonsterCSVData ToTableData()
@@ -58,6 +60,7 @@ public class MonsterData : ScriptableObject
             atk_range = attackRange,
             bullet_speed = bulletSpeed,
             speed = moveSpeed,
+            image_AssetName = image_AssetName,
             min_level = minExp,
             max_level = maxExp,
             stage_num = 1, // 기본값 (필요시 별도 필드 추가)

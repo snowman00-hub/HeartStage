@@ -30,7 +30,7 @@ public class MonsterSpawner : MonoBehaviour
 
 
     [Header("Wave")]
-    [SerializeField] private int currentWaveId = 61011; // test
+    [SerializeField] private int currentWaveId = 61034; // test
     [SerializeField] private int poolSize = 60; // wave pool size
 
     private StageWaveCSVData currentWaveData;
@@ -39,7 +39,7 @@ public class MonsterSpawner : MonoBehaviour
     private bool isWaveActive = false;
 
 
-    private const string MonsterProjectilePoolId = "MonsterProjectile"; // 임시 아이디 
+    private const string MonsterProjectilePoolId = "MonsterProjectile"; // 임시 아이디 그냥 쭉 써도 될듯
     public static string GetMonsterProjectilePoolId() => MonsterProjectilePoolId;
 
     private List<GameObject> monsterList = new List<GameObject>();
@@ -79,25 +79,17 @@ public class MonsterSpawner : MonoBehaviour
         if (currentWaveData.EnemyID1 > 0 && currentWaveData.EnemyCount1 > 0)
         {
             waveMonstersToSpawn.Add(new WaveMonsterInfo(currentWaveData.EnemyID1, currentWaveData.EnemyCount1));
-            Debug.Log($"웨이브 몬스터 추가: ID={currentWaveData.EnemyID1}, Count={currentWaveData.EnemyCount1}");
-
         }
 
         if (currentWaveData.EnemyID2 > 0 && currentWaveData.EnemyCount2 > 0)
         {
             waveMonstersToSpawn.Add(new WaveMonsterInfo(currentWaveData.EnemyID2, currentWaveData.EnemyCount2));
-            Debug.Log($"웨이브 몬스터 추가: ID={currentWaveData.EnemyID2}, Count={currentWaveData.EnemyCount2}");
-
         }
 
         if (currentWaveData.EnemyID3 > 0 && currentWaveData.EnemyCount3 > 0)
         {
             waveMonstersToSpawn.Add(new WaveMonsterInfo(currentWaveData.EnemyID3, currentWaveData.EnemyCount3));
-            Debug.Log($"웨이브 몬스터 추가: ID={currentWaveData.EnemyID3}, Count={currentWaveData.EnemyCount3}");
-
         }
-        Debug.Log($"설정된 웨이브 몬스터 종류 수: {waveMonstersToSpawn.Count}");
-
     }
 
     private int GetTotalWaveMonsterCount()
@@ -159,7 +151,26 @@ public class MonsterSpawner : MonoBehaviour
 
                 var monsterBehavior = monster.GetComponent<MonsterBehavior>();
                 //monsterBehavior.Init(monsterData); // scriptablObject 데이터로 초기화
-                monsterBehavior.Init(waveMonsterData); 
+                monsterBehavior.Init(waveMonsterData); // wave 데이터로 초기화
+
+                if (!string.IsNullOrEmpty(waveMonsterData.image_AssetName))
+                {
+                    var spriteRenderer = monster.GetComponentInChildren<SpriteRenderer>();
+                    if(spriteRenderer != null)
+                    {
+                        var texture = ResourceManager.Instance.Get<Texture2D>(waveMonsterData.image_AssetName);
+                        if(texture != null)
+                        {
+                            var sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+                            spriteRenderer.sprite = sprite;
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"몬스터 이미지 로드 실패: {waveMonsterData.image_AssetName}");
+                        }
+                    }
+                }
+
 
                 var monsterNav = monster.GetComponent<MonsterNavMeshAgent>();
                 monsterNav.targetPoints = targetPoints;

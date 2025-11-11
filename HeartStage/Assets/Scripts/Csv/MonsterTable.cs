@@ -35,6 +35,7 @@ public class MonsterCSVData
     public int skill_id { get; set; }
     public int min_level { get; set; }
     public int max_level { get; set; }
+    public string image_AssetName { get; set; }
 }
 
 public class MonsterTable : DataTable
@@ -97,12 +98,12 @@ public class MonsterTable : DataTable
 
         var csv = new StringBuilder();
         // CSV 헤더
-        csv.AppendLine("id,mon_name,mon_type,stage_num,atk_type,atk_dmg,atk_speed,atk_range,bullet_speed,hp,speed,skill_id,min_level,max_level");
+        csv.AppendLine("id,mon_name,mon_type,stage_num,atk_type,atk_dmg,atk_speed,atk_range,bullet_speed,hp,speed,skill_id,min_level,max_level,image_AssetName");
 
         // 데이터 행
         foreach (var data in dataList)
         {
-            csv.AppendLine($"{data.id},{data.mon_name},{data.mon_type},{data.stage_num},{data.atk_type},{data.atk_dmg},{data.atk_speed},{data.atk_range},{data.bullet_speed},{data.hp},{data.speed},{data.skill_id},{data.min_level},{data.max_level}");
+            csv.AppendLine($"{data.id},{data.mon_name},{data.mon_type},{data.stage_num},{data.atk_type},{data.atk_dmg},{data.atk_speed},{data.atk_range},{data.bullet_speed},{data.hp},{data.speed},{data.skill_id},{data.min_level},{data.max_level},{data.image_AssetName}");
         }
 
         File.WriteAllText(filePath, csv.ToString());

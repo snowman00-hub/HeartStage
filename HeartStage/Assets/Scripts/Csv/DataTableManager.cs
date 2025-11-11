@@ -30,6 +30,12 @@ public static class DataTableManager
         }
 
         {
+            var stageWaveTable = new StageWaveTable();
+            await stageWaveTable.LoadAsync(DataTableIds.StageWave);
+            tables.Add(DataTableIds.StageWave, stageWaveTable);
+        }
+
+        {
             var table = new CharacterTable();
             var id = DataTableIds.Character;
             await table.LoadAsync(id);
@@ -50,6 +56,14 @@ public static class DataTableManager
         get
         {
             return Get<MonsterTable>(DataTableIds.Monster);
+        }
+    }
+
+    public static StageWaveTable StageWaveTable
+    {
+        get
+        {
+            return Get<StageWaveTable>(DataTableIds.StageWave);
         }
     }
 
