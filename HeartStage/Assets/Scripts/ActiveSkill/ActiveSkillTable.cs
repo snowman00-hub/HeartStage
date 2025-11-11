@@ -65,8 +65,16 @@ public class ActiveSkillTable : DataTable
         return table[skillId];
     }
 
-    public Dictionary<int, ActiveSkillCSVData> GetAll()
+    public Dictionary<int, ActiveSkillData> GetAll()
     {
-        return table;
+        Dictionary<int, ActiveSkillData> result = new Dictionary<int, ActiveSkillData>();
+
+        foreach (var kvp in table)
+        {
+            var so = ResourceManager.Instance.Get<ActiveSkillData>(kvp.Value.skill_name);
+            result.Add(kvp.Key, so);
+        }
+
+        return result;
     }
 }

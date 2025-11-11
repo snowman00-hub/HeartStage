@@ -1,7 +1,6 @@
 ﻿using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.PlayerLoop;
 
 public static class DataTableManager
 {
@@ -35,6 +34,13 @@ public static class DataTableManager
             await table.LoadAsync(id);
             tables.Add(id, table);
         }
+
+        {
+            var table = new ActiveSkillTable();
+            var id = DataTableIds.ActiveSkill;
+            await table.LoadAsync(id);
+            tables.Add(id, table);
+        }
     }
 
     public static ItemTable ItemTable
@@ -58,6 +64,14 @@ public static class DataTableManager
         get
         {
             return Get<CharacterTable>(DataTableIds.Character);
+        }
+    }
+
+    public static ActiveSkillTable ActiveSkillTable
+    {
+        get
+        {
+            return Get<ActiveSkillTable>(DataTableIds.ActiveSkill);
         }
     }
 
