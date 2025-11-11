@@ -4,6 +4,7 @@ public class SonicAttackSkill : ISkillBehavior
 {
     public void Execute(GameObject caster, ActiveSkillData data)
     {
-        throw new System.NotImplementedException();
+        ActiveSkillCreator.Instance.CreateSonicAttack(caster, data);
+        Debug.Log($"{data.skill_name} 사용");
     }
 }
