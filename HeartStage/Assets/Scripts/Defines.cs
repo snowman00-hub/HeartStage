@@ -14,6 +14,7 @@ public static class DataTableIds
 
     public static string Character => "CharacterTable";
     public static string Monster => "MonsterTable";
+    public static string StageWave => "StageWaveTable";
     public static string ActiveSkill => "ActiveSkillTable";
 }
 

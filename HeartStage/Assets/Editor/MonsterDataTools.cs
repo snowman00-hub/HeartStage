@@ -186,7 +186,7 @@ public class MonsterDataTools : EditorWindow
             AssetDatabase.CreateFolder("Assets/ScriptableObject", "Monsters");
     }
 
-    private void AssignDataToSO(MonsterData so, Data data)
+    private void AssignDataToSO(MonsterData so, MonsterCSVData data)
     {
         so.id = data.id;
         so.monsterName = data.mon_name;
@@ -200,6 +200,7 @@ public class MonsterDataTools : EditorWindow
         so.moveSpeed = data.speed;
         so.minExp = data.min_level;
         so.maxExp = data.max_level;
+        so.image_AssetName = data.image_AssetName; // monster sprite 
     }
 }
 #endif

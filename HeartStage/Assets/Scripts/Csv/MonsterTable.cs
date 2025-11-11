@@ -19,7 +19,7 @@ public enum mon_type
     boss = 2
 }
 
-public class Data
+public class MonsterCSVData
 {
     public int id { get; set; }
     public string mon_name { get; set; }
@@ -35,11 +35,12 @@ public class Data
     public int skill_id { get; set; }
     public int min_level { get; set; }
     public int max_level { get; set; }
+    public string image_AssetName { get; set; }
 }
 
 public class MonsterTable : DataTable
 {
-    private readonly Dictionary<int, Data> table = new Dictionary<int, Data>();
+    private readonly Dictionary<int, MonsterCSVData> table = new Dictionary<int, MonsterCSVData>();
 
     public override async UniTask LoadAsync(string filename)
     {
@@ -53,7 +54,7 @@ public class MonsterTable : DataTable
             return;
         }
 
-        var list = LoadCSV<Data>(ta.text);
+        var list = LoadCSV<MonsterCSVData>(ta.text);
 
         foreach (var item in list)
         {
@@ -70,7 +71,7 @@ public class MonsterTable : DataTable
         Addressables.Release(handle);
     }
 
-    public Data Get(int monsterId)
+    public MonsterCSVData Get(int monsterId)
     {
         if (!table.ContainsKey(monsterId))
         {
@@ -79,13 +80,13 @@ public class MonsterTable : DataTable
         }
         return table[monsterId];
     }
-    public void UpdateOrAdd(Data data)
+    public void UpdateOrAdd(MonsterCSVData data)
     {
         table[data.id] = data;
     }
 
     // 테이블의 모든 데이터 가져오기 (SO 생성용)
-    public IEnumerable<Data> GetAllData()
+    public IEnumerable<MonsterCSVData> GetAllData()
     {
         return table.Values;
     }
@@ -97,12 +98,12 @@ public class MonsterTable : DataTable
 
         var csv = new StringBuilder();
         // CSV 헤더
-        csv.AppendLine("id,mon_name,mon_type,stage_num,atk_type,atk_dmg,atk_speed,atk_range,bullet_speed,hp,speed,skill_id,min_level,max_level");
+        csv.AppendLine("id,mon_name,mon_type,stage_num,atk_type,atk_dmg,atk_speed,atk_range,bullet_speed,hp,speed,skill_id,min_level,max_level,image_AssetName");
 
         // 데이터 행
         foreach (var data in dataList)
         {
-            csv.AppendLine($"{data.id},{data.mon_name},{data.mon_type},{data.stage_num},{data.atk_type},{data.atk_dmg},{data.atk_speed},{data.atk_range},{data.bullet_speed},{data.hp},{data.speed},{data.skill_id},{data.min_level},{data.max_level}");
+            csv.AppendLine($"{data.id},{data.mon_name},{data.mon_type},{data.stage_num},{data.atk_type},{data.atk_dmg},{data.atk_speed},{data.atk_range},{data.bullet_speed},{data.hp},{data.speed},{data.skill_id},{data.min_level},{data.max_level},{data.image_AssetName}");
         }
 
         File.WriteAllText(filePath, csv.ToString());
