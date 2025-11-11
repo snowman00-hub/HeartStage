@@ -29,6 +29,7 @@ public class MonsterProjectile : MonoBehaviour
             {
                 testObj.OnDamage(damage);
             }
+            PoolManager.Instance.Release(MonsterSpawner.GetMonsterProjectilePoolId(), gameObject);
             gameObject.SetActive(false);            
         }
     }

@@ -221,7 +221,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb8aeba37e12f3f4399b4b6bc4bb5cb2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHp: 100
+  maxHp: 1000
   hp: 0
 --- !u!114 &151555426
 MonoBehaviour:
@@ -972,16 +972,20 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 151555423}
     - target: {fileID: 5148941320140235055, guid: 33d6cdedb5389cd4f8e2d811a82cfa88, type: 3}
+      propertyPath: poolSize
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5148941320140235055, guid: 33d6cdedb5389cd4f8e2d811a82cfa88, type: 3}
       propertyPath: testObject
       value: 
       objectReference: {fileID: 151555424}
     - target: {fileID: 5148941320140235055, guid: 33d6cdedb5389cd4f8e2d811a82cfa88, type: 3}
       propertyPath: monsterData
       value: 
-      objectReference: {fileID: 11400000, guid: 5e04da24a3cb89349bfe120b5c5b5ae9, type: 2}
+      objectReference: {fileID: 11400000, guid: 9bab5ccaced6a944ca8679f9d6201385, type: 2}
     - target: {fileID: 5148941320140235055, guid: 33d6cdedb5389cd4f8e2d811a82cfa88, type: 3}
       propertyPath: maxMonsterCount
-      value: 20
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5148941320140235055, guid: 33d6cdedb5389cd4f8e2d811a82cfa88, type: 3}
       propertyPath: monsterProjectilePrefab

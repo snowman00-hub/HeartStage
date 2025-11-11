@@ -14,8 +14,9 @@ public class MonsterSpawner : MonoBehaviour
     [SerializeField] private GameObject monsterProjectilePrefab;
 
     [Header("Field")]
-    private int spawneTimeTest = 1;
+    [SerializeField] private float spawneTimeTest = 1;
     private const string MonsterProjectilePoolId = "MonsterProjectile"; // 임시 아이디 
+    public static string GetMonsterProjectilePoolId() => MonsterProjectilePoolId;
 
     private List<GameObject> monsterList = new List<GameObject>();
     public List<GameObject> MonsterList => monsterList;
@@ -25,11 +26,12 @@ public class MonsterSpawner : MonoBehaviour
 
     private async void Start()
     {
-        await InitializePool();
+        await InitializePool();      
+
         await SpawnMonstersLoop(spawneTimeTest);
     }
 
-    private async UniTask SpawnMonstersLoop(int spawneTimeTest)
+    private async UniTask SpawnMonstersLoop(float spawneTimeTest)
     {
         while (true)
         {
@@ -49,7 +51,7 @@ public class MonsterSpawner : MonoBehaviour
 
             else
             {
-                await UniTask.Delay(spawneTimeTest * 1000); 
+                await UniTask.Delay((int)spawneTimeTest * 1000); 
             }
         }
     }
@@ -85,11 +87,13 @@ public class MonsterSpawner : MonoBehaviour
             monster.SetActive(false);
         }
         SpawnProjectile();
+
+        await CreateMonsterPool();
     }
 
-    private async UniTask SpawnMonster(int spawneTimeTest)
+    private async UniTask SpawnMonster(float spawneTimeTest)
     {
-        await UniTask.Delay(spawneTimeTest * 2000); // Test
+        await UniTask.Delay((int)spawneTimeTest * 2000); // Test
 
         foreach (var monster in monsterList)
         {
@@ -103,6 +107,14 @@ public class MonsterSpawner : MonoBehaviour
                 var monsterNav = monster.GetComponent<MonsterNavMeshAgent>();
                 monsterNav.targetPoints = targetPoints;
                 monsterNav.SetUp();
+
+                int randomRange = Random.Range(0, Screen.width);
+                int height = Screen.height;
+
+                Vector3 screenPosition = new Vector3(randomRange, height - 100, 0);
+                Vector3 spawnPos = Camera.main.ScreenToWorldPoint(screenPosition);
+
+                monster.transform.position = spawnPos;
 
                 monster.SetActive(true);
                 //Debug.Log(
@@ -133,5 +145,15 @@ public class MonsterSpawner : MonoBehaviour
                 Addressables.ReleaseInstance(monster);
             }
         }
+    }
+
+    private async UniTask CreateMonsterPool()
+    {
+        var handle = Addressables.LoadAssetAsync<GameObject>(monsterPrefab);
+        await handle.Task;
+        var monsterPrefabGO = handle.Result;
+
+        // 몬스터 풀 생성 (DeceptionBossSKill에서 사용할 ID와 동일하게)
+        PoolManager.Instance.CreatePool("121042", monsterPrefabGO, 10);
     }
 }
