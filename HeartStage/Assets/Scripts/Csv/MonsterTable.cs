@@ -19,7 +19,7 @@ public enum mon_type
     boss = 2
 }
 
-public class Data
+public class MonsterCSVData
 {
     public int id { get; set; }
     public string mon_name { get; set; }
@@ -39,7 +39,7 @@ public class Data
 
 public class MonsterTable : DataTable
 {
-    private readonly Dictionary<int, Data> table = new Dictionary<int, Data>();
+    private readonly Dictionary<int, MonsterCSVData> table = new Dictionary<int, MonsterCSVData>();
 
     public override async UniTask LoadAsync(string filename)
     {
@@ -53,7 +53,7 @@ public class MonsterTable : DataTable
             return;
         }
 
-        var list = LoadCSV<Data>(ta.text);
+        var list = LoadCSV<MonsterCSVData>(ta.text);
 
         foreach (var item in list)
         {
@@ -70,7 +70,7 @@ public class MonsterTable : DataTable
         Addressables.Release(handle);
     }
 
-    public Data Get(int monsterId)
+    public MonsterCSVData Get(int monsterId)
     {
         if (!table.ContainsKey(monsterId))
         {
@@ -79,13 +79,13 @@ public class MonsterTable : DataTable
         }
         return table[monsterId];
     }
-    public void UpdateOrAdd(Data data)
+    public void UpdateOrAdd(MonsterCSVData data)
     {
         table[data.id] = data;
     }
 
     // 테이블의 모든 데이터 가져오기 (SO 생성용)
-    public IEnumerable<Data> GetAllData()
+    public IEnumerable<MonsterCSVData> GetAllData()
     {
         return table.Values;
     }

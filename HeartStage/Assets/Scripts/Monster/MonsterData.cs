@@ -44,9 +44,9 @@ public class MonsterData : ScriptableObject
         maxExp = data.max_level;
     }
 
-    public Data ToTableData()
+    public MonsterCSVData ToTableData()
     {
-        return new Data
+        return new MonsterCSVData
         {
             id = id,
             mon_name = monsterName,
