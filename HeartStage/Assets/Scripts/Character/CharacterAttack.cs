@@ -120,10 +120,4 @@ public class CharacterAttack : MonoBehaviour
             monsters.Remove(collision.gameObject);
         }
     }
-
-    // Test Code
-    public void Test()
-    {
-        Debug.Log("CharacterAttack Test() 실행");
-    }
 }
