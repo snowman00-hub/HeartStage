@@ -27,12 +27,12 @@ public class MonsterSpawner : MonoBehaviour
     [SerializeField] private MonsterData monsterData; // test
     [SerializeField] private List<Transform> targetPoints;
     [SerializeField] private GameObject monsterProjectilePrefab;
-    //[SerializeField] private GameObject testMonsterPrefab; // test
+    [SerializeField] private GameObject testMonsterPrefab; // test
 
     [Header("Wave")]
     [SerializeField] private int currentWaveId = 61034; // test
     [SerializeField] private int poolSize = 60; // wave pool size
-    //[SerializeField] private int testSpawnManyCount = 200;
+    [SerializeField] private int testSpawnManyCount = 200;
 
     private StageWaveCSVData currentWaveData;
     private List<WaveMonsterInfo> waveMonstersToSpawn = new List<WaveMonsterInfo>();
@@ -51,8 +51,8 @@ public class MonsterSpawner : MonoBehaviour
     {
         await InitializePool();
         await LoadWaveData();
-        await StartWaveSpawning();
-        //SpawnManyMonster();
+        //await StartWaveSpawning();
+        SpawnManyMonster();
     }
 
     private async UniTask LoadWaveData()
@@ -142,28 +142,28 @@ public class MonsterSpawner : MonoBehaviour
         }
     }
 
-    //private void SpawnManyMonster()
-    //{
-    //    for (int i = 0; i < testSpawnManyCount; i++)
-    //    {
-    //        var spawnPos = GetRandomSpawnPosition();
-    //        var monster = Instantiate(testMonsterPrefab, spawnPos, Quaternion.identity);
+    private void SpawnManyMonster()
+    {
+        for (int i = 0; i < testSpawnManyCount; i++)
+        {
+            var spawnPos = GetRandomSpawnPosition();
+            var monster = Instantiate(testMonsterPrefab, spawnPos, Quaternion.identity);
 
-    //        var monsterBehavior = monster.GetComponent<MonsterBehavior>();
-    //        if (monsterBehavior != null)
-    //        {
-    //            monsterBehavior.Init(monsterData);
-    //        }
+            var monsterBehavior = monster.GetComponent<MonsterBehavior>();
+            if (monsterBehavior != null)
+            {
+                monsterBehavior.Init(monsterData);
+            }
 
-    //        var monsterNav = monster.GetComponent<MonsterNavMeshAgent>();
-    //        if (monsterNav != null)
-    //        {
-    //            monsterNav.targetPoints = targetPoints;
-    //            monsterNav.ApplyMoveSpeed(monsterData.moveSpeed);
-    //            monsterNav.SetUp();
-    //        }
-    //    }
-    //}
+            var monsterNav = monster.GetComponent<MonsterNavMeshAgent>();
+            if (monsterNav != null)
+            {
+                monsterNav.targetPoints = targetPoints;
+                monsterNav.ApplyMoveSpeed(monsterData.moveSpeed);
+                monsterNav.SetUp();
+            }
+        }
+    }
 
     private bool SpawnMonster(int monsterId)
     {
@@ -176,7 +176,7 @@ public class MonsterSpawner : MonoBehaviour
 
                 var monsterBehavior = monster.GetComponent<MonsterBehavior>();
                 monsterBehavior.Init(monsterData); // scriptablObject 데이터로 초기화
-               // monsterBehavior.Init(waveMonsterData); // wave 데이터로 초기화
+                //monsterBehavior.Init(waveMonsterData); // wave 데이터로 초기화
 
                 if (!string.IsNullOrEmpty(waveMonsterData.image_AssetName))
                 {
@@ -212,7 +212,6 @@ public class MonsterSpawner : MonoBehaviour
         }
         return false;
     }
-
 
     private WaveMonsterInfo? GetNextMonsterToSpawn()
     {
