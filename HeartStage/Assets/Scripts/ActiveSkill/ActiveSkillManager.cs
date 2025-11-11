@@ -30,6 +30,7 @@ public class ActiveSkillManager : MonoBehaviour
         skillDB = DataTableManager.ActiveSkillTable.GetAll();
 
         RegisterSkillBehavior(1242, new BlindSkill());
+        RegisterSkillBehavior(1555, new SonicAttackSkill());
     }
 
     private void Update()

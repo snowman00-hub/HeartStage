@@ -3,6 +3,12 @@ using System;
 using System.Threading;
 using UnityEngine;
 
+public enum PenetrationType
+{
+    NonPenetrate,  // 비관통
+    Penetrate      // 관통
+}
+
 public class CharacterProjectile : MonoBehaviour
 {
     private string id;
@@ -10,6 +16,7 @@ public class CharacterProjectile : MonoBehaviour
     private int damage;
     private float moveSpeed;
     private Vector3 dir;
+    private PenetrationType penetrationType = PenetrationType.NonPenetrate;
 
     private bool isReleased = false; // 중복 Release 방지용
     private CancellationTokenSource cts;
@@ -36,7 +43,7 @@ public class CharacterProjectile : MonoBehaviour
         transform.position += dir * moveSpeed * Time.deltaTime;
     }
 
-    public void SetMissile(string id,string hitEffectId, Vector3 startPos,  Vector3 dir, float speed, int dmg)
+    public void SetMissile(string id,string hitEffectId, Vector3 startPos,  Vector3 dir, float speed, int dmg, PenetrationType penetration = PenetrationType.NonPenetrate)
     {
         this.id = id;
         this.hitEffectId = hitEffectId;
@@ -44,6 +51,7 @@ public class CharacterProjectile : MonoBehaviour
         this.dir = dir;
         moveSpeed = speed;
         damage = dmg;
+        penetrationType = penetration;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -52,8 +60,12 @@ public class CharacterProjectile : MonoBehaviour
         {
             var monsterBehavior = collision.GetComponent<MonsterBehavior>();
             monsterBehavior.OnDamage(damage);
-            ReleaseToPool();
-            HitEffectAsync().Forget();
+
+            if(penetrationType == PenetrationType.NonPenetrate)
+                ReleaseToPool();
+
+            if(hitEffectId != string.Empty)
+                HitEffectAsync().Forget();
         }
     }
 
