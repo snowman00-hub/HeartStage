@@ -6,6 +6,7 @@ using UnityEngine;
 public class CharacterProjectile : MonoBehaviour
 {
     private string id;
+    private string hitEffectId;
     private int damage;
     private float moveSpeed;
     private Vector3 dir;
@@ -35,9 +36,10 @@ public class CharacterProjectile : MonoBehaviour
         transform.position += dir * moveSpeed * Time.deltaTime;
     }
 
-    public void SetMissile(string id, Vector3 startPos,  Vector3 dir, float speed, int dmg)
+    public void SetMissile(string id,string hitEffectId, Vector3 startPos,  Vector3 dir, float speed, int dmg)
     {
         this.id = id;
+        this.hitEffectId = hitEffectId;
         transform.position = startPos;
         this.dir = dir;
         moveSpeed = speed;
@@ -51,6 +53,23 @@ public class CharacterProjectile : MonoBehaviour
             var monsterBehavior = collision.GetComponent<MonsterBehavior>();
             monsterBehavior.OnDamage(damage);
             ReleaseToPool();
+            HitEffectAsync().Forget();
+        }
+    }
+
+    private async UniTask HitEffectAsync()
+    {
+        var hitGo = PoolManager.Instance.Get(hitEffectId);
+        hitGo.transform.position = transform.position;
+
+        var particle = hitGo.GetComponent<ParticleSystem>();
+        particle.Play();
+
+        await UniTask.WaitUntil(() => particle == null || particle.IsAlive() == false);
+
+        if (hitGo != null)
+        {
+            PoolManager.Instance.Release(hitEffectId, hitGo);
         }
     }
 

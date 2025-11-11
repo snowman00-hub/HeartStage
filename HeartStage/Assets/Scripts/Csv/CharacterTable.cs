@@ -28,8 +28,11 @@ public class CharacterCSVData
     public int synergy_id { get; set; }
     public int Unlock { get; set; }
     public string Info { get; set; }
+    public string image_AssetName { get; set; }
     public string bullet_PrefabName { get; set; }
     public string data_AssetName { get; set; }
+    public string projectile_AssetName { get; set; }
+    public string hitEffect_AssetName { get; set; }
 }
 
 public class CharacterTable : DataTable

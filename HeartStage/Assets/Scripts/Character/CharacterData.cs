@@ -24,8 +24,11 @@ public class CharacterData : ScriptableObject
     public int synergy_id;
     public int Unlock;
     public string Info;
+    public string image_AssetName;
     public string bullet_PrefabName;
     public string data_AssetName;
+    public string projectile_AssetName;
+    public string hitEffect_AssetName;
 
     public void UpdateData(CharacterCSVData csvData)
     {
@@ -50,8 +53,11 @@ public class CharacterData : ScriptableObject
         synergy_id = csvData.synergy_id;
         Unlock = csvData.Unlock;
         Info = csvData.Info;
+        image_AssetName = csvData.image_AssetName;
         bullet_PrefabName = csvData.bullet_PrefabName;
         data_AssetName = csvData.data_AssetName;
+        projectile_AssetName = csvData.projectile_AssetName;
+        hitEffect_AssetName = csvData.hitEffect_AssetName;
     }
 
     public CharacterCSVData ToCSVData()
@@ -78,8 +84,11 @@ public class CharacterData : ScriptableObject
         csvData.synergy_id = synergy_id;
         csvData.Unlock = Unlock;
         csvData.Info = Info;
+        csvData.image_AssetName = image_AssetName;
         csvData.bullet_PrefabName = bullet_PrefabName;
         csvData.data_AssetName = data_AssetName;
+        csvData.projectile_AssetName = projectile_AssetName;
+        csvData.hitEffect_AssetName = hitEffect_AssetName;
 
         return csvData;
     }

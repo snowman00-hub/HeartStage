@@ -3,12 +3,16 @@ using UnityEngine;
 
 public class CharacterAttack : MonoBehaviour
 {
+    [HideInInspector]
+    public int id = 11010101; // 테스트 id
+
     private CharacterData data;
     private List<GameObject> monsters = new List<GameObject>();
     private float nextAttackTime;
     private float cleanupTimer = 0f;
 
     private CircleCollider2D circleCollider;
+    private SpriteRenderer spriteRenderer;
 
     private void Awake()
     {
@@ -17,14 +21,28 @@ public class CharacterAttack : MonoBehaviour
 
     private void Start()
     {
-        var csvData = DataTableManager.CharacterTable.Get(11010101);
+        // CSV → ScriptableObject 반영
+        var csvData = DataTableManager.CharacterTable.Get(id);
         data = ResourceManager.Instance.Get<CharacterData>(csvData.data_AssetName);
         data.UpdateData(csvData);
-
-        var bulletGo = ResourceManager.Instance.Get<GameObject>(data.bullet_PrefabName);
-        PoolManager.Instance.CreatePool(data.ID.ToString(), bulletGo);
-
+        // bullet 프리팹과 projectile 프리팹 로드
+        var bulletPrefab = ResourceManager.Instance.Get<GameObject>(data.bullet_PrefabName);
+        var projectilePrefab = ResourceManager.Instance.Get<GameObject>(data.projectile_AssetName);
+        // 런타임 조립: bullet 안에 projectile 추가
+        var combined = Instantiate(bulletPrefab);
+        var projectileInstance = Instantiate(projectilePrefab, combined.transform);
+        projectileInstance.transform.localPosition = Vector3.zero;
+        // 풀 생성: "완성된 조합 프리팹"으로 등록
+        PoolManager.Instance.CreatePool(data.projectile_AssetName, combined);
+        // 히트 이펙트 풀 생성
+        var hitEffectGo = ResourceManager.Instance.Get<GameObject>(data.hitEffect_AssetName);
+        PoolManager.Instance.CreatePool(data.hitEffect_AssetName, hitEffectGo);
+        // 범위 설정
         circleCollider.radius = data.atk_range;
+        // 캐릭터 스프라이트 변경
+        spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        var texture = ResourceManager.Instance.Get<Texture2D>(data.image_AssetName);
+        spriteRenderer.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
     }
 
     private void Update()
@@ -36,7 +54,7 @@ public class CharacterAttack : MonoBehaviour
             monsters.RemoveAll(m => m == null); // 죽은 몬스터 정리
         }
 
-        if (monsters.Count == 0) 
+        if (monsters.Count == 0)
             return;
 
         if (Time.time < nextAttackTime)
@@ -52,13 +70,13 @@ public class CharacterAttack : MonoBehaviour
 
     private void Fire(Vector3 targetPos)
     {
-        GameObject projectile = PoolManager.Instance.Get(data.ID.ToString());
+        GameObject projectile = PoolManager.Instance.Get(data.projectile_AssetName);
         if (projectile == null)
             return;
 
         var dir = (targetPos - transform.position).normalized;
         projectile.GetComponent<CharacterProjectile>()
-            .SetMissile(data.ID.ToString(), transform.position, dir, data.bullet_speed, data.atk_dmg);
+            .SetMissile(data.projectile_AssetName, data.hitEffect_AssetName, transform.position, dir, data.bullet_speed, data.atk_dmg);
     }
 
     private GameObject GetClosestEnemy()
