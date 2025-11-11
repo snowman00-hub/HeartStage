@@ -1,8 +1,8 @@
-﻿using UnityEngine;
-using Cysharp.Threading.Tasks;
-using UnityEngine.AddressableAssets;
+﻿using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
 using TMPro.EditorUtilities;
+using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 
 [System.Serializable]
@@ -24,14 +24,15 @@ public class MonsterSpawner : MonoBehaviour
 {
     [Header("Reference")]
     [SerializeField] private AssetReference monsterPrefab;
-    [SerializeField] private MonsterData monsterData;
+    [SerializeField] private MonsterData monsterData; // test
     [SerializeField] private List<Transform> targetPoints;
     [SerializeField] private GameObject monsterProjectilePrefab;
-
+    //[SerializeField] private GameObject testMonsterPrefab; // test
 
     [Header("Wave")]
     [SerializeField] private int currentWaveId = 61034; // test
     [SerializeField] private int poolSize = 60; // wave pool size
+    //[SerializeField] private int testSpawnManyCount = 200;
 
     private StageWaveCSVData currentWaveData;
     private List<WaveMonsterInfo> waveMonstersToSpawn = new List<WaveMonsterInfo>();
@@ -51,6 +52,7 @@ public class MonsterSpawner : MonoBehaviour
         await InitializePool();
         await LoadWaveData();
         await StartWaveSpawning();
+        //SpawnManyMonster();
     }
 
     private async UniTask LoadWaveData()
@@ -140,6 +142,29 @@ public class MonsterSpawner : MonoBehaviour
         }
     }
 
+    //private void SpawnManyMonster()
+    //{
+    //    for (int i = 0; i < testSpawnManyCount; i++)
+    //    {
+    //        var spawnPos = GetRandomSpawnPosition();
+    //        var monster = Instantiate(testMonsterPrefab, spawnPos, Quaternion.identity);
+
+    //        var monsterBehavior = monster.GetComponent<MonsterBehavior>();
+    //        if (monsterBehavior != null)
+    //        {
+    //            monsterBehavior.Init(monsterData);
+    //        }
+
+    //        var monsterNav = monster.GetComponent<MonsterNavMeshAgent>();
+    //        if (monsterNav != null)
+    //        {
+    //            monsterNav.targetPoints = targetPoints;
+    //            monsterNav.ApplyMoveSpeed(monsterData.moveSpeed);
+    //            monsterNav.SetUp();
+    //        }
+    //    }
+    //}
+
     private bool SpawnMonster(int monsterId)
     {
         foreach (var monster in monsterList)
@@ -151,15 +176,15 @@ public class MonsterSpawner : MonoBehaviour
 
                 var monsterBehavior = monster.GetComponent<MonsterBehavior>();
                 monsterBehavior.Init(monsterData); // scriptablObject 데이터로 초기화
-                //monsterBehavior.Init(waveMonsterData); // wave 데이터로 초기화
+               // monsterBehavior.Init(waveMonsterData); // wave 데이터로 초기화
 
                 if (!string.IsNullOrEmpty(waveMonsterData.image_AssetName))
                 {
                     var spriteRenderer = monster.GetComponentInChildren<SpriteRenderer>();
-                    if(spriteRenderer != null)
+                    if (spriteRenderer != null)
                     {
                         var texture = ResourceManager.Instance.Get<Texture2D>(waveMonsterData.image_AssetName);
-                        if(texture != null)
+                        if (texture != null)
                         {
                             var sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
                             spriteRenderer.sprite = sprite;
@@ -171,9 +196,11 @@ public class MonsterSpawner : MonoBehaviour
                     }
                 }
 
-
                 var monsterNav = monster.GetComponent<MonsterNavMeshAgent>();
                 monsterNav.targetPoints = targetPoints;
+
+                //monsterNav.ApplyMoveSpeed(waveMonsterData.moveSpeed);
+                monsterNav.ApplyMoveSpeed(monsterData.moveSpeed); // scriptableObject 데이터로 이동속도 설정
                 monsterNav.SetUp();
 
                 monster.transform.position = GetRandomSpawnPosition();
@@ -192,11 +219,11 @@ public class MonsterSpawner : MonoBehaviour
         for (int i = 0; i < waveMonstersToSpawn.Count; i++)
         {
             var monsterInfo = waveMonstersToSpawn[i];
-            Debug.Log($"몬스터 확인: ID={monsterInfo.monsterId}, Spawned={monsterInfo.spawned}, Count={monsterInfo.count}");
+            // Debug.Log($"몬스터 확인: ID={monsterInfo.monsterId}, Spawned={monsterInfo.spawned}, Count={monsterInfo.count}");
 
             if (monsterInfo.spawned < monsterInfo.count)
             {
-                Debug.Log($"다음 스폰 몬스터: ID={monsterInfo.monsterId}");
+                //   Debug.Log($"다음 스폰 몬스터: ID={monsterInfo.monsterId}");
 
                 return monsterInfo;
             }
@@ -208,10 +235,10 @@ public class MonsterSpawner : MonoBehaviour
 
     private void UpdateSpawnCount(int monsterId)
     {
-        for(int i = 0; i < waveMonstersToSpawn.Count; i++)
+        for (int i = 0; i < waveMonstersToSpawn.Count; i++)
         {
             var monsterInfo = waveMonstersToSpawn[i];
-            if(monsterInfo.monsterId == monsterId)
+            if (monsterInfo.monsterId == monsterId)
             {
                 monsterInfo.spawned++;
                 waveMonstersToSpawn[i] = monsterInfo;
@@ -224,7 +251,7 @@ public class MonsterSpawner : MonoBehaviour
     {
         foreach (var monsterInfo in waveMonstersToSpawn)
         {
-           if (monsterInfo.spawned < monsterInfo.count)
+            if (monsterInfo.spawned < monsterInfo.count)
             {
                 return false;
             }
@@ -298,7 +325,7 @@ public class MonsterSpawner : MonoBehaviour
         isWaveActive = false;
         currentWaveId = newWaveId;
 
-        foreach(var monster in monsterList)
+        foreach (var monster in monsterList)
         {
             if (monster.activeInHierarchy)
             {

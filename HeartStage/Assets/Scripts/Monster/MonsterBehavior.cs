@@ -23,7 +23,6 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         monsterData = data;
         isBoss = IsBossMonster(data.id);
 
-
         if (isBoss)
         {
             InitializeBossSkills(data.id); // 보스 스킬 초기화
