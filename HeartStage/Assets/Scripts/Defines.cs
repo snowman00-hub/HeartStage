@@ -1,4 +1,6 @@
-﻿public enum Languages
+﻿using System.Collections.Generic;
+
+public enum Languages
 {
     Korean,
 }

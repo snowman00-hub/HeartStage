@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-
-public interface ISkillBehavior
+﻿public interface ISkillBehavior
 {
-    void Execute(GameObject caster, ActiveSkillData data);
+    void Execute();
 }

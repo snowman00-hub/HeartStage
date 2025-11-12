@@ -1,9 +1,9 @@
 ﻿using UnityEngine;
 
-public class BlindSkill : ISkillBehavior
+public class BlindSkill : MonoBehaviour, ISkillBehavior
 {
-    public void Execute(GameObject caster, ActiveSkillData data)
+    public void Execute()
     {
-        Debug.Log($"{caster.name} 스킬 발동! {data.skill_name}");
+        Debug.Log("BlindSkill()");
     }
 }

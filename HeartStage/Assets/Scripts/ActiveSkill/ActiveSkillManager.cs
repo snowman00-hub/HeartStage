@@ -54,7 +54,7 @@ public class ActiveSkillManager : MonoBehaviour
 
         if (skillBehaviors.TryGetValue(data.skill_id, out var behavior))
         {
-            behavior.Execute(caster, data);
+            behavior.Execute();
         }
         else
         {
