@@ -28,7 +28,7 @@ public static class ScriptAttacher
         }
         else
         {
-            Debug.LogError($"ID {id}에 해당하는 스크립트를 찾을 수 없습니다!");
+            Debug.Log($"ID {id}에 해당하는 스크립트를 찾을 수 없습니다!");
         }
     }
 

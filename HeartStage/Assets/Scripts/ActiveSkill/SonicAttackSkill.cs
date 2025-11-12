@@ -12,6 +12,8 @@ public class SonicAttackSkill : MonoBehaviour, ISkillBehavior
         skillData = ResourceManager.Instance.Get<ActiveSkillData>(skillDataAssetName);
         sonicAttackPrefab = ResourceManager.Instance.Get<GameObject>(sonicAttackId);
         PoolManager.Instance.CreatePool(sonicAttackId, sonicAttackPrefab, 10, 30);
+        // 스킬매니저에 등록
+        ActiveSkillManager.Instance.RegisterSkillBehavior(gameObject, skillData.skill_id, this);
         ActiveSkillManager.Instance.RegisterSkill(gameObject, skillData.skill_id);
     }
 
@@ -37,6 +39,9 @@ public class SonicAttackSkill : MonoBehaviour, ISkillBehavior
 
     private void OnDisable()
     {
-        ActiveSkillManager.Instance.UnRegisterSkill(skillData.skill_id);
+        if (ActiveSkillManager.Instance != null && skillData != null)
+        {
+            ActiveSkillManager.Instance.UnRegisterSkill(gameObject, skillData.skill_id);
+        }
     }
 }
