@@ -1,7 +1,5 @@
 ﻿using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using TMPro.EditorUtilities;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.AI;
@@ -50,13 +48,12 @@ public class MonsterSpawner : MonoBehaviour
     private List<GameObject> monsterList = new List<GameObject>();
     public List<GameObject> MonsterList => monsterList;
 
-
     private async void Start()
     {
         await InitializePool();
         await LoadWaveData();
-        await StartWaveSpawning();
-        //SpawnManyMonster().Forget();
+        //await StartWaveSpawning();
+        SpawnManyMonster().Forget();
     }
 
     private async UniTask LoadWaveData()

@@ -1,6 +1,4 @@
-﻿using System.Buffers;
-using UnityEditor.SettingsManagement;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class MonsterProjectile : MonoBehaviour
 {
