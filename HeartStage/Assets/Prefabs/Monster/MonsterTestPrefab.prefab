@@ -80,7 +80,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 1
+  m_SortingOrder: -1
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -104,7 +104,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d20c57eba5c44fa45b79799100bf0990, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  projectilePrefab: {fileID: 4296434275817023623, guid: a1357a38544f63f47a4b8ea56f51e949, type: 3}
 --- !u!195 &4174602104273112216
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -139,8 +138,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f551acddf1f4bbe4c80c2c820dcc8a32, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetPoints: []
-  isChasingPlayer: 0
 --- !u!70 &5810668151930932645
 CapsuleCollider2D:
   m_ObjectHideFlags: 0

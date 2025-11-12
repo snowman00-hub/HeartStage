@@ -9,6 +9,7 @@ public class BootStrap : MonoBehaviour
 {
     private const string Key = "LastPlayedScenePath";
 
+    // Scene Addressable 주소 바꾸지 말기
     private async UniTask Start()
     {
         await ResourceManager.Instance.PreloadLabelAsync(AddressableLabel.Stage);
