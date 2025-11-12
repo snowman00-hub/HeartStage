@@ -53,8 +53,8 @@ public class MonsterSpawner : MonoBehaviour
     {
         await InitializePool();
         await LoadWaveData();
-        await StartWaveSpawning();
-       // SpawnManyMonster();
+       // await StartWaveSpawning();
+        SpawnManyMonster();
     }
 
     private async UniTask LoadWaveData()
@@ -156,6 +156,9 @@ public class MonsterSpawner : MonoBehaviour
             {
                 monsterBehavior.Init(monsterData);
             }
+
+            SetMonsterSprite(monster, monsterData);
+
 
             var monsterNav = monster.GetComponent<MonsterNavMeshAgent>();
             if (monsterNav != null)

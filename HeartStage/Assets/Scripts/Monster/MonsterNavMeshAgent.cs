@@ -20,7 +20,7 @@ public class MonsterNavMeshAgent : MonoBehaviour
 
     private void InitializeTargetPoints()
     {
-        float targetY = -7f;
+        float targetY = -3.5f;
 
         targetPoints = new Vector3[]
         {
