@@ -2,12 +2,12 @@
 using Cysharp.Threading.Tasks;
 using System.Threading;
 
-public class DeceptionBossSKill : IBossMonsterSkill
+public class DeceptionBossSkill : MonoBehaviour, IBossMonsterSkill
 {
-    private int spawnCount; // test
-    private string poolId;
+    [SerializeField] private int spawnCount; // test
+    [SerializeField] private string poolId = "121042";
 
-    public DeceptionBossSKill(string poolId, int spawnCount = 5)
+    public DeceptionBossSkill(string poolId, int spawnCount = 5)
     {
         this.poolId = poolId;
         this.spawnCount = spawnCount;

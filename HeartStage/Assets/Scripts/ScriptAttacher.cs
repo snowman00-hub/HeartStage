@@ -9,6 +9,7 @@ public static class ScriptAttacher
     private static readonly Dictionary<int, string> _idToScript = new()
     {
         { 1242, "SonicAttackSkill" },
+        { 9991, "DeceptionBossSkill"},
     };
 
     static ScriptAttacher()

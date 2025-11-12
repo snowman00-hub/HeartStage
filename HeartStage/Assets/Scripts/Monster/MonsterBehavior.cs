@@ -130,7 +130,7 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         switch (bossId)
         {
             case 121042:
-                bossSkillList.Add(new DeceptionBossSKill(bossId.ToString(), 5));
+                bossSkillList.Add(new DeceptionBossSkill(bossId.ToString(), 5));
                 break;
         }
     }
