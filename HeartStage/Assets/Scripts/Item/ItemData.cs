@@ -10,12 +10,23 @@ public class ItemData : ScriptableObject
     public string SpriteTestID;
     public string AnimationTestID;
 
-    public void Init(ItemCSVData data)
+    public void UpdateData(ItemCSVData data)
     {
         ID = data.ID;
         Name = data.Name;
         SpriteTestID = data.SpriteTestID;
         AnimationTestID = data.AnimationTestID;
+    }
+
+    public ItemCSVData ToCSVData()
+    {
+        ItemCSVData csvData = new ItemCSVData();
+        csvData.ID = ID;
+        csvData.Name = Name;
+        csvData.SpriteTestID = SpriteTestID;
+        csvData.AnimationTestID = AnimationTestID;
+
+        return csvData;
     }
 }
 
