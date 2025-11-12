@@ -49,7 +49,7 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         if (monsterData != null)
         {
             currentHP -= damage;
-            Debug.Log($"{monsterData.monsterName}이(가) {damage}의 피해를 입었습니다. 남은 HP: {currentHP}");
+            //Debug.Log($"{monsterData.monsterName}이(가) {damage}의 피해를 입었습니다. 남은 HP: {currentHP}");
         }
 
         if (currentHP <= 0)
@@ -61,7 +61,7 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     public void Die()
     {
         gameObject.SetActive(false);
-        Debug.Log("몬스터가 사망했습니다.");
+        //Debug.Log("몬스터가 사망했습니다.");
     }
 
     private void MeleeAttack()

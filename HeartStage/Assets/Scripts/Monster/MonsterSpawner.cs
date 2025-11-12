@@ -54,7 +54,6 @@ public class MonsterSpawner : MonoBehaviour
 
     public List<GameObject> MonsterList => monsterList;
 
-
     private async void Start()
     {
         await InitializePool();

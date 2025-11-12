@@ -24,7 +24,6 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
             Debug.Log("DeceptionSkill 실행");
             DeceptionSkill(monsterBehavior).Forget();
         }
-
     }
 
     public async UniTaskVoid DeceptionSkill(MonsterBehavior boss)

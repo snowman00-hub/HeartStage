@@ -10,6 +10,7 @@ public static class ScriptAttacher
     {
         { 1242, "SonicAttackSkill" },
         { 9991, "DeceptionBossSkill"},
+        { 9992, "SpeedBuffBossSkill"},
     };
 
     static ScriptAttacher()
