@@ -49,7 +49,7 @@ public class CharacterAttack : MonoBehaviour
         var texture = ResourceManager.Instance.Get<Texture2D>(data.image_AssetName);
         spriteRenderer.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
         // 액티브 스킬 등록
-        ActiveSkillManager.Instance.RegisterSkill(gameObject, data.skill_id);
+        ScriptAttacher.AttachById(gameObject, data.skill_id);
     }
 
     private void Update()
