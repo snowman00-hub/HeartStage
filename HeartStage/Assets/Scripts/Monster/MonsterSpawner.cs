@@ -1,5 +1,6 @@
 ﻿using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using TMPro.EditorUtilities;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -28,12 +29,13 @@ public class MonsterSpawner : MonoBehaviour
     [SerializeField] private GameObject monsterProjectilePrefab;
 
     [SerializeField] private GameObject testMonsterPrefab; // test
-    [SerializeField] private MonsterData monsterData; // test
+   // [SerializeField] private MonsterData monsterData; // test
 
     [Header("Wave")]    
     [SerializeField] private int poolSize = 60; // wave pool size
 
     [SerializeField] private int currentWaveId = 61034; // test 61011 
+    [SerializeField] private int testMonsterId = 111011; // test
     [SerializeField] private int testSpawnManyCount = 200; // test
 
     private StageWaveCSVData currentWaveData;
@@ -53,8 +55,8 @@ public class MonsterSpawner : MonoBehaviour
     {
         await InitializePool();
         await LoadWaveData();
-       // await StartWaveSpawning();
-        SpawnManyMonster();
+        await StartWaveSpawning();
+        //SpawnManyMonster().Forget();
     }
 
     private async UniTask LoadWaveData()
@@ -106,6 +108,7 @@ public class MonsterSpawner : MonoBehaviour
         return total;
     }
 
+
     private async UniTask StartWaveSpawning()
     {
         if (currentWaveData == null || waveMonstersToSpawn.Count == 0)
@@ -124,13 +127,15 @@ public class MonsterSpawner : MonoBehaviour
             var nextMonster = GetNextMonsterToSpawn();
             if (nextMonster.HasValue)
             {
-                SpawnMonster(nextMonster.Value.monsterId);
-                UpdateSpawnCount(nextMonster.Value.monsterId);
-                totalMonstersSpawned++;
+                bool spawnSuccess = await SpawnMonster(nextMonster.Value.monsterId); 
+                if (spawnSuccess)
+                {
+                    UpdateSpawnCount(nextMonster.Value.monsterId);
+                    totalMonstersSpawned++;
+                }
 
                 await UniTask.Delay((int)(spawnInterval * 1000));
             }
-
             else
             {
                 break;
@@ -144,67 +149,95 @@ public class MonsterSpawner : MonoBehaviour
         }
     }
 
-    private void SpawnManyMonster()
+    private async UniTaskVoid SpawnManyMonster()
     {
-        for (int i = 0; i < testSpawnManyCount; i++)
+        try
         {
-            var spawnPos = GetRandomSpawnPosition();
-            var monster = Instantiate(testMonsterPrefab, spawnPos, Quaternion.identity);
+            var handle = Addressables.LoadAssetAsync<MonsterData>($"MonsterData_{testMonsterId}"); // test
+            var monsterData = await handle.Task;
 
-            var monsterBehavior = monster.GetComponent<MonsterBehavior>();
-            if (monsterBehavior != null)
+            for (int i = 0; i < testSpawnManyCount; i++)
             {
-                monsterBehavior.Init(monsterData);
-            }
+                var spawnPos = GetRandomSpawnPosition();
+                var monster = Instantiate(testMonsterPrefab, spawnPos, Quaternion.identity);
 
-            SetMonsterSprite(monster, monsterData);
+                var monsterBehavior = monster.GetComponent<MonsterBehavior>();
+                if (monsterBehavior != null)
+                {
+                    monsterBehavior.Init(monsterData);
+                }
 
+                SetMonsterSprite(monster, monsterData);
 
-            var monsterNav = monster.GetComponent<MonsterNavMeshAgent>();
-            if (monsterNav != null)
-            {
-                monsterNav.ApplyMoveSpeed(monsterData.moveSpeed);
-                monsterNav.SetUp();
+                var monsterNav = monster.GetComponent<MonsterNavMeshAgent>();
+                if (monsterNav != null)
+                {
+                    monsterNav.ApplyMoveSpeed(monsterData.moveSpeed);
+                    monsterNav.SetUp();
+                }
             }
         }
+
+        catch (System.Exception e)
+        {
+            Debug.LogError($"SpawnManyMonster Addressables 로드 실패: {e.Message}");
+        }
+
     }
 
-    private bool SpawnMonster(int monsterId)
+    private async UniTask<bool> SpawnMonster(int monsterId)
     {
         foreach (var monster in monsterList)
         {
             if (!monster.activeInHierarchy && monster != null)
-            {   
+            {
                 Vector3 spawnPos = MonsterBehavior.IsBossMonster(monsterId) ? GetBossSpawnPosition() : GetRandomSpawnPosition();
 
                 monster.transform.position = spawnPos;
                 monster.SetActive(true);
 
-                var waveMonsterData = ScriptableObject.CreateInstance<MonsterData>();
-                waveMonsterData.Init(monsterId); // MonsterTable에서 monsterId로 데이터 로드
-                
-                Debug.Log($"몬스터 데이터 로드 완료 - ID: {monsterId}, moveSpeed: {waveMonsterData.moveSpeed}");
-
-                var monsterBehavior = monster.GetComponent<MonsterBehavior>();
-                monsterBehavior.Init(waveMonsterData); // wave 데이터로 초기화
-                //monsterBehavior.Init(monsterData); // scriptableObject 데이터로 초기화
-
-                SetMonsterSprite(monster, waveMonsterData);
-
-                var monsterNav = monster.GetComponent<MonsterNavMeshAgent>();
-                if (monsterNav != null)
+                try
                 {
-                    monsterNav.ApplyMoveSpeed(waveMonsterData.moveSpeed);
-                    //monsterNav.ApplyMoveSpeed(monsterData.moveSpeed); // scriptableObject 
-                    monsterNav.SetUp();
+                    // Addressables로 MonsterData SO 로드
+                    var handle = Addressables.LoadAssetAsync<MonsterData>($"MonsterData_{monsterId}");
+                    var monsterDataSO = await handle.Task;
+
+                    if (monsterDataSO != null)
+                    {  
+                        // var csvData = DataTableManager.MonsterTable.Get(monsterId);
+                        // monsterDataSO.UpdateData(csvData); // 
+
+                        var monsterBehavior = monster.GetComponent<MonsterBehavior>();
+                        monsterBehavior.Init(monsterDataSO);
+                        SetMonsterSprite(monster, monsterDataSO);
+
+                        var monsterNav = monster.GetComponent<MonsterNavMeshAgent>();
+                        if (monsterNav != null)
+                        {
+                            monsterNav.ApplyMoveSpeed(monsterDataSO.moveSpeed);
+                            monsterNav.SetUp();
+                        }
+
+                        Debug.Log($"몬스터 소환 (SO 원본값): ID={monsterId}, 이름={monsterDataSO.monsterName}, HP={monsterDataSO.hp}");
+                    }
+                    else
+                    {
+                        Debug.LogError($"Addressables에서 MonsterData_{monsterId}를 로드할 수 없습니다.");
+                        return false;
+                    }
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError($"MonsterData_{monsterId} Addressables 로드 실패: {e.Message}");
+                    return false;
                 }
 
-                Debug.Log($"몬스터 소환: ID={monsterId}, 이름={waveMonsterData.monsterName}");
                 return true;
             }
         }
         return false;
     }
+
     public static void SetMonsterSprite(GameObject monster, MonsterData monsterData)
     {
         if (!string.IsNullOrEmpty(monsterData.image_AssetName))
@@ -299,7 +332,7 @@ public class MonsterSpawner : MonoBehaviour
     private Vector3 GetRandomSpawnPosition()
     {
         int randomRange = Random.Range(0, Screen.width);
-        int height = Screen.height;
+        int height = Random.Range(Screen.height, Screen.height + 200);
 
         Vector3 screenPosition = new Vector3(randomRange, height, 0);
         Vector3 spawnPos = Camera.main.ScreenToWorldPoint(screenPosition);
