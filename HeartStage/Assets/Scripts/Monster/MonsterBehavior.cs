@@ -6,21 +6,15 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     [Header("Field")]
     private MonsterData monsterData;
     private const string MonsterProjectilePoolId = "MonsterProjectile";
-    private float attackCooldown = 0;
-
-    private List<IBossMonsterSkill> bossSkillList = new List<IBossMonsterSkill>();
+    private float attackCooldown = 0;    
     private bool isBoss = false;
-    private float skillCoolTime = 15f;
-
+    
+    private int currentHP;
     public void Init(MonsterData data)
     {
         monsterData = data;
+        currentHP = data.hp;
         isBoss = IsBossMonster(data.id);
-
-        if (isBoss)
-        {
-            InitializeBossSkills(data.id);
-        }
     }
 
     private void Update()
@@ -34,17 +28,6 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         {
             Attack();
             attackCooldown = monsterData.attackSpeed;
-        }
-
-        // 보스 스킬
-        if (isBoss)
-        {
-            skillCoolTime -= Time.deltaTime;
-            if (skillCoolTime <= 0f && bossSkillList.Count > 0)
-            {
-                UseBossSkills();
-                skillCoolTime = 15f;
-            }
         }
     }
 
@@ -65,10 +48,11 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     {
         if (monsterData != null)
         {
-            monsterData.hp -= damage;
+            currentHP -= damage;
+            Debug.Log($"{monsterData.monsterName}이(가) {damage}의 피해를 입었습니다. 남은 HP: {currentHP}");
         }
 
-        if (monsterData.hp <= 0)
+        if (currentHP <= 0)
         {
             Die();
         }
@@ -123,24 +107,5 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     public static bool IsBossMonster(int id)
     {
         return id == 121042;
-    }
-
-    private void InitializeBossSkills(int bossId)
-    {
-        switch (bossId)
-        {
-            case 121042:
-                bossSkillList.Add(new DeceptionBossSkill(bossId.ToString(), 5));
-                break;
-        }
-    }
-
-    private void UseBossSkills()
-    {
-        foreach (var skill in bossSkillList)
-        {
-            skill.useSkill(this);
-            Debug.Log($"보스 스킬 : {skill} 사용");
-        }
     }
 }
