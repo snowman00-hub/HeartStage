@@ -10,23 +10,30 @@ public class MonsterNavMeshAgent : MonoBehaviour
     private bool isExternalStopped = false;
     private float originalSpeed;
 
-    private readonly Vector3[] targetPoints = new Vector3[]
-    {
-        new Vector3(-6, -7, 0),
-        new Vector3(-4, -7, 0),
-        new Vector3(-2, -7, 0),
-        new Vector3(0, -7, 0),
-        new Vector3(2, -7, 0),
-        new Vector3(4, -7, 0),
-        new Vector3(6, -7, 0),
-        new Vector3(8, -7, 0)
-    };
+    private Vector3[] targetPoints;
     public Vector3[] TargetPoints => targetPoints;
     private void Awake()
     {
         InitializeNavMeshAgent();
+        InitializeTargetPoints();
     }
 
+    private void InitializeTargetPoints()
+    {
+        float targetY = -7f;
+
+        targetPoints = new Vector3[]
+        {
+        new Vector3(-6, targetY, 0),
+        new Vector3(-4, targetY, 0),
+        new Vector3(-2, targetY, 0),
+        new Vector3(0, targetY, 0),
+        new Vector3(2, targetY, 0),
+        new Vector3(4, targetY, 0),
+        new Vector3(6, targetY, 0),
+        new Vector3(8, targetY, 0)
+        };
+    }
     private void InitializeNavMeshAgent()
     {
         navMeshAgent = GetComponent<NavMeshAgent>();
@@ -39,7 +46,7 @@ public class MonsterNavMeshAgent : MonoBehaviour
     public void SetUp()
     {
         float monsterX = transform.position.x;
-        Vector3 closestTarget = targetPoints[0];
+        Vector3 closestTarget = targetPoints[0]; // 여기서 자기자신의 x 값을 사용해서 가장 가까운 타겟 포인트를 찾도록 변경
         float closestDistance = Mathf.Abs(monsterX - closestTarget.x);
 
         foreach (var targetPos in targetPoints)

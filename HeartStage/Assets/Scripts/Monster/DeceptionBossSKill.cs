@@ -41,6 +41,8 @@ public class DeceptionBossSKill : IBossMonsterSkill
                     monsterBehavior.Init(monsterData);
                 }
 
+                MonsterSpawner.SetMonsterSprite(monster, monsterData);
+
                 var monsterNav = monster.GetComponent<MonsterNavMeshAgent>();
                 if (monsterNav != null)
                 {
@@ -50,6 +52,6 @@ public class DeceptionBossSKill : IBossMonsterSkill
             }
         }
 
-        await UniTask.Delay(150000);
+        await UniTask.Delay(5000);
     }
 }

@@ -120,7 +120,7 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         }
     }
 
-    private bool IsBossMonster(int id)
+    public static bool IsBossMonster(int id)
     {
         return id == 121042;
     }

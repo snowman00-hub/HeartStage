@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro.EditorUtilities;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.AI;
 
 
 [System.Serializable]
@@ -32,7 +33,7 @@ public class MonsterSpawner : MonoBehaviour
     [Header("Wave")]    
     [SerializeField] private int poolSize = 60; // wave pool size
 
-    [SerializeField] private int currentWaveId = 61034; // test
+    [SerializeField] private int currentWaveId = 61034; // test 61011 
     [SerializeField] private int testSpawnManyCount = 200; // test
 
     private StageWaveCSVData currentWaveData;
@@ -52,8 +53,8 @@ public class MonsterSpawner : MonoBehaviour
     {
         await InitializePool();
         await LoadWaveData();
-        //await StartWaveSpawning();
-        SpawnManyMonster();
+        await StartWaveSpawning();
+       // SpawnManyMonster();
     }
 
     private async UniTask LoadWaveData()
@@ -170,8 +171,10 @@ public class MonsterSpawner : MonoBehaviour
         foreach (var monster in monsterList)
         {
             if (!monster.activeInHierarchy && monster != null)
-            {                
-                monster.transform.position = GetRandomSpawnPosition();
+            {   
+                Vector3 spawnPos = MonsterBehavior.IsBossMonster(monsterId) ? GetBossSpawnPosition() : GetRandomSpawnPosition();
+
+                monster.transform.position = spawnPos;
                 monster.SetActive(true);
 
                 var waveMonsterData = ScriptableObject.CreateInstance<MonsterData>();
@@ -180,17 +183,16 @@ public class MonsterSpawner : MonoBehaviour
                 Debug.Log($"몬스터 데이터 로드 완료 - ID: {monsterId}, moveSpeed: {waveMonsterData.moveSpeed}");
 
                 var monsterBehavior = monster.GetComponent<MonsterBehavior>();
-                //monsterBehavior.Init(waveMonsterData); // wave 데이터로 초기화
-                monsterBehavior.Init(monsterData); // scriptableObject 데이터로 초기화
+                monsterBehavior.Init(waveMonsterData); // wave 데이터로 초기화
+                //monsterBehavior.Init(monsterData); // scriptableObject 데이터로 초기화
 
                 SetMonsterSprite(monster, waveMonsterData);
-
 
                 var monsterNav = monster.GetComponent<MonsterNavMeshAgent>();
                 if (monsterNav != null)
                 {
-                    //monsterNav.ApplyMoveSpeed(waveMonsterData.moveSpeed);
-                    monsterNav.ApplyMoveSpeed(monsterData.moveSpeed); // scriptableObject 
+                    monsterNav.ApplyMoveSpeed(waveMonsterData.moveSpeed);
+                    //monsterNav.ApplyMoveSpeed(monsterData.moveSpeed); // scriptableObject 
                     monsterNav.SetUp();
                 }
 
@@ -200,8 +202,7 @@ public class MonsterSpawner : MonoBehaviour
         }
         return false;
     }
-
-    private void SetMonsterSprite(GameObject monster, MonsterData monsterData)
+    public static void SetMonsterSprite(GameObject monster, MonsterData monsterData)
     {
         if (!string.IsNullOrEmpty(monsterData.image_AssetName))
         {
@@ -302,6 +303,24 @@ public class MonsterSpawner : MonoBehaviour
         spawnPos.z = 0f;
 
         return spawnPos;
+    }
+
+    private Vector3 GetBossSpawnPosition()
+    {
+        Vector3 screenCenter = new Vector3(Screen.width / 2f, Screen.height, 0f);
+        Vector3 worldPos = Camera.main.ScreenToWorldPoint(screenCenter);
+        worldPos.z = 0f;
+
+        // NavMesh 위의 유효한 위치 찾기
+        NavMeshHit hit;
+        if (NavMesh.SamplePosition(worldPos, out hit, 10f, NavMesh.AllAreas))
+        {
+            Debug.Log($"보스 몬스터 화면 중앙 상단 스폰: {hit.position}");
+            return hit.position;
+        }
+
+        Debug.LogWarning("보스 스폰을 위한 NavMesh 위치를 찾을 수 없습니다!");
+        return worldPos;
     }
 
     private async UniTask CreateMonsterPool()
