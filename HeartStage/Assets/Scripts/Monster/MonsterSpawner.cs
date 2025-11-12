@@ -24,15 +24,16 @@ public class MonsterSpawner : MonoBehaviour
 {
     [Header("Reference")]
     [SerializeField] private AssetReference monsterPrefab;
-    [SerializeField] private MonsterData monsterData; // test
-    [SerializeField] private List<Transform> targetPoints;
     [SerializeField] private GameObject monsterProjectilePrefab;
-    [SerializeField] private GameObject testMonsterPrefab; // test
 
-    [Header("Wave")]
-    [SerializeField] private int currentWaveId = 61034; // test
+    [SerializeField] private GameObject testMonsterPrefab; // test
+    [SerializeField] private MonsterData monsterData; // test
+
+    [Header("Wave")]    
     [SerializeField] private int poolSize = 60; // wave pool size
-    [SerializeField] private int testSpawnManyCount = 200;
+
+    [SerializeField] private int currentWaveId = 61034; // test
+    [SerializeField] private int testSpawnManyCount = 200; // test
 
     private StageWaveCSVData currentWaveData;
     private List<WaveMonsterInfo> waveMonstersToSpawn = new List<WaveMonsterInfo>();
@@ -158,7 +159,6 @@ public class MonsterSpawner : MonoBehaviour
             var monsterNav = monster.GetComponent<MonsterNavMeshAgent>();
             if (monsterNav != null)
             {
-                monsterNav.targetPoints = targetPoints;
                 monsterNav.ApplyMoveSpeed(monsterData.moveSpeed);
                 monsterNav.SetUp();
             }
@@ -170,41 +170,29 @@ public class MonsterSpawner : MonoBehaviour
         foreach (var monster in monsterList)
         {
             if (!monster.activeInHierarchy && monster != null)
-            {
-                var waveMonsterData = ScriptableObject.CreateInstance<MonsterData>();
-                waveMonsterData.Init(monsterId); // MonsterTable에서 monsterId로 데이터 로드
-
-                var monsterBehavior = monster.GetComponent<MonsterBehavior>();
-                monsterBehavior.Init(monsterData); // scriptablObject 데이터로 초기화
-                //monsterBehavior.Init(waveMonsterData); // wave 데이터로 초기화
-
-                if (!string.IsNullOrEmpty(waveMonsterData.image_AssetName))
-                {
-                    var spriteRenderer = monster.GetComponentInChildren<SpriteRenderer>();
-                    if (spriteRenderer != null)
-                    {
-                        var texture = ResourceManager.Instance.Get<Texture2D>(waveMonsterData.image_AssetName);
-                        if (texture != null)
-                        {
-                            var sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
-                            spriteRenderer.sprite = sprite;
-                        }
-                        else
-                        {
-                            Debug.LogWarning($"몬스터 이미지 로드 실패: {waveMonsterData.image_AssetName}");
-                        }
-                    }
-                }
-
-                var monsterNav = monster.GetComponent<MonsterNavMeshAgent>();
-                monsterNav.targetPoints = targetPoints;
-
-                //monsterNav.ApplyMoveSpeed(waveMonsterData.moveSpeed);
-                monsterNav.ApplyMoveSpeed(monsterData.moveSpeed); // scriptableObject 데이터로 이동속도 설정
-                monsterNav.SetUp();
-
+            {                
                 monster.transform.position = GetRandomSpawnPosition();
                 monster.SetActive(true);
+
+                var waveMonsterData = ScriptableObject.CreateInstance<MonsterData>();
+                waveMonsterData.Init(monsterId); // MonsterTable에서 monsterId로 데이터 로드
+                
+                Debug.Log($"몬스터 데이터 로드 완료 - ID: {monsterId}, moveSpeed: {waveMonsterData.moveSpeed}");
+
+                var monsterBehavior = monster.GetComponent<MonsterBehavior>();
+                //monsterBehavior.Init(waveMonsterData); // wave 데이터로 초기화
+                monsterBehavior.Init(monsterData); // scriptableObject 데이터로 초기화
+
+                SetMonsterSprite(monster, waveMonsterData);
+
+
+                var monsterNav = monster.GetComponent<MonsterNavMeshAgent>();
+                if (monsterNav != null)
+                {
+                    //monsterNav.ApplyMoveSpeed(waveMonsterData.moveSpeed);
+                    monsterNav.ApplyMoveSpeed(monsterData.moveSpeed); // scriptableObject 
+                    monsterNav.SetUp();
+                }
 
                 Debug.Log($"몬스터 소환: ID={monsterId}, 이름={waveMonsterData.monsterName}");
                 return true;
@@ -213,22 +201,39 @@ public class MonsterSpawner : MonoBehaviour
         return false;
     }
 
+    private void SetMonsterSprite(GameObject monster, MonsterData monsterData)
+    {
+        if (!string.IsNullOrEmpty(monsterData.image_AssetName))
+        {
+            var spriteRenderer = monster.GetComponentInChildren<SpriteRenderer>();
+            if (spriteRenderer != null)
+            {
+                var texture = ResourceManager.Instance.Get<Texture2D>(monsterData.image_AssetName);
+                if (texture != null)
+                {
+                    var sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+                    spriteRenderer.sprite = sprite;
+                }
+                else
+                {
+                    Debug.LogWarning($"몬스터 이미지 로드 실패: {monsterData.image_AssetName}");
+                }
+            }
+        }
+    }
+
     private WaveMonsterInfo? GetNextMonsterToSpawn()
     {
         for (int i = 0; i < waveMonstersToSpawn.Count; i++)
         {
             var monsterInfo = waveMonstersToSpawn[i];
-            // Debug.Log($"몬스터 확인: ID={monsterInfo.monsterId}, Spawned={monsterInfo.spawned}, Count={monsterInfo.count}");
-
             if (monsterInfo.spawned < monsterInfo.count)
             {
-                //   Debug.Log($"다음 스폰 몬스터: ID={monsterInfo.monsterId}");
-
                 return monsterInfo;
             }
         }
-        Debug.Log("스폰할 몬스터가 없습니다.");
 
+        Debug.Log("스폰할 몬스터가 없습니다.");
         return null;
     }
 
@@ -306,7 +311,7 @@ public class MonsterSpawner : MonoBehaviour
         var monsterPrefabGO = handle.Result;
 
         // 몬스터 풀 생성 (DeceptionBossSKill에서 사용할 ID와 동일하게)
-        PoolManager.Instance.CreatePool("121042", monsterPrefabGO, 10);
+        PoolManager.Instance.CreatePool("121042", monsterPrefabGO, 1);
     }
     private void OnDestroy()
     {

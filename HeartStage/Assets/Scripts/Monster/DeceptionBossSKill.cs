@@ -15,7 +15,7 @@ public class DeceptionBossSKill : IBossMonsterSkill
 
     public void useSkill(MonsterBehavior boss)
     {
-        DeceptionSkill(boss).Forget();        
+        DeceptionSkill(boss).Forget();
     }
 
     public async UniTaskVoid DeceptionSkill(MonsterBehavior boss)
@@ -30,40 +30,26 @@ public class DeceptionBossSKill : IBossMonsterSkill
             {
                 monster.transform.position = spawnPos;
                 monster.transform.rotation = Quaternion.identity;
+                monster.SetActive(true);
+
+                var monsterData = ScriptableObject.CreateInstance<MonsterData>();
+                monsterData.Init(111011); // test
 
                 var monsterBehavior = monster.GetComponent<MonsterBehavior>();
                 if (monsterBehavior != null)
                 {
-                    var monsterData = ScriptableObject.CreateInstance<MonsterData>();
-                    monsterData.Init(111011); // test
                     monsterBehavior.Init(monsterData);
                 }
 
                 var monsterNav = monster.GetComponent<MonsterNavMeshAgent>();
                 if (monsterNav != null)
                 {
-                    var bossNav = boss.GetComponent<MonsterNavMeshAgent>();
-                    if (bossNav != null && bossNav.targetPoints != null)
-                    {
-                        monsterNav.targetPoints = bossNav.targetPoints;
-                    }
+                    monsterNav.ApplyMoveSpeed(monsterData.moveSpeed);
                     monsterNav.SetUp();
-
-                    var navMeshAgent = monster.GetComponent<UnityEngine.AI.NavMeshAgent>();
-                    if (navMeshAgent != null && monsterBehavior != null)
-                    {
-                        var monsterData = ScriptableObject.CreateInstance<MonsterData>();
-                        monsterData.Init(111011);
-                        navMeshAgent.speed = monsterData.moveSpeed;
-                    }
                 }
-
-                monster.SetActive(true);
             }
         }
 
         await UniTask.Delay(150000);
     }
-
-
 }

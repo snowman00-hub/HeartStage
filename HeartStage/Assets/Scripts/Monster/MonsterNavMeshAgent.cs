@@ -4,14 +4,24 @@ using UnityEngine.AI;
 
 public class MonsterNavMeshAgent : MonoBehaviour
 {
-    [Header("Reference")]
-    public List<Transform> targetPoints;
-
-    private Transform target;
+    [Header("Field")]
+    private Vector3 targetPosition;
     private NavMeshAgent navMeshAgent;
     private bool isExternalStopped = false;
     private float originalSpeed;
 
+    private readonly Vector3[] targetPoints = new Vector3[]
+    {
+        new Vector3(-6, -7, 0),
+        new Vector3(-4, -7, 0),
+        new Vector3(-2, -7, 0),
+        new Vector3(0, -7, 0),
+        new Vector3(2, -7, 0),
+        new Vector3(4, -7, 0),
+        new Vector3(6, -7, 0),
+        new Vector3(8, -7, 0)
+    };
+    public Vector3[] TargetPoints => targetPoints;
     private void Awake()
     {
         InitializeNavMeshAgent();
@@ -28,18 +38,31 @@ public class MonsterNavMeshAgent : MonoBehaviour
 
     public void SetUp()
     {
-        if (targetPoints?.Count > 0)
+        float monsterX = transform.position.x;
+        Vector3 closestTarget = targetPoints[0];
+        float closestDistance = Mathf.Abs(monsterX - closestTarget.x);
+
+        foreach (var targetPos in targetPoints)
         {
-            target = targetPoints[Random.Range(0, targetPoints.Count)];
-            SetDestination();
+            float distance = Mathf.Abs(monsterX - targetPos.x);
+            if (distance < closestDistance)
+            {
+                closestDistance = distance;
+                closestTarget = targetPos;
+            }
         }
+
+        targetPosition = closestTarget;
+        SetDestination();
     }
 
     public void ClearTarget()
-    {
-        target = null;
+    {       
         isExternalStopped = true;
-        navMeshAgent.ResetPath();
+        if(navMeshAgent.enabled && navMeshAgent.isOnNavMesh)
+        {
+            navMeshAgent.ResetPath();
+        }
     }
 
     public void RestoreTarget()
@@ -70,9 +93,9 @@ public class MonsterNavMeshAgent : MonoBehaviour
 
     private void SetDestination()
     {
-        if (target != null && navMeshAgent.enabled)
+        if (navMeshAgent.enabled && navMeshAgent.isOnNavMesh)
         {
-            navMeshAgent.SetDestination(target.position);
+            navMeshAgent.SetDestination(targetPosition);
         }
     }
 
