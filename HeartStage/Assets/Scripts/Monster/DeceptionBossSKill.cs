@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using Cysharp.Threading.Tasks;
+using UnityEngine.AddressableAssets;
 
 public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
 {
@@ -20,8 +21,10 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
         var monsterBehavior = GetComponent<MonsterBehavior>();
         if (monsterBehavior != null)
         {
+            Debug.Log("DeceptionSkill 실행");
             DeceptionSkill(monsterBehavior).Forget();
         }
+
     }
 
     public async UniTaskVoid DeceptionSkill(MonsterBehavior boss)
@@ -30,8 +33,7 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
 
         for (int i = 0; i < spawnCount; i++)
         {
-            int spawnPosX = Random.Range(0, Screen.width);           
-
+            int spawnPosX = Random.Range(0, Screen.width);
             Vector3 screenPosition = new Vector3(spawnPosX, Screen.height, 0);
             Vector3 spawnPos = Camera.main.ScreenToWorldPoint(screenPosition);
             spawnPos.z = 0f;
@@ -43,22 +45,38 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
                 monster.transform.rotation = Quaternion.identity;
                 monster.SetActive(true);
 
-                var monsterData = ScriptableObject.CreateInstance<MonsterData>();
-                monsterData.Init(111011); // test
-
-                var monsterBehavior = monster.GetComponent<MonsterBehavior>();
-                if (monsterBehavior != null)
+                try
                 {
-                    monsterBehavior.Init(monsterData);
+                    var handle = Addressables.LoadAssetAsync<MonsterData>($"MonsterData_111011");
+                    var monsterData = await handle.Task;
+
+                    if (monsterData != null)
+                    {
+                        var monsterBehavior = monster.GetComponent<MonsterBehavior>();
+                        if (monsterBehavior != null)
+                        {
+                            monsterBehavior.Init(monsterData);
+                        }
+
+                        MonsterSpawner.SetMonsterSprite(monster, monsterData);
+
+                        var monsterNav = monster.GetComponent<MonsterNavMeshAgent>();
+                        if (monsterNav != null)
+                        {
+                            monsterNav.ApplyMoveSpeed(monsterData.moveSpeed);
+                            monsterNav.SetUp();
+                        }
+
+                        Debug.Log($"DeceptionSkill 몬스터 소환 성공: {i + 1}번째");
+                    }
+                    else
+                    {
+                        Debug.LogError("MonsterData_111011 로드 실패!");
+                    }
                 }
-
-                MonsterSpawner.SetMonsterSprite(monster, monsterData);
-
-                var monsterNav = monster.GetComponent<MonsterNavMeshAgent>();
-                if (monsterNav != null)
+                catch (System.Exception e)
                 {
-                    monsterNav.ApplyMoveSpeed(monsterData.moveSpeed);
-                    monsterNav.SetUp();
+                    Debug.LogError($"DeceptionSkill MonsterData 로드 오류: {e.Message}");
                 }
             }
             else
