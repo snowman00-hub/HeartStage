@@ -18,6 +18,15 @@ public static class DataTableIds
     public static string ActiveSkill => "ActiveSkillTable";
 }
 
+public static class IBuffIds
+{
+    public static readonly string[] BuffIds =
+    {
+        "AttackPowerBuff",
+    };
+    public static string AttackPowerBuff => BuffIds[0];
+}
+
 public class Tag
 {
     public static readonly string Player = "Player";
