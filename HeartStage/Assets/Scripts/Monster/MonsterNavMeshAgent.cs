@@ -46,21 +46,26 @@ public class MonsterNavMeshAgent : MonoBehaviour
     public void SetUp()
     {
         float monsterX = transform.position.x;
-        Vector3 closestTarget = targetPoints[0]; // 여기서 자기자신의 x 값을 사용해서 가장 가까운 타겟 포인트를 찾도록 변경
-        float closestDistance = Mathf.Abs(monsterX - closestTarget.x);
 
-        foreach (var targetPos in targetPoints)
+        // 첫 번째 포인트로 시작하되 반복문에서 모든 포인트를 비교
+        Vector3 closestTarget = targetPoints[0];
+        float closestDistance = Mathf.Abs(monsterX - targetPoints[0].x);
+
+        // 1번 인덱스부터 시작 (0번은 이미 초기값으로 설정했으므로)
+        for (int i = 1; i < targetPoints.Length; i++)
         {
-            float distance = Mathf.Abs(monsterX - targetPos.x);
+            float distance = Mathf.Abs(monsterX - targetPoints[i].x);
             if (distance < closestDistance)
             {
                 closestDistance = distance;
-                closestTarget = targetPos;
+                closestTarget = targetPoints[i];
             }
         }
 
         targetPosition = closestTarget;
         SetDestination();
+
+        Debug.Log($"몬스터 X: {monsterX:F1}, 가장 가까운 타겟: {closestTarget}, 거리: {closestDistance:F1}");
     }
 
     public void ClearTarget()

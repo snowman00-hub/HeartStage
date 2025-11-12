@@ -80,6 +80,7 @@ public class MonsterDataTools : EditorWindow
                 if (existingSO == null)
                 {
                     AssetDatabase.CreateAsset(so, assetPath);
+                    RegisterToAddressables(assetPath, data.id); // 추가
                     Debug.Log($"새 SO 생성: {data.mon_name} (ID: {data.id})");
                 }
                 else
@@ -197,10 +198,25 @@ public class MonsterDataTools : EditorWindow
         so.attackSpeed = data.atk_speed;
         so.attackRange = data.atk_range;
         so.bulletSpeed = data.bullet_speed;
-        so.moveSpeed = data.speed;
+        so.moveSpeed = data.speed;          
         so.minExp = data.min_level;
         so.maxExp = data.max_level;
         so.image_AssetName = data.image_AssetName; // monster sprite 
+    }
+
+    private void RegisterToAddressables(string assetPath, int monsterId)
+    {
+#if UNITY_EDITOR
+        var settings = UnityEditor.AddressableAssets.AddressableAssetSettingsDefaultObject.Settings;
+        if (settings != null)
+        {
+            string guid = UnityEditor.AssetDatabase.AssetPathToGUID(assetPath);
+            var entry = settings.CreateOrMoveEntry(guid, settings.DefaultGroup);
+            entry.address = $"MonsterData_{monsterId}";
+            
+            Debug.Log($"Addressables 등록: MonsterData_{monsterId}");
+        }
+#endif
     }
 }
 #endif

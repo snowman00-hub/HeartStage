@@ -17,7 +17,26 @@ public class MonsterData : ScriptableObject
     public int maxExp;
     public string image_AssetName;
 
-    public void Init(int monsterId) 
+    // CharacterData처럼 UpdateData 구현
+    public void UpdateData(MonsterCSVData csvData)
+    {
+        id = csvData.id;
+        hp = csvData.hp;
+        att = csvData.atk_dmg;
+        attType = csvData.atk_type;
+        attackSpeed = csvData.atk_speed;
+        attackRange = csvData.atk_range;
+        bulletSpeed = csvData.bullet_speed;
+        moveSpeed = csvData.speed;
+        monsterName = csvData.mon_name;
+        monsterType = csvData.mon_type;
+        minExp = csvData.min_level;
+        maxExp = csvData.max_level;
+        image_AssetName = csvData.image_AssetName;
+    }
+
+    // 기존 Init 메서드는 유지 (하위 호환성)
+    public void Init(int monsterId)
     {
         var monsterTable = DataTableManager.MonsterTable;
 
@@ -25,25 +44,13 @@ public class MonsterData : ScriptableObject
             return;
 
         var data = monsterTable.Get(monsterId);
-        if(data == null)
+        if (data == null)
         {
             Debug.Log("몬스터 Id가 없습니다.");
             return;
         }
 
-        id = data.id;
-        hp = data.hp;
-        att = data.atk_dmg;
-        attType = data.atk_type;
-        attackSpeed = data.atk_speed;
-        attackRange = data.atk_range;
-        bulletSpeed = data.bullet_speed;
-        moveSpeed = data.speed;
-        monsterName = data.mon_name;
-        monsterType = data.mon_type;
-        minExp = data.min_level;
-        maxExp = data.max_level;
-        image_AssetName = data.image_AssetName;
+        UpdateData(data); // UpdateData 사용하도록 변경
     }
 
     public MonsterCSVData ToTableData()
@@ -63,8 +70,8 @@ public class MonsterData : ScriptableObject
             image_AssetName = image_AssetName,
             min_level = minExp,
             max_level = maxExp,
-            stage_num = 1, // 기본값 (필요시 별도 필드 추가)
-            skill_id = 0   // 기본값 (필요시 별도 필드 추가)
+            stage_num = 1,
+            skill_id = 0
         };
     }
 }
