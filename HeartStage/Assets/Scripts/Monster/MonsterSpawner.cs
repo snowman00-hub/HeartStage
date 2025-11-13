@@ -29,13 +29,10 @@ public class MonsterSpawner : MonoBehaviour
     [SerializeField] private AssetReference monsterPrefab;
     [SerializeField] private AssetReference bossMonsterPrefab;
     [SerializeField] private GameObject monsterProjectilePrefab;
-    //[SerializeField] private GameObject testMonsterPrefab; // test
 
     [Header("Field")]
     [SerializeField] private int poolSize = 60; // wave pool size
     [SerializeField] private int currentStageId = 601; // 현재 스테이지 ID
-    //[SerializeField] private int testMonsterId = 111011; // test
-    //[SerializeField] private int testSpawnManyCount = 200; // test
 
     private StageCsvData currentStageData;
     private List<int> stageWaveIds = new List<int>();
@@ -45,7 +42,7 @@ public class MonsterSpawner : MonoBehaviour
     private List<WaveMonsterInfo> waveMonstersToSpawn = new List<WaveMonsterInfo>();
     private int totalMonstersSpawned = 0;
     private bool isWaveActive = false;
-
+    public bool isInitialized = false;
     private const string MonsterProjectilePoolId = "MonsterProjectile";
     public static string GetMonsterProjectilePoolId() => MonsterProjectilePoolId;
 
@@ -56,9 +53,23 @@ public class MonsterSpawner : MonoBehaviour
 
     private async void Start()
     {
-        await InitializePool();
-        await LoadStageData();
-        await StartStageProgression();
+        await InitializeAsync();
+    }
+
+    private async UniTask InitializeAsync()
+    {
+        try
+        {
+            await InitializePool();
+            await LoadStageData();
+            isInitialized = true;
+
+            await StartStageProgression();
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"MonsterSpawner 초기화 실패: {e.Message}");
+        }
     }
 
     private async UniTask LoadStageData()
@@ -85,6 +96,9 @@ public class MonsterSpawner : MonoBehaviour
 
     private async UniTask StartStageProgression()
     {
+        if (!isInitialized)
+            return;
+
         if (stageWaveIds.Count == 0)
         {
             Debug.LogError("스테이지에 웨이브가 없습니다.");
@@ -269,6 +283,13 @@ public class MonsterSpawner : MonoBehaviour
                 Vector3 spawnPos = MonsterBehavior.IsBossMonster(monsterId) ? GetBossSpawnPosition() : GetRandomSpawnPosition();
 
                 monster.transform.position = spawnPos;
+
+                var renderers = monster.GetComponentsInChildren<Renderer>();
+                foreach (var renderer in renderers)
+                {
+                    renderer.enabled = true;
+                }
+
                 monster.SetActive(true);
 
                 try
@@ -291,7 +312,7 @@ public class MonsterSpawner : MonoBehaviour
                             monsterNav.SetUp();
                         }
 
-                        Debug.Log($"몬스터 소환: ID={monsterId}, 이름={monsterDataSO.monsterName}");
+                        //Debug.Log($"몬스터 소환: ID={monsterId}, 이름={monsterDataSO.monsterName}");
                     }
                     else
                     {
@@ -309,6 +330,10 @@ public class MonsterSpawner : MonoBehaviour
             }
         }
         return false;
+    }
+
+    private void SpawnMonster()
+    { 
     }
 
     public static void SetMonsterSprite(GameObject monster, MonsterData monsterData)
@@ -366,15 +391,31 @@ public class MonsterSpawner : MonoBehaviour
         {
             var handle = Addressables.InstantiateAsync(monsterPrefab, GetRandomSpawnPosition(), Quaternion.identity);
             var monster = await handle.Task;
-            monsterList.Add(monster);
+
             monster.SetActive(false);
+
+            var renderers = monster.GetComponentsInChildren<Renderer>();
+            foreach (var renderer in renderers)
+            {
+                renderer.enabled = false;
+            }
+
+            monsterList.Add(monster);
         }
 
         // 보스 몬스터 풀 생성
         var bossHandle = Addressables.InstantiateAsync(bossMonsterPrefab, GetBossSpawnPosition(), Quaternion.identity);
         var bossMonster = await bossHandle.Task;
-        bossMonsterList.Add(bossMonster);
+
         bossMonster.SetActive(false);
+
+        bossMonsterList.Add(bossMonster);
+
+        var bossRenderers = bossMonster.GetComponentsInChildren<Renderer>();
+        foreach (var renderer in bossRenderers)
+        {
+            renderer.enabled = false;
+        }
 
         await CreateAllPools();
     }

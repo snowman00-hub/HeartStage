@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 {
@@ -9,13 +10,30 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     private float attackCooldown = 0;    
     private bool isBoss = false;
     private MonsterSpawner monsterSpawner;
+    private HealthBar healthBar;
 
     private int currentHP;
+
+    public int GetCurrentHP() => currentHP;
+    public MonsterData GetMonsterData() => monsterData;
+    public bool IsBossMonster() => isBoss;
+
     public void Init(MonsterData data)
     {
         monsterData = data;
         currentHP = data.hp;
         isBoss = IsBossMonster(data.id);
+        InitHealthBar();
+    }
+
+    private void InitHealthBar()
+    {
+        healthBar = GetComponentInChildren<HealthBar>();
+        if (healthBar != null)
+        {
+            healthBar.Init(this, isBoss);
+            healthBar.ShowHealthBar();
+        }
     }
 
     public void SetMonsterSpawner(MonsterSpawner spawner)
