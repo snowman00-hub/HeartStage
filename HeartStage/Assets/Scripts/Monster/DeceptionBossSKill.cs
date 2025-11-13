@@ -5,12 +5,12 @@ using UnityEngine.AddressableAssets;
 public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
 {
     [SerializeField] private int spawnCount = 5;
-    [SerializeField] private string poolId = "121042";
+    private string poolId = "21101";
 
     private void Awake()
     {
         if (string.IsNullOrEmpty(poolId))
-            poolId = "121042";
+            poolId = "21101";
 
         if (spawnCount <= 0)
             spawnCount = 5;
@@ -46,7 +46,7 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
 
                 try
                 {
-                    var handle = Addressables.LoadAssetAsync<MonsterData>($"MonsterData_111011");
+                    var handle = Addressables.LoadAssetAsync<MonsterData>($"MonsterData_21101"); // test
                     var monsterData = await handle.Task;
 
                     if (monsterData != null)

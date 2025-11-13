@@ -189,7 +189,7 @@ public class MonsterDataTools : EditorWindow
 
     private void AssignDataToSO(MonsterData so, MonsterCSVData data)
     {
-        so.id = data.id;
+        so.id = data.mon_id;
         so.monsterName = data.mon_name;
         so.monsterType = data.mon_type;
         so.hp = data.hp;
@@ -198,10 +198,22 @@ public class MonsterDataTools : EditorWindow
         so.attackSpeed = data.atk_speed;
         so.attackRange = data.atk_range;
         so.bulletSpeed = data.bullet_speed;
-        so.moveSpeed = data.speed;          
+        so.moveSpeed = data.speed;
         so.minExp = data.min_level;
         so.maxExp = data.max_level;
-        so.image_AssetName = data.image_AssetName; // monster sprite 
+
+        // 새로운 필드들
+        so.skillId1 = data.skill_id1;
+        so.skillId2 = data.skill_id2;
+        so.itemId1 = data.item_id1;
+        so.dropCount1 = data.drop_count1;
+        so.itemId2 = data.item_id2;
+        so.dropCount2 = data.drop_count2;
+        so.prefab1 = data.prefab1;
+        so.prefab2 = data.prefab2;
+
+        // 호환성을 위해 기존 필드도 설정
+        so.image_AssetName = data.prefab1;
     }
 
     private void RegisterToAddressables(string assetPath, int monsterId)

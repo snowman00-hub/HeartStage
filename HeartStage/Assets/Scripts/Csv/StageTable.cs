@@ -1,0 +1,105 @@
+﻿using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
+
+
+public class StageCsvData
+{
+    public int stage_ID { get; set; }
+    public string stage_name { get; set; }
+    public int stage_step1 { get; set; }
+    public int stage_step2 { get; set; }
+    public int debut_stamina { get; set; }
+    public int regular_stamina { get; set; }
+    public int wave_time { get; set; }
+    public int wave1_id { get; set; }
+    public int wave2_id { get; set; }
+    public int wave3_id { get; set; }
+    public int wave4_id { get; set; }
+    public int fail_stamina1 { get; set; }
+    public int fail_stamina2 { get; set; }
+    public string prefab { get; set; }
+}
+
+
+public class StageTable : DataTable
+{       
+    private readonly Dictionary<int, StageCsvData> stagecsvTable = new Dictionary<int, StageCsvData>();
+    private readonly List<StageCsvData> orderedStages = new List<StageCsvData>();
+
+    public override async UniTask LoadAsync(string filename)
+    {
+        stagecsvTable.Clear();
+        orderedStages.Clear();
+
+        AsyncOperationHandle<TextAsset> handle = Addressables.LoadAssetAsync<TextAsset>(filename);
+        TextAsset ta = await handle.Task;
+
+        if (!ta)
+        {
+            Debug.LogError($"TextAsset 로드 실패: {filename}");
+            return;
+        }
+
+        var list = LoadCSV<StageCsvData>(ta.text);
+
+        foreach (var item in list)
+        {
+            if (!stagecsvTable.ContainsKey(item.stage_ID))
+            {
+                stagecsvTable.Add(item.stage_ID, item);
+                orderedStages.Add(item);
+            }
+            else
+            {
+                Debug.LogError($"스테이지 아이디 중복: {item.stage_ID}");
+            }
+        }
+
+        Addressables.Release(handle);
+    }
+
+    public StageCsvData GetStage(int stageId)
+    {
+        if (!stagecsvTable.ContainsKey(stageId))
+        {
+            Debug.LogWarning($"스테이지 아이디를 찾을 수 없음: {stageId}");
+            return null;
+        }
+        return stagecsvTable[stageId];
+    }
+
+    public Dictionary<int, StageCsvData> GetAllStages()
+    {
+        return new Dictionary<int, StageCsvData>(stagecsvTable);
+    }
+
+    public List<StageCsvData> GetOrderedStages()
+    {
+        return new List<StageCsvData>(orderedStages);
+    }
+
+    public List<int> GetWaveIds(int stageId)
+    {
+        var stage = GetStage(stageId);
+        if (stage == null) return new List<int>();
+
+        var waveIds = new List<int>();
+        if (stage.wave1_id > 0) waveIds.Add(stage.wave1_id);
+        if (stage.wave2_id > 0) waveIds.Add(stage.wave2_id);
+        if (stage.wave3_id > 0) waveIds.Add(stage.wave3_id);
+        if (stage.wave4_id > 0) waveIds.Add(stage.wave4_id);
+
+        return waveIds;
+    }
+
+    public bool IsStageUnlocked(int stageId, int currentStep1, int currentStep2)
+    {
+        var stage = GetStage(stageId);
+        if (stage == null) return false;
+
+        return currentStep1 >= stage.stage_step1 && currentStep2 >= stage.stage_step2;
+    }
+}

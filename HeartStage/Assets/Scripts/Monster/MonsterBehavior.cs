@@ -116,6 +116,15 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 
     public static bool IsBossMonster(int id)
     {
-        return id == 121042;
+        if(DataTableManager.MonsterTable != null)
+        {
+            var monsterData = DataTableManager.MonsterTable.Get(id);
+            if(monsterData != null)
+            {
+                return monsterData.mon_type == 2; // 2가 보스 몬스터 타입이라고 가정
+            }
+        }
+
+        return id == 22201 || id == 22214;
     }
 }

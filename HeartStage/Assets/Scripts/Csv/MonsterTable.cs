@@ -21,21 +21,34 @@ public enum mon_type
 
 public class MonsterCSVData
 {
-    public int id { get; set; }
+    public int mon_id { get; set; }
     public string mon_name { get; set; }
     public int mon_type { get; set; }
-    public int stage_num { get; set; }
     public int atk_type { get; set; }
     public int atk_dmg { get; set; }
     public int atk_speed { get; set; }
     public int atk_range { get; set; }
     public int bullet_speed { get; set; }
     public int hp { get; set; }
-    public int speed { get; set; }
-    public int skill_id { get; set; }
+    public float speed { get; set; }
+    public int skill_id1 { get; set; }
+    public int skill_id2 { get; set; }
     public int min_level { get; set; }
     public int max_level { get; set; }
-    public string image_AssetName { get; set; }
+    public int item_id1 { get; set; }
+    public int drop_count1 { get; set; }
+    public int item_id2 { get; set; }
+    public int drop_count2 { get; set; }
+    public string prefab1 { get; set; }
+    public string prefab2 { get; set; }
+
+    // 호환성을 위한 프로퍼티들 (CSV 파싱에서 제외)
+    public int id => mon_id;
+    public string image_AssetName => prefab1;
+    public int skill_id => skill_id1;
+
+    // stage_num은 CSV에 없으므로 기본값을 반환하는 프로퍼티로만 유지
+    public int stage_num => 1; // 기본값 1 반환
 }
 
 public class MonsterTable : DataTable
@@ -58,13 +71,13 @@ public class MonsterTable : DataTable
 
         foreach (var item in list)
         {
-            if (!table.ContainsKey(item.id))
+            if (!table.ContainsKey(item.mon_id))
             {
-                table.Add(item.id, item);
+                table.Add(item.mon_id, item);
             }
             else
             {
-                Debug.LogError($"몬스터 아이디 중복: {item.id}");
+                Debug.LogError($"몬스터 아이디 중복: {item.mon_id}");
             }
         }
 
@@ -80,12 +93,13 @@ public class MonsterTable : DataTable
         }
         return table[monsterId];
     }
+
     public void UpdateOrAdd(MonsterCSVData data)
     {
-        table[data.id] = data;
+        table[data.mon_id] = data;
     }
 
-    // 테이블의 모든 데이터 가져오기 (SO 생성용)
+    // 테이블의 모든 데이터 가져기기 (SO 생성용)
     public IEnumerable<MonsterCSVData> GetAllData()
     {
         return table.Values;
@@ -97,16 +111,15 @@ public class MonsterTable : DataTable
         var dataList = table.Values.ToList();
 
         var csv = new StringBuilder();
-        // CSV 헤더
-        csv.AppendLine("id,mon_name,mon_type,stage_num,atk_type,atk_dmg,atk_speed,atk_range,bullet_speed,hp,speed,skill_id,min_level,max_level,image_AssetName");
+        // 새로운 CSV 헤더
+        csv.AppendLine("mon_id,mon_name,mon_type,atk_type,atk_dmg,atk_speed,atk_range,bullet_speed,hp,speed,skill_id1,skill_id2,min_level,max_level,item_id1,drop_count1,item_id2,drop_count2,prefab1,prefab2");
 
         // 데이터 행
         foreach (var data in dataList)
         {
-            csv.AppendLine($"{data.id},{data.mon_name},{data.mon_type},{data.stage_num},{data.atk_type},{data.atk_dmg},{data.atk_speed},{data.atk_range},{data.bullet_speed},{data.hp},{data.speed},{data.skill_id},{data.min_level},{data.max_level},{data.image_AssetName}");
+            csv.AppendLine($"{data.mon_id},{data.mon_name},{data.mon_type},{data.atk_type},{data.atk_dmg},{data.atk_speed},{data.atk_range},{data.bullet_speed},{data.hp},{data.speed},{data.skill_id1},{data.skill_id2},{data.min_level},{data.max_level},{data.item_id1},{data.drop_count1},{data.item_id2},{data.drop_count2},{data.prefab1},{data.prefab2}");
         }
 
         File.WriteAllText(filePath, csv.ToString());
     }
-
 }
