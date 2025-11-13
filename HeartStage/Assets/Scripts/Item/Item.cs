@@ -25,7 +25,7 @@ public class Item : MonoBehaviour
 
     public async UniTaskVoid Init(ItemCSVData data, CancellationToken ct = default)
     {
-        _itemData.Init(data);
+        _itemData.UpdateData(data);
 
         var itemspriteRef = new AssetReferenceT<Sprite>(_itemData.SpriteTestID);
         var itemanimatorRef = new AssetReferenceT<RuntimeAnimatorController>(_itemData.AnimationTestID);

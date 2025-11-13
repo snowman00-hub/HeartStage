@@ -15,7 +15,7 @@ public class BootStrap : MonoBehaviour
         await ResourceManager.Instance.PreloadLabelAsync(AddressableLabel.Stage);
         await DataTableManager.Initialization;
 
-        string targetScene = "Assets/Scenes/feature-tower.unity";
+        string targetScene = "Assets/Scenes/Lobby.unity";
 
 #if UNITY_EDITOR
         string lastScene = EditorPrefs.GetString(Key, "");

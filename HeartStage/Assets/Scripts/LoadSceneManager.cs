@@ -6,7 +6,7 @@ public class LoadSceneManager : MonoBehaviour
     public static LoadSceneManager Instance;
 
     public static readonly string StageAddress = "Assets/Scenes/Stage.unity";
-    public static readonly string LobbyAddress = "Assets/Scenes/feature-tower.unity";
+    public static readonly string LobbyAddress = "Assets/Scenes/Lobby.unity";
 
     private void Awake()
     {

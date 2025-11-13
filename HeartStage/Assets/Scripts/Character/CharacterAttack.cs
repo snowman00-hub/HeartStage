@@ -14,6 +14,8 @@ public class CharacterAttack : MonoBehaviour
     private CircleCollider2D circleCollider;
     private SpriteRenderer spriteRenderer;
 
+    private int finalDmg;
+
     private void Awake()
     {
         circleCollider = GetComponent<CircleCollider2D>();
@@ -49,7 +51,17 @@ public class CharacterAttack : MonoBehaviour
         var texture = ResourceManager.Instance.Get<Texture2D>(data.image_AssetName);
         spriteRenderer.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
         // 액티브 스킬 등록
-        ScriptAttacher.AttachById(gameObject, data.skill_id);
+        ActiveSkillManager.Instance.RegisterSkill(gameObject, data.skill_id);
+
+
+        EffectRegistry.Apply(gameObject, 3001, 0.15f, 10f);
+        EffectRegistry.Apply(gameObject, 3001, 0.15f, 10f);
+        EffectRegistry.Apply(gameObject, 3001, 0.15f, 10f);
+        EffectRegistry.Apply(gameObject, 3001, 0.15f, 10f);
+        EffectRegistry.Apply(gameObject, 3001, 0.15f, 10f);
+        EffectRegistry.Apply(gameObject, 3001, 0.15f, 10f);
+        EffectRegistry.Apply(gameObject, 3001, 0.15f, 10f);
+        EffectRegistry.Apply(gameObject, 3001, 0.15f, 10f);
     }
 
     private void Update()
@@ -81,9 +93,22 @@ public class CharacterAttack : MonoBehaviour
         if (projectile == null)
             return;
 
+        finalDmg = data.atk_dmg;
+
+        Debug.Log($"1[CharacterAttack] Firing projectile with finalDmg={finalDmg}", this);
+
+        if (EffectBase.Has<AttackMulEffect>(gameObject))
+        {
+            float atkMul = AttackMulEffect.GetAttackMultiplier(gameObject);
+            finalDmg = (int)(data.atk_dmg * atkMul);
+        }
+
+        Debug.Log($"2[CharacterAttack] Firing projectile with finalDmg={finalDmg}", this);
+
         var dir = (targetPos - transform.position).normalized;
+
         projectile.GetComponent<CharacterProjectile>()
-            .SetMissile(data.projectile_AssetName, data.hitEffect_AssetName, transform.position, dir, data.bullet_speed, data.atk_dmg);
+            .SetMissile(data.projectile_AssetName, data.hitEffect_AssetName, transform.position, dir, data.bullet_speed, finalDmg);
     }
 
     private GameObject GetClosestEnemy()

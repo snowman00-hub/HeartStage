@@ -7,17 +7,23 @@ public enum Languages
 
 public static class DataTableIds
 {
-    public static readonly string[] CsvTableIds =
-    {
-        "ItemTable",
-    };
-
-    public static string Item => CsvTableIds[0];
-
+    public static string Item => "ItemTable";
     public static string Character => "CharacterTable";
     public static string Monster => "MonsterTable";
     public static string StageWave => "StageWaveTable";
     public static string ActiveSkill => "ActiveSkillTable";
+    public static string Skill => "SkillTable";
+    public static string Effect => "EffectTable";
+
+}
+
+public static class IBuffIds
+{
+    public static readonly string[] BuffIds =
+    {
+        "AttackPowerBuff",
+    };
+    public static string AttackPowerBuff => BuffIds[0];
 }
 
 public class Tag

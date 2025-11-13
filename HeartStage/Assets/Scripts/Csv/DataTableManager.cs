@@ -47,6 +47,20 @@ public static class DataTableManager
             await table.LoadAsync(id);
             tables.Add(id, table);
         }
+
+        {
+            var table = new SkillTable();
+            var id = DataTableIds.Skill;
+            await table.LoadAsync(id);
+            tables.Add(id, table);
+        }
+
+        { 
+            var table = new EffectTable();
+            var id = DataTableIds.Effect;
+            await table.LoadAsync(id);
+            tables.Add(id, table);
+        }
     }
 
     public static ItemTable ItemTable
@@ -86,6 +100,21 @@ public static class DataTableManager
         get
         {
             return Get<ActiveSkillTable>(DataTableIds.ActiveSkill);
+        }
+    }
+    
+    public static SkillTable SkillTable
+    {
+        get
+        {
+            return Get<SkillTable>(DataTableIds.Skill);
+        }
+    }
+    public static EffectTable EffectTable
+    {
+        get
+        {
+            return Get<EffectTable>(DataTableIds.Effect);
         }
     }
 
