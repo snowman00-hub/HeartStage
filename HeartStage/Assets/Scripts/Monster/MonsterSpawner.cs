@@ -196,7 +196,7 @@ public class MonsterSpawner : MonoBehaviour
 
         foreach (var monster in targetList)
         {
-            if (!monster.activeInHierarchy && monster != null)
+            if (monster != null && !monster.activeInHierarchy )
             {
                 Vector3 spawnPos = MonsterBehavior.IsBossMonster(monsterId) ? GetBossSpawnPosition() : GetRandomSpawnPosition();
 
