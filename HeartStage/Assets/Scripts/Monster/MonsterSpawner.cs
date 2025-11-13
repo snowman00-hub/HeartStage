@@ -1,5 +1,7 @@
 ﻿using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using TMPro.EditorUtilities;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.AI;
@@ -24,10 +26,12 @@ public class MonsterSpawner : MonoBehaviour
 {
     [Header("Reference")]
     [SerializeField] private AssetReference monsterPrefab;
+    [SerializeField] private AssetReference bossMonsterPrefab;
+
     [SerializeField] private GameObject monsterProjectilePrefab;
 
     [SerializeField] private GameObject testMonsterPrefab; // test
-   // [SerializeField] private MonsterData monsterData; // test
+    //[SerializeField] private MonsterData monsterData; // test
 
     [Header("Wave")]    
     [SerializeField] private int poolSize = 60; // wave pool size
@@ -46,14 +50,16 @@ public class MonsterSpawner : MonoBehaviour
     public static string GetMonsterProjectilePoolId() => MonsterProjectilePoolId;
 
     private List<GameObject> monsterList = new List<GameObject>();
+    private List<GameObject> bossMonsterList = new List<GameObject>(); // 보스 풀 추가
+
     public List<GameObject> MonsterList => monsterList;
 
     private async void Start()
     {
         await InitializePool();
         await LoadWaveData();
-        //await StartWaveSpawning();
-        SpawnManyMonster().Forget();
+        await StartWaveSpawning();
+        //SpawnManyMonster().Forget();
     }
 
     private async UniTask LoadWaveData()
@@ -121,21 +127,23 @@ public class MonsterSpawner : MonoBehaviour
 
         while (isWaveActive && !IsWaveCompleted())
         {
-            var nextMonster = GetNextMonsterToSpawn();
-            if (nextMonster.HasValue)
+            for(int i = 0; i < 2; i++)
             {
-                bool spawnSuccess = await SpawnMonster(nextMonster.Value.monsterId); 
-                if (spawnSuccess)
+                var nextMonster = GetNextMonsterToSpawn();
+                if (nextMonster.HasValue)
                 {
-                    UpdateSpawnCount(nextMonster.Value.monsterId);
-                    totalMonstersSpawned++;
+                    bool spawnSuccess = await SpawnMonster(nextMonster.Value.monsterId);
+                    if (spawnSuccess)
+                    {
+                        UpdateSpawnCount(nextMonster.Value.monsterId);
+                        totalMonstersSpawned++;
+                    }
+                    await UniTask.Delay((int)(spawnInterval * 1000));
                 }
-
-                await UniTask.Delay((int)(spawnInterval * 1000));
-            }
-            else
-            {
-                break;
+                else
+                {
+                    break;
+                }
             }
         }
 
@@ -184,7 +192,9 @@ public class MonsterSpawner : MonoBehaviour
 
     private async UniTask<bool> SpawnMonster(int monsterId)
     {
-        foreach (var monster in monsterList)
+        var targetList = MonsterBehavior.IsBossMonster(monsterId) ? bossMonsterList : monsterList;
+
+        foreach (var monster in targetList)
         {
             if (!monster.activeInHierarchy && monster != null)
             {
@@ -297,16 +307,16 @@ public class MonsterSpawner : MonoBehaviour
         return true;
     }
 
-    private void SpawnProjectile()
-    {
-        PoolManager.Instance.CreatePool(MonsterProjectilePoolId, monsterProjectilePrefab, 100);
+    //private void SpawnProjectile()
+    //{
+    //    PoolManager.Instance.CreatePool(MonsterProjectilePoolId, monsterProjectilePrefab, 100);
 
-        for (int i = 0; i < 100; i++)
-        {
-            var projectile = PoolManager.Instance.Get(MonsterProjectilePoolId);
-            projectile.SetActive(false);
-        }
-    }
+    //    for (int i = 0; i < 100; i++)
+    //    {
+    //        var projectile = PoolManager.Instance.Get(MonsterProjectilePoolId);
+    //        projectile.SetActive(false);
+    //    }
+    //}
 
     private async UniTask InitializePool()
     {
@@ -322,8 +332,18 @@ public class MonsterSpawner : MonoBehaviour
             monster.SetActive(false);
         }
 
-        SpawnProjectile();
-        await CreateMonsterPool();
+        for(int i = 0; i < 1; i++)
+        {
+            Vector3 spawnPos = GetBossSpawnPosition();
+
+            var handle = Addressables.InstantiateAsync(bossMonsterPrefab, spawnPos, Quaternion.identity);
+            await handle.Task;
+            var bossMonster = handle.Result;
+
+            bossMonsterList.Add(bossMonster);
+            bossMonster.SetActive(false);
+        }
+        await CreateAllPools();
     }
 
     private Vector3 GetRandomSpawnPosition()
@@ -356,15 +376,15 @@ public class MonsterSpawner : MonoBehaviour
         return worldPos;
     }
 
-    private async UniTask CreateMonsterPool()
-    {
-        var handle = Addressables.LoadAssetAsync<GameObject>(monsterPrefab);
-        await handle.Task;
-        var monsterPrefabGO = handle.Result;
+    //private async UniTask CreateMonsterPool()
+    //{
+    //    var handle = Addressables.LoadAssetAsync<GameObject>(bossMonsterPrefab);
+    //    await handle.Task;
+    //    var monsterPrefabGO = handle.Result;
 
-        // 몬스터 풀 생성 (DeceptionBossSKill에서 사용할 ID와 동일하게)
-        PoolManager.Instance.CreatePool("121042", monsterPrefabGO, 1);
-    }
+    //    // 몬스터 풀 생성 (DeceptionBossSKill에서 사용할 ID와 동일하게)
+    //    PoolManager.Instance.CreatePool("121042", monsterPrefabGO, 1);
+    //}
     private void OnDestroy()
     {
         foreach (var monster in monsterList)
@@ -390,5 +410,18 @@ public class MonsterSpawner : MonoBehaviour
         }
         await LoadWaveData();
         await StartWaveSpawning();
+    }
+
+    private async UniTask CreateAllPools()
+    {
+        // 1. 몬스터 발사체 풀
+        PoolManager.Instance.CreatePool(MonsterProjectilePoolId, monsterProjectilePrefab, 100);
+
+        // 2. DeceptionBossSkill용 몬스터 풀 (일반 몬스터 프리팹 사용)
+        var handle = Addressables.LoadAssetAsync<GameObject>(monsterPrefab);
+        await handle.Task;
+        var monsterPrefabGO = handle.Result;
+
+        PoolManager.Instance.CreatePool("121042", monsterPrefabGO, 15);
     }
 }

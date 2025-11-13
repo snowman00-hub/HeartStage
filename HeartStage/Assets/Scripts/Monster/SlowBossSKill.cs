@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class SlowBossSKill : IBossMonsterSkill
+public class SlowBossSkill : IBossMonsterSkill
 {
     public void useSkill(MonsterBehavior boss)
     {

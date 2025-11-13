@@ -1,29 +1,41 @@
 ﻿using UnityEngine;
 using Cysharp.Threading.Tasks;
-using System.Threading;
+using UnityEngine.AddressableAssets;
 
-public class DeceptionBossSKill : IBossMonsterSkill
+public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
 {
-    private int spawnCount; // test
-    private string poolId;
+    [SerializeField] private int spawnCount = 5;
+    [SerializeField] private string poolId = "121042";
 
-    public DeceptionBossSKill(string poolId, int spawnCount = 5)
+    private void Awake()
     {
-        this.poolId = poolId;
-        this.spawnCount = spawnCount;
+        if (string.IsNullOrEmpty(poolId))
+            poolId = "121042";
+
+        if (spawnCount <= 0)
+            spawnCount = 5;
     }
 
-    public void useSkill(MonsterBehavior boss)
+    public void Execute()
     {
-        DeceptionSkill(boss).Forget();
+        var monsterBehavior = GetComponent<MonsterBehavior>();
+        if (monsterBehavior != null)
+        {
+            Debug.Log("DeceptionSkill 실행");
+            DeceptionSkill(monsterBehavior).Forget();
+        }
     }
 
     public async UniTaskVoid DeceptionSkill(MonsterBehavior boss)
     {
+        Debug.Log($"대량 현혹 스킬 실행: poolId={poolId}, spawnCount={spawnCount}");
+
         for (int i = 0; i < spawnCount; i++)
         {
-            Vector3 spawnPos = boss.transform.position + Random.insideUnitSphere * 3f;
-            spawnPos.y = boss.transform.position.y;
+            int spawnPosX = Random.Range(0, Screen.width);
+            Vector3 screenPosition = new Vector3(spawnPosX, Screen.height, 0);
+            Vector3 spawnPos = Camera.main.ScreenToWorldPoint(screenPosition);
+            spawnPos.z = 0f;
 
             var monster = PoolManager.Instance.Get(poolId);
             if (monster != null)
@@ -32,26 +44,46 @@ public class DeceptionBossSKill : IBossMonsterSkill
                 monster.transform.rotation = Quaternion.identity;
                 monster.SetActive(true);
 
-                var monsterData = ScriptableObject.CreateInstance<MonsterData>();
-                monsterData.Init(111011); // test
-
-                var monsterBehavior = monster.GetComponent<MonsterBehavior>();
-                if (monsterBehavior != null)
+                try
                 {
-                    monsterBehavior.Init(monsterData);
+                    var handle = Addressables.LoadAssetAsync<MonsterData>($"MonsterData_111011");
+                    var monsterData = await handle.Task;
+
+                    if (monsterData != null)
+                    {
+                        var monsterBehavior = monster.GetComponent<MonsterBehavior>();
+                        if (monsterBehavior != null)
+                        {
+                            monsterBehavior.Init(monsterData);
+                        }
+
+                        MonsterSpawner.SetMonsterSprite(monster, monsterData);
+
+                        var monsterNav = monster.GetComponent<MonsterNavMeshAgent>();
+                        if (monsterNav != null)
+                        {
+                            monsterNav.ApplyMoveSpeed(monsterData.moveSpeed);
+                            monsterNav.SetUp();
+                        }
+
+                        Debug.Log($"DeceptionSkill 몬스터 소환 성공: {i + 1}번째");
+                    }
+                    else
+                    {
+                        Debug.LogError("MonsterData_111011 로드 실패!");
+                    }
                 }
-
-                MonsterSpawner.SetMonsterSprite(monster, monsterData);
-
-                var monsterNav = monster.GetComponent<MonsterNavMeshAgent>();
-                if (monsterNav != null)
+                catch (System.Exception e)
                 {
-                    monsterNav.ApplyMoveSpeed(monsterData.moveSpeed);
-                    monsterNav.SetUp();
+                    Debug.LogError($"DeceptionSkill MonsterData 로드 오류: {e.Message}");
                 }
+            }
+            else
+            {
+                Debug.LogError($"PoolManager에서 {poolId}로 몬스터를 가져올 수 없습니다!");
             }
         }
 
-        await UniTask.Delay(5000);
+        await UniTask.Delay(15000);
     }
 }

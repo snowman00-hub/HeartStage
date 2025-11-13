@@ -39,7 +39,7 @@ public class MonsterNavMeshAgent : MonoBehaviour
         navMeshAgent = GetComponent<NavMeshAgent>();
         navMeshAgent.updateRotation = false;
         navMeshAgent.updateUpAxis = false;
-        navMeshAgent.radius = 0.6f;
+        navMeshAgent.radius = 0.4f;
         navMeshAgent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
     }
 

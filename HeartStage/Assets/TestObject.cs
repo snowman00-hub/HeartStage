@@ -20,6 +20,6 @@ public class TestObject : MonoBehaviour, IDamageable
         {
             Die();
         }
-        Debug.Log($"{gameObject.name}이 {damage}의 피해를 입었습니다. 남은 체력: {hp}");
+       // Debug.Log($"{gameObject.name}이 {damage}의 피해를 입었습니다. 남은 체력: {hp}");
     }    
 }
