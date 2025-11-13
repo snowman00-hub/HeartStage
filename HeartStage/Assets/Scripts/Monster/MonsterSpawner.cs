@@ -6,37 +6,33 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.AI;
 
-
 [System.Serializable]
 public struct WaveMonsterInfo
 {
     public int monsterId;
     public int count;
     public int spawned;
+    public int remainMonster;
 
     public WaveMonsterInfo(int id, int cnt)
     {
         monsterId = id;
         count = cnt;
         spawned = 0;
+        remainMonster = cnt;
     }
 }
-
 public class MonsterSpawner : MonoBehaviour
 {
     [Header("Reference")]
     [SerializeField] private AssetReference monsterPrefab;
     [SerializeField] private AssetReference bossMonsterPrefab;
-
     [SerializeField] private GameObject monsterProjectilePrefab;
-
     [SerializeField] private GameObject testMonsterPrefab; // test
-    //[SerializeField] private MonsterData monsterData; // test
 
-    [Header("Wave")]    
+    [Header("Field")]
     [SerializeField] private int poolSize = 60; // wave pool size
-
-    [SerializeField] private int currentWaveId = 61034; // test 61011 
+    [SerializeField] private int currentWaveId = 61011; // test  61034
     [SerializeField] private int testMonsterId = 111011; // test
     [SerializeField] private int testSpawnManyCount = 200; // test
 
@@ -45,12 +41,11 @@ public class MonsterSpawner : MonoBehaviour
     private int totalMonstersSpawned = 0;
     private bool isWaveActive = false;
 
-
     private const string MonsterProjectilePoolId = "MonsterProjectile"; // 임시 아이디 그냥 쭉 써도 될듯
     public static string GetMonsterProjectilePoolId() => MonsterProjectilePoolId;
 
     private List<GameObject> monsterList = new List<GameObject>();
-    private List<GameObject> bossMonsterList = new List<GameObject>(); // 보스 풀 추가
+    private List<GameObject> bossMonsterList = new List<GameObject>(); // 보스 풀
 
     public List<GameObject> MonsterList => monsterList;
 
@@ -78,6 +73,7 @@ public class MonsterSpawner : MonoBehaviour
         }
 
         SetUpWaveMonster();
+        UpdateStageUI();
         Debug.Log($"웨이브 로드: {currentWaveData.wave_name}, 총 {GetTotalWaveMonsterCount()}마리, 간격: {currentWaveData.spown_time}초");
     }
 
@@ -111,6 +107,16 @@ public class MonsterSpawner : MonoBehaviour
         return total;
     }
 
+    // 남은 몬스터 수 계산 (새로 추가)
+    private int GetRemainingMonsterCount()
+    {
+        int remaining = 0;
+        foreach (var waveMonster in waveMonstersToSpawn)
+        {
+            remaining += waveMonster.remainMonster;
+        }
+        return remaining;
+    }
 
     private async UniTask StartWaveSpawning()
     {
@@ -125,9 +131,9 @@ public class MonsterSpawner : MonoBehaviour
 
         float spawnInterval = currentWaveData.spown_time;
 
-        while (isWaveActive && !IsWaveCompleted())
+        while (isWaveActive && !IsWaveSpawnCompleted())
         {
-            for(int i = 0; i < 2; i++)
+            for (int i = 0; i < 2; i++)
             {
                 var nextMonster = GetNextMonsterToSpawn();
                 if (nextMonster.HasValue)
@@ -147,11 +153,65 @@ public class MonsterSpawner : MonoBehaviour
             }
         }
 
-        if (IsWaveCompleted())
+        Debug.Log($"웨이브 {currentWaveData.wave_name} 스폰 완료!");
+    }
+
+    // 웨이브 완료 체크
+    private void CheckWaveCompletion()
+    {
+        int totalRemaining = GetRemainingMonsterCount();
+
+        if (totalRemaining <= 0 && IsWaveSpawnCompleted())
         {
             Debug.Log($"웨이브 {currentWaveData.wave_name} 완료!");
-            isWaveActive = false;
+            ProgressToNextWave().Forget();
         }
+    }
+
+    // 다음 웨이브로 진행
+    private async UniTaskVoid ProgressToNextWave()
+    {
+        isWaveActive = false;
+
+        // 다음 웨이브 ID 계산
+        int nextWaveId = GetNextWaveId();
+
+        if (nextWaveId > 0)
+        {
+            Debug.Log($"다음 웨이브로 진행: {nextWaveId}");
+            await UniTask.Delay(2000); // 2초 대기
+            await ChangeWave(nextWaveId);
+        }
+        else
+        {
+            Debug.Log("모든 웨이브 완료!");
+        }
+    }
+
+    // 다음 웨이브 ID 계산
+    private int GetNextWaveId()
+    {
+        var nextWaveData = DataTableManager.StageWaveTable.GetNextWave(currentWaveId);
+
+        if (nextWaveData != null)
+        {
+            return nextWaveData.wave_id;
+        }
+
+        return -1;
+    }
+
+    // 스폰 완료 체크를 별도 메서드로 분리
+    private bool IsWaveSpawnCompleted()
+    {
+        foreach (var monsterInfo in waveMonstersToSpawn)
+        {
+            if (monsterInfo.spawned < monsterInfo.count)
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     private async UniTaskVoid SpawnManyMonster()
@@ -196,7 +256,7 @@ public class MonsterSpawner : MonoBehaviour
 
         foreach (var monster in targetList)
         {
-            if (monster != null && !monster.activeInHierarchy )
+            if (monster != null && !monster.activeInHierarchy)
             {
                 Vector3 spawnPos = MonsterBehavior.IsBossMonster(monsterId) ? GetBossSpawnPosition() : GetRandomSpawnPosition();
 
@@ -210,12 +270,16 @@ public class MonsterSpawner : MonoBehaviour
                     var monsterDataSO = await handle.Task;
 
                     if (monsterDataSO != null)
-                    {  
+                    {
                         // var csvData = DataTableManager.MonsterTable.Get(monsterId);
                         // monsterDataSO.UpdateData(csvData); // 
 
                         var monsterBehavior = monster.GetComponent<MonsterBehavior>();
                         monsterBehavior.Init(monsterDataSO);
+
+                        // 몬스터에게 MonsterSpawner 참조 설정 (새로 추가)
+                        monsterBehavior.SetMonsterSpawner(this);
+
                         SetMonsterSprite(monster, monsterDataSO);
 
                         var monsterNav = monster.GetComponent<MonsterNavMeshAgent>();
@@ -295,29 +359,6 @@ public class MonsterSpawner : MonoBehaviour
         }
     }
 
-    private bool IsWaveCompleted()
-    {
-        foreach (var monsterInfo in waveMonstersToSpawn)
-        {
-            if (monsterInfo.spawned < monsterInfo.count)
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    //private void SpawnProjectile()
-    //{
-    //    PoolManager.Instance.CreatePool(MonsterProjectilePoolId, monsterProjectilePrefab, 100);
-
-    //    for (int i = 0; i < 100; i++)
-    //    {
-    //        var projectile = PoolManager.Instance.Get(MonsterProjectilePoolId);
-    //        projectile.SetActive(false);
-    //    }
-    //}
-
     private async UniTask InitializePool()
     {
         for (int i = 0; i < poolSize; i++)
@@ -332,7 +373,7 @@ public class MonsterSpawner : MonoBehaviour
             monster.SetActive(false);
         }
 
-        for(int i = 0; i < 1; i++)
+        for (int i = 0; i < 1; i++)
         {
             Vector3 spawnPos = GetBossSpawnPosition();
 
@@ -376,15 +417,6 @@ public class MonsterSpawner : MonoBehaviour
         return worldPos;
     }
 
-    //private async UniTask CreateMonsterPool()
-    //{
-    //    var handle = Addressables.LoadAssetAsync<GameObject>(bossMonsterPrefab);
-    //    await handle.Task;
-    //    var monsterPrefabGO = handle.Result;
-
-    //    // 몬스터 풀 생성 (DeceptionBossSKill에서 사용할 ID와 동일하게)
-    //    PoolManager.Instance.CreatePool("121042", monsterPrefabGO, 1);
-    //}
     private void OnDestroy()
     {
         foreach (var monster in monsterList)
@@ -408,20 +440,57 @@ public class MonsterSpawner : MonoBehaviour
                 monster.SetActive(false);
             }
         }
+
+        foreach (var bossMonster in bossMonsterList)
+        {
+            if (bossMonster.activeInHierarchy)
+            {
+                bossMonster.SetActive(false);
+            }
+        }
+
         await LoadWaveData();
         await StartWaveSpawning();
     }
 
     private async UniTask CreateAllPools()
     {
-        // 1. 몬스터 발사체 풀
+        // 몬스터 발사체 풀
         PoolManager.Instance.CreatePool(MonsterProjectilePoolId, monsterProjectilePrefab, 100);
 
-        // 2. DeceptionBossSkill용 몬스터 풀 (일반 몬스터 프리팹 사용)
+        // DeceptionBossSkill용 몬스터 풀 (일반 몬스터 프리팹 사용)
         var handle = Addressables.LoadAssetAsync<GameObject>(monsterPrefab);
         await handle.Task;
         var monsterPrefabGO = handle.Result;
 
         PoolManager.Instance.CreatePool("121042", monsterPrefabGO, 15);
+    }
+
+    // UI 업데이트
+    private void UpdateStageUI()
+    {
+        if (StageManager.Instance != null)
+        {
+            StageManager.Instance.WaveCount = currentWaveData.wave_count;
+            StageManager.Instance.RemainMonsterCount = GetRemainingMonsterCount();
+        }
+    }
+
+    public void OnMonsterDied(int monsterId)
+    {
+        for (int i = 0; i < waveMonstersToSpawn.Count; i++)
+        {
+            var monsterInfo = waveMonstersToSpawn[i];
+            if (monsterInfo.monsterId == monsterId && monsterInfo.remainMonster > 0)
+            {
+                monsterInfo.remainMonster--;
+                waveMonstersToSpawn[i] = monsterInfo;
+                break;
+            }
+        }
+
+        // UI 업데이트 및 웨이브 완료 체크
+        UpdateStageUI();
+        CheckWaveCompletion();
     }
 }

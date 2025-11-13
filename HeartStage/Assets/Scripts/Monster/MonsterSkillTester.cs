@@ -4,6 +4,12 @@ public class MonsterSkillTester : MonoBehaviour
 {
     private bool skillsRegistered = false;
 
+    private void Start()
+    {
+        skillsRegistered = false;
+    }
+
+
     private void Update()
     {
         // 스킬 자동 등록 (한 번만)

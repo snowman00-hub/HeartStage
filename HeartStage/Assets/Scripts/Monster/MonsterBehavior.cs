@@ -8,13 +8,19 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     private const string MonsterProjectilePoolId = "MonsterProjectile";
     private float attackCooldown = 0;    
     private bool isBoss = false;
-    
+    private MonsterSpawner monsterSpawner;
+
     private int currentHP;
     public void Init(MonsterData data)
     {
         monsterData = data;
         currentHP = data.hp;
         isBoss = IsBossMonster(data.id);
+    }
+
+    public void SetMonsterSpawner(MonsterSpawner spawner)
+    {
+        monsterSpawner = spawner;
     }
 
     private void Update()
@@ -60,8 +66,12 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 
     public void Die()
     {
+        if(monsterSpawner != null && monsterData != null)
+        {
+            monsterSpawner.OnMonsterDied(monsterData.id);
+        }
+
         gameObject.SetActive(false);
-        //Debug.Log("몬스터가 사망했습니다.");
     }
 
     private void MeleeAttack()

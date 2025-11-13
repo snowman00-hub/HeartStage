@@ -65,7 +65,7 @@ public class MonsterNavMeshAgent : MonoBehaviour
         targetPosition = closestTarget;
         SetDestination();
 
-        Debug.Log($"몬스터 X: {monsterX:F1}, 가장 가까운 타겟: {closestTarget}, 거리: {closestDistance:F1}");
+        //Debug.Log($"몬스터 X: {monsterX:F1}, 가장 가까운 타겟: {closestTarget}, 거리: {closestDistance:F1}");
     }
 
     public void ClearTarget()
