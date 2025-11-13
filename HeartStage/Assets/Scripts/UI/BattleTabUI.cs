@@ -14,14 +14,19 @@ public class BattleTabUI : MonoBehaviour
     public int stagesPerChapter = 3;      // 챕터당 스테이지 수
     public float verticalPadding = 100f;
 
-    [ContextMenu("GenerateStages()")]
-    public void GenerateStages()
+    [ContextMenu("DeleteChildren")]
+    public void DeleteChildren()
     {
-        // 기존 스테이지 삭제 (중복 방지)
         for (int i = contentParent.childCount - 1; i >= 0; i--)
         {
             DestroyImmediate(contentParent.GetChild(i).gameObject);
         }
+    }
+
+    [ContextMenu("GenerateStages()")]
+    public void GenerateStages()
+    {
+        DeleteChildren();
 
         int index = 0;
         int totalStages = totalChapters * stagesPerChapter;
@@ -31,7 +36,7 @@ public class BattleTabUI : MonoBehaviour
         {
             for (int stage = 1; stage <= stagesPerChapter; stage++)
             {
-                string name = $"{group}-{stage}";
+                string name = $"{group} - {stage}";
 
                 GameObject stageObj = Instantiate(stagePrefab, contentParent);
                 RectTransform rect = stageObj.GetComponent<RectTransform>();

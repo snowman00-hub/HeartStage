@@ -138,13 +138,13 @@ public class MonsterSpawner : MonoBehaviour
                         UpdateSpawnCount(nextMonster.Value.monsterId);
                         totalMonstersSpawned++;
                     }
-                    await UniTask.Delay((int)(spawnInterval * 1000));
                 }
                 else
                 {
                     break;
                 }
             }
+            await UniTask.Delay((int)(spawnInterval * 1000));
         }
 
         if (IsWaveCompleted())
