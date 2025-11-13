@@ -12,6 +12,7 @@ public class TrashZone : MonoBehaviour, IDropHandler
             var leaving = slot.characterData;
             slot.ClearSlotAndUnlockSource(leaving); // 네가 만든 비우기 메서드 호출
         }
+        Debug.Log("Dropped on TrashZone");
         // DragMe에서 온 건 단순 무시(원본은 그대로)
     }
 }

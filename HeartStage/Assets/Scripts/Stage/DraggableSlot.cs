@@ -18,6 +18,11 @@ public class DraggableSlot : MonoBehaviour,
     private Color normalColor;
     public Color highlightColor = Color.yellow;
     public CharacterData characterData;
+    
+    public int GetCharacterID()
+    {
+        return characterData != null ? characterData.ID : -1;
+    }
 
 
     // ---------- Drag (슬롯 자체도 드래그 가능하도록) ----------
@@ -111,15 +116,27 @@ public class DraggableSlot : MonoBehaviour,
         if (containerImage != null) containerImage.color = normalColor;
         if (!TryGetDropPayload(data, out var dropSprite, out var droppedCD)) return;
 
-        // (1) 먼저 DragMe -> Slot 케이스
+        // (1) DragMe -> Slot 케이스
         bool fromDragMe = data.pointerDrag != null && data.pointerDrag.GetComponent<DragMe>() != null;
         if (fromDragMe)
         {
-            // 실제 배치
-            if (receivingImage != null && dropSprite != null) receivingImage.sprite = dropSprite;
-            if (droppedCD != null) characterData = droppedCD;
+            // 🔹 드랍 들어오기 전에, 슬롯에 이미 들어있던 캐릭터를 잠시 저장
+            var prevCD = characterData;
 
-            // DragMe 잠금 및 레이캐스트 차단
+            // 🔹 이전 캐릭터가 있고, 그것과 다른 캐릭터를 올리는 경우 → 먼저 풀어준다
+            if (prevCD != null && prevCD != droppedCD)
+            {
+                // prevCD의 DragMe 아이콘 다시 사용 가능하게 + 이 슬롯에서 제거
+                ClearSlotAndUnlockSource(prevCD);
+            }
+
+            // 이제 새 캐릭터를 이 슬롯에 배치
+            if (receivingImage != null && dropSprite != null)
+                receivingImage.sprite = dropSprite;
+
+            characterData = droppedCD;
+
+            // 새 캐릭터의 DragMe는 잠궈준다
             var src = data.pointerDrag.GetComponent<DragMe>();
             if (src != null)
             {
@@ -132,7 +149,7 @@ public class DraggableSlot : MonoBehaviour,
             return;
         }
 
-        // (2) Slot -> Slot 케이스: 자리 교환 또는 이동
+        // (2) Slot -> Slot 케이스...
         var sourceSlot = data.pointerDrag != null ? data.pointerDrag.GetComponent<DraggableSlot>() : null;
         if (sourceSlot != null)
         {
@@ -208,6 +225,7 @@ public class DraggableSlot : MonoBehaviour,
             }
         }
     }
+
     private Sprite GetSlotSprite(DraggableSlot slot)
     {
         var img = slot.receivingImage != null ? slot.receivingImage : slot.GetComponent<Image>();

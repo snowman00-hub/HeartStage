@@ -55,13 +55,6 @@ public class CharacterAttack : MonoBehaviour
 
 
         EffectRegistry.Apply(gameObject, 3001, 0.15f, 10f);
-        EffectRegistry.Apply(gameObject, 3001, 0.15f, 10f);
-        EffectRegistry.Apply(gameObject, 3001, 0.15f, 10f);
-        EffectRegistry.Apply(gameObject, 3001, 0.15f, 10f);
-        EffectRegistry.Apply(gameObject, 3001, 0.15f, 10f);
-        EffectRegistry.Apply(gameObject, 3001, 0.15f, 10f);
-        EffectRegistry.Apply(gameObject, 3001, 0.15f, 10f);
-        EffectRegistry.Apply(gameObject, 3001, 0.15f, 10f);
     }
 
     private void Update()
@@ -94,17 +87,11 @@ public class CharacterAttack : MonoBehaviour
             return;
 
         finalDmg = data.atk_dmg;
-
-        Debug.Log($"1[CharacterAttack] Firing projectile with finalDmg={finalDmg}", this);
-
         if (EffectBase.Has<AttackMulEffect>(gameObject))
         {
             float atkMul = AttackMulEffect.GetAttackMultiplier(gameObject);
             finalDmg = (int)(data.atk_dmg * atkMul);
         }
-
-        Debug.Log($"2[CharacterAttack] Firing projectile with finalDmg={finalDmg}", this);
-
         var dir = (targetPos - transform.position).normalized;
 
         projectile.GetComponent<CharacterProjectile>()
