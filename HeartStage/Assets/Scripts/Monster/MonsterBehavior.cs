@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 {
@@ -8,13 +9,36 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     private const string MonsterProjectilePoolId = "MonsterProjectile";
     private float attackCooldown = 0;    
     private bool isBoss = false;
-    
+    private MonsterSpawner monsterSpawner;
+    private HealthBar healthBar;
+
     private int currentHP;
+
+    public int GetCurrentHP() => currentHP;
+    public MonsterData GetMonsterData() => monsterData;
+    public bool IsBossMonster() => isBoss;
+
     public void Init(MonsterData data)
     {
         monsterData = data;
         currentHP = data.hp;
         isBoss = IsBossMonster(data.id);
+        InitHealthBar();
+    }
+
+    private void InitHealthBar()
+    {
+        healthBar = GetComponentInChildren<HealthBar>();
+        if (healthBar != null)
+        {
+            healthBar.Init(this, isBoss);
+            healthBar.ShowHealthBar();
+        }
+    }
+
+    public void SetMonsterSpawner(MonsterSpawner spawner)
+    {
+        monsterSpawner = spawner;
     }
 
     private void Update()
@@ -60,8 +84,12 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 
     public void Die()
     {
+        if(monsterSpawner != null && monsterData != null)
+        {
+            monsterSpawner.OnMonsterDied(monsterData.id);
+        }
+
         gameObject.SetActive(false);
-        //Debug.Log("몬스터가 사망했습니다.");
     }
 
     private void MeleeAttack()
@@ -106,6 +134,15 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 
     public static bool IsBossMonster(int id)
     {
-        return id == 121042;
+        if(DataTableManager.MonsterTable != null)
+        {
+            var monsterData = DataTableManager.MonsterTable.Get(id);
+            if(monsterData != null)
+            {
+                return monsterData.mon_type == 2; // 2가 보스 몬스터 타입이라고 가정
+            }
+        }
+
+        return id == 22201 || id == 22214;
     }
 }

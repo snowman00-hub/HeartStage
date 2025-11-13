@@ -12,15 +12,25 @@ public class MonsterData : ScriptableObject
     public int attackSpeed;
     public int attackRange;
     public int bulletSpeed;
-    public int moveSpeed;
+    public float moveSpeed;
     public int minExp;
     public int maxExp;
     public string image_AssetName;
+    
+    // 새로 추가된 필드들
+    public int skillId1;
+    public int skillId2;
+    public int itemId1;
+    public int dropCount1;
+    public int itemId2;
+    public int dropCount2;
+    public string prefab1;
+    public string prefab2;
 
     // CharacterData처럼 UpdateData 구현
     public void UpdateData(MonsterCSVData csvData)
     {
-        id = csvData.id;
+        id = csvData.mon_id;
         hp = csvData.hp;
         att = csvData.atk_dmg;
         attType = csvData.atk_type;
@@ -32,7 +42,19 @@ public class MonsterData : ScriptableObject
         monsterType = csvData.mon_type;
         minExp = csvData.min_level;
         maxExp = csvData.max_level;
-        image_AssetName = csvData.image_AssetName;
+        
+        // 새로운 필드들
+        skillId1 = csvData.skill_id1;
+        skillId2 = csvData.skill_id2;
+        itemId1 = csvData.item_id1;
+        dropCount1 = csvData.drop_count1;
+        itemId2 = csvData.item_id2;
+        dropCount2 = csvData.drop_count2;
+        prefab1 = csvData.prefab1;
+        prefab2 = csvData.prefab2;
+        
+        // 호환성을 위해 기존 필드도 설정
+        image_AssetName = csvData.prefab1;
     }
 
     // 기존 Init 메서드는 유지 (하위 호환성)
@@ -57,7 +79,7 @@ public class MonsterData : ScriptableObject
     {
         return new MonsterCSVData
         {
-            id = id,
+            mon_id = id,
             mon_name = monsterName,
             mon_type = monsterType,
             hp = hp,
@@ -67,11 +89,16 @@ public class MonsterData : ScriptableObject
             atk_range = attackRange,
             bullet_speed = bulletSpeed,
             speed = moveSpeed,
-            image_AssetName = image_AssetName,
+            skill_id1 = skillId1,
+            skill_id2 = skillId2,
             min_level = minExp,
             max_level = maxExp,
-            stage_num = 1,
-            skill_id = 0
+            item_id1 = itemId1,
+            drop_count1 = dropCount1,
+            item_id2 = itemId2,
+            drop_count2 = dropCount2,
+            prefab1 = prefab1,
+            prefab2 = prefab2,
         };
     }
 }

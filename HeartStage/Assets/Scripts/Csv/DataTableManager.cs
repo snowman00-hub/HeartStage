@@ -61,6 +61,13 @@ public static class DataTableManager
             await table.LoadAsync(id);
             tables.Add(id, table);
         }
+
+        {
+            var table = new StageTable();
+            var id = DataTableIds.Stage;
+            await table.LoadAsync(id);
+            tables.Add(id, table);
+        }
     }
 
     public static ItemTable ItemTable
@@ -117,7 +124,13 @@ public static class DataTableManager
             return Get<EffectTable>(DataTableIds.Effect);
         }
     }
-
+    public static StageTable StageTable
+    {
+        get
+        {
+            return Get<StageTable>(DataTableIds.Stage);
+        }
+    }
     public static T Get<T>(string id) where T : DataTable
     {
         if (!tables.ContainsKey(id))

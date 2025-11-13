@@ -26,6 +26,7 @@ public class LoadSceneManager : MonoBehaviour
     public void GoStage()
     {
         Addressables.LoadSceneAsync(StageAddress, UnityEngine.SceneManagement.LoadSceneMode.Single);
+        Time.timeScale = 1.0f;
     }
 
     public void GoLobby()

@@ -11,8 +11,22 @@ public class StageUI : MonoBehaviour
         waveCountText.text = $"Wave {waveCount}";
     }
 
+    public void SetWaveCount(int stageNumber, int waveOrder)
+    {
+        if (stageNumber == 0)
+        {
+            waveCountText.text = $"Tutorial {waveOrder}";
+        }
+        else
+        {
+            waveCountText.text = $"{stageNumber} - {waveOrder}";
+        }
+    }
+
     public void SetReaminMonsterCount(int remainMonsterCount)
     {
         remainMonsterCountText.text = $"{remainMonsterCount}";
     }
+
+
 }

@@ -7,12 +7,9 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 
 public class StageWaveCSVData
 {
-    public string wave_stage { get; set; }
     public int wave_id { get; set; }
     public string wave_name { get; set; }
-    public string stage_id { get; set; }
-    public int wave_count { get; set; }
-    public float spown_time { get; set; }
+    public float enemy_spown_time { get; set; }
     public int EnemyID1 { get; set; }
     public int EnemyCount1 { get; set; }
     public int EnemyID2 { get; set; }
@@ -20,16 +17,20 @@ public class StageWaveCSVData
     public int EnemyID3 { get; set; }
     public int EnemyCount3 { get; set; }
     public int wave_reward { get; set; }
-    public string description { get; set; }
+    public string info { get; set; }
 }
 
 
 public class StageWaveTable : DataTable
 {
     private readonly Dictionary<int, StageWaveCSVData> table = new Dictionary<int, StageWaveCSVData>();
+    private readonly List<StageWaveCSVData> orderedWaves = new List<StageWaveCSVData>();
+
     public override async UniTask LoadAsync(string filename)
     {
         table.Clear();
+        orderedWaves.Clear();
+
         AsyncOperationHandle<TextAsset> handle = Addressables.LoadAssetAsync<TextAsset>(filename);
         TextAsset ta = await handle.Task;
 
@@ -46,6 +47,7 @@ public class StageWaveTable : DataTable
             if (!table.ContainsKey(item.wave_id))
             {
                 table.Add(item.wave_id, item);
+                orderedWaves.Add(item);
             }
             else
             {
@@ -64,5 +66,27 @@ public class StageWaveTable : DataTable
             return null;
         }
         return table[waveId];
+    }
+
+    public Dictionary<int, StageWaveCSVData> GetAll()
+    {
+        return new Dictionary<int, StageWaveCSVData>(table);
+    }
+
+    public List<StageWaveCSVData> GetOrderedWaves()
+    {
+        return new List<StageWaveCSVData>(orderedWaves);
+    }
+
+    public StageWaveCSVData GetNextWave(int currentWaveId)
+    {
+        int currentIndex = orderedWaves.FindIndex(w => w.wave_id == currentWaveId);
+
+        if (currentIndex >= 0 && currentIndex < orderedWaves.Count - 1)
+        {
+            return orderedWaves[currentIndex + 1];
+        }
+
+        return null;
     }
 }
