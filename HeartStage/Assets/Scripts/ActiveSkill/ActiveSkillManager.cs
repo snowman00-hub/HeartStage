@@ -60,7 +60,7 @@ public class ActiveSkillManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"스킬 사용 실패: {data.skill_name} (caster: {caster.name})");
+
         }
     }
     // 사용할 스킬등록하기
@@ -69,7 +69,6 @@ public class ActiveSkillManager : MonoBehaviour
         if (skillDB.TryGetValue(skillId, out var data))
         {
             activeTimers.Add(new ActiveSkillTimer(caster, data));
-            Debug.Log($"Skill {data.skill_name} registered for {caster.name}.");
         }
     }
     // 캐스터 죽으면 스킬해제하기
@@ -80,7 +79,6 @@ public class ActiveSkillManager : MonoBehaviour
         if (timer != null)
         {
             activeTimers.Remove(timer);
-            Debug.Log($"Skill {timer.SkillData.skill_name} unregistered from {caster.name}.");
         }
 
         // 2️⃣ Behavior 해제
@@ -88,14 +86,13 @@ public class ActiveSkillManager : MonoBehaviour
         {
             if (skillDict.Remove(skillId))
             {
-                Debug.Log($"[{caster.name}] SkillBehavior 제거: {skillId}");
+
             }
 
             // 3️⃣ 해당 캐릭터의 스킬이 더 이상 없으면 전체 제거
             if (skillDict.Count == 0)
             {
                 skillBehaviors.Remove(caster);
-                Debug.Log($"[{caster.name}] SkillBehavior 딕셔너리 제거 완료");
             }
         }
     }
@@ -111,7 +108,6 @@ public class ActiveSkillManager : MonoBehaviour
         if (!skillDict.ContainsKey(skillId))
         {
             skillDict.Add(skillId, behavior);
-            Debug.Log($"[{caster.name}] SkillBehavior 등록 완료: {skillId}");
         }
     }
 }

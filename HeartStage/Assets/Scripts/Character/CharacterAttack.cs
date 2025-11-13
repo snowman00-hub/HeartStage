@@ -87,11 +87,13 @@ public class CharacterAttack : MonoBehaviour
             return;
 
         finalDmg = data.atk_dmg;
+
         if (EffectBase.Has<AttackMulEffect>(gameObject))
         {
             float atkMul = AttackMulEffect.GetAttackMultiplier(gameObject);
             finalDmg = (int)(data.atk_dmg * atkMul);
         }
+
         var dir = (targetPos - transform.position).normalized;
 
         projectile.GetComponent<CharacterProjectile>()
