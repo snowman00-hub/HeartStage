@@ -1,7 +1,5 @@
 ﻿using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using TMPro.EditorUtilities;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.AI;
