@@ -14,8 +14,6 @@ public class CharacterAttack : MonoBehaviour
     private CircleCollider2D circleCollider;
     private SpriteRenderer spriteRenderer;
 
-    private int finalDmg;
-
     private void Awake()
     {
         circleCollider = GetComponent<CircleCollider2D>();
@@ -82,13 +80,17 @@ public class CharacterAttack : MonoBehaviour
         if (projectile == null)
             return;
 
-        finalDmg = data.atk_dmg;
+        // 1) 기본 공격력 (나중에 런타임 스탯으로 바꿔도 됨)
+        int baseAtk = data.atk_dmg;
+        Debug.Log($"CharacterAttack.Fire: baseAtk={baseAtk}");
+        // 2) 이 캐릭터에 붙어 있는 모든 IStatMulSource들 중
+        //    Attack에 해당하는 배율을 전부 곱한 값
+        float atkMul = StatMultiplier.GetTotalMultiplier(gameObject, StatType.Attack);
+        // 또는 this.gameObject.GetStatMul(StatType.Attack);
 
-        if (EffectBase.Has<AttackMulEffect>(gameObject))
-        {
-            float atkMul = AttackMulEffect.GetAttackMultiplier(gameObject);
-            finalDmg = (int)(data.atk_dmg * atkMul);
-        }
+        // 3) 최종 대미지 계산
+        int finalDmg = Mathf.RoundToInt(baseAtk * atkMul);
+        Debug.Log($"CharacterAttack.Fire: baseAtk={baseAtk}, atkMul={atkMul}, finalDmg={finalDmg}");
 
         // Critical Check
         bool isCritical = Random.Range(0, 100) < data.crt_chance;

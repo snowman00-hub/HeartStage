@@ -7,7 +7,7 @@ public class SkillData : ScriptableObject
     public string skill_name;
     public int skill_auto;
     public int skill_type;
-    public int passive_type;
+    public PassiveType passive_type;
     public int skill_target;
     public bool skill_pierce;
     public int skill_dmg;
@@ -104,7 +104,7 @@ public class SkillCSVData
     public string skill_name { get; set; }
     public int skill_auto { get; set; }
     public int skill_type { get; set; }
-    public int passive_type { get; set; }
+    public PassiveType passive_type { get; set; }
     public int skill_target { get; set; }
     public bool skill_pierce { get; set; }
     public int skill_dmg { get; set; }
@@ -127,4 +127,17 @@ public class SkillCSVData
     public float skill_eff3_duration { get; set; }
     public string info { get; set; }
     public string skill_prefab { get; set; }
+}
+
+public enum PassiveType
+{
+    None = 0,
+    Type1 = 1,
+    Type2 = 2,
+    Type3 = 3,
+    Type4 = 4,
+    Type5 = 5,
+    Type6 = 6,
+    Type7 = 7,
+    Type8 = 8,
 }

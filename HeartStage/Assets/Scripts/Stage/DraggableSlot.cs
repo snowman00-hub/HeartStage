@@ -18,12 +18,6 @@ public class DraggableSlot : MonoBehaviour,
     private Color normalColor;
     public Color highlightColor = Color.yellow;
     public CharacterData characterData;
-    
-    public int GetCharacterID()
-    {
-        return characterData != null ? characterData.char_id : -1;
-    }
-
 
     // ---------- Drag (슬롯 자체도 드래그 가능하도록) ----------
     public void OnBeginDrag(PointerEventData eventData)
@@ -82,7 +76,6 @@ public class DraggableSlot : MonoBehaviour,
 
     public void OnEndDrag(PointerEventData eventData)
     {
-
         if (m_DraggingIcons.TryGetValue(eventData.pointerId, out var icon) && icon != null)
             Destroy(icon);
 
@@ -188,10 +181,6 @@ public class DraggableSlot : MonoBehaviour,
         var dragMe = srcObj.GetComponent<DragMe>();
         if (dragMe != null)
         {
-            // 🔴 세로 드래그가 아니면 드랍 자체를 무효로 처리
-            if (!dragMe.IsVerticalDrag)
-                return false;
-
             var img = srcObj.GetComponent<Image>();
             if (img != null) sprite = img.sprite;
             cd = dragMe.characterData;
@@ -210,7 +199,6 @@ public class DraggableSlot : MonoBehaviour,
 
         return false;
     }
-
 
     public void ClearSlotAndUnlockSource(CharacterData leaving)
     {
