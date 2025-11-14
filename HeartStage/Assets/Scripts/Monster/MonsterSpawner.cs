@@ -197,7 +197,7 @@ public class MonsterSpawner : MonoBehaviour
         while (isWaveActive && !IsWaveSpawnCompleted())
         {
             // 한 번에 2마리씩 스폰
-            for (int i = 0; i < 2; i++)
+            for (int i = 0; i < 4; i++)
             {
                 var nextMonster = GetNextMonsterToSpawn();
                 if (nextMonster.HasValue)
@@ -208,13 +208,13 @@ public class MonsterSpawner : MonoBehaviour
                         UpdateSpawnCount(nextMonster.Value.monsterId);
                         totalMonstersSpawned++;
                     }
-                    await UniTask.Delay((int)(spawnInterval * 1000));
                 }
                 else
                 {
                     break;
                 }
             }
+            await UniTask.Delay((int)(spawnInterval * 1000));
         }
 
         Debug.Log($"웨이브 {currentWaveData.wave_name} 스폰 완료!");
