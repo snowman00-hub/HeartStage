@@ -331,9 +331,7 @@ public class MonsterSpawner : MonoBehaviour
         return false;
     }
 
-    private void SpawnMonster()
-    { 
-    }
+
 
     public static void SetMonsterSprite(GameObject monster, MonsterData monsterData)
     {
