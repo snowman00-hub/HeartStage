@@ -1,23 +1,41 @@
 ﻿using UnityEngine;
 
-public class AttackMulEffect : EffectBase
+public class AttackMulEffect : EffectBase, IStatMulSource
 {
-    // 추가 컴포넌트 X. OnApply/OnRemove에서 할 일 없음.
-    protected override void OnApply() { Debug.Log($"[AttackMulEffect] OnApply mag={magnitude}, dur={duration}", this); }
-    protected override void OnRemove() { Debug.Log("[AttackMulEffect] OnRemove", this); }
+    private const int EffectId = 3001; // 🔥 CSV와 맞춰줄 ID
 
-    // 현재 GameObject에 붙어있는 AttackMulEffect들을 전부 곱해서 반환
-    public static float GetAttackMultiplier(GameObject go)
+    // Unity가 런타임 시작할 때 자동으로 호출해주는 함수
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void RegisterSelf()
     {
-        var effects = go.GetComponents<AttackMulEffect>();
-        float mul = 1f;
-        for (int i = 0; i < effects.Length; i++)
+        EffectRegistry.Register(
+            EffectId,
+            (target, value, duration, tick) =>
+                EffectBase.Add<AttackMulEffect>(target, duration, value, tick)
+        );
+    }
+
+    // ====== 기존 구현들 ======
+    protected override void OnApply()
+    {
+        Debug.Log($"[AttackMulEffect] OnApply mag={magnitude}, dur={duration}", this);
+    }
+
+    protected override void OnRemove()
+    {
+        Debug.Log("[AttackMulEffect] OnRemove", this);
+    }
+
+    public bool TryGetMul(StatType stat, out float mul)
+    {
+        if (stat == StatType.Attack)
         {
-            // magnitude: 0.15 => ×1.15
-            float add = Mathf.Max(0f, effects[i].magnitude);
-            mul *= (1f + add);
+            float add = Mathf.Max(0f, magnitude);
+            mul = 1f + add;
+            return true;
         }
-        return mul;
+        mul = 1f;
+        return false;
     }
 }
 
