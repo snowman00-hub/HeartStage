@@ -39,3 +39,11 @@ public class AddressableLabel
 {
     public static readonly string Stage = "StageAssets";
 }
+
+public enum WindowType
+{
+    None = -1,
+    TestWindow,
+    Test2Window,
+    // 메인 UI 등 추가
+}
