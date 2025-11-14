@@ -22,6 +22,8 @@ public class CharacterProjectile : MonoBehaviour
     private bool alreadyHit = false; // 이미 맞았는지 확인
     private CancellationTokenSource cts;
 
+    private bool isCritical = false;
+
     private void OnEnable()
     {
         isReleased = false;
@@ -45,7 +47,7 @@ public class CharacterProjectile : MonoBehaviour
         transform.position += dir * moveSpeed * Time.deltaTime;
     }
 
-    public void SetMissile(string id,string hitEffectId, Vector3 startPos,  Vector3 dir, float speed, int dmg, PenetrationType penetration = PenetrationType.NonPenetrate)
+    public void SetMissile(string id,string hitEffectId, Vector3 startPos,  Vector3 dir, float speed, int dmg, PenetrationType penetration = PenetrationType.NonPenetrate, bool isCritical = false)
     {
         this.id = id;
         this.hitEffectId = hitEffectId;
@@ -54,6 +56,7 @@ public class CharacterProjectile : MonoBehaviour
         moveSpeed = speed;
         damage = dmg;
         penetrationType = penetration;
+        this.isCritical = isCritical;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -64,9 +67,9 @@ public class CharacterProjectile : MonoBehaviour
         if (collision.CompareTag(Tag.Monster))
         {
             alreadyHit = true;
-
+                        
             var monsterBehavior = collision.GetComponent<MonsterBehavior>();
-            monsterBehavior.OnDamage(damage);
+            monsterBehavior.OnDamage(damage, isCritical);
 
             if(penetrationType == PenetrationType.NonPenetrate)
                 ReleaseToPool();
