@@ -6,7 +6,7 @@ public class WindowManager : MonoBehaviour
     [Header("Reference")]
     [SerializeField] private List<GenericWindow> windows;
 
-    private WindowType defaultWindow = WindowType.TestWindow;
+    private WindowType defaultWindow = WindowType.TestWindow; // test
     public WindowType currentWindow { get; private set; }
 
     private void Start()
