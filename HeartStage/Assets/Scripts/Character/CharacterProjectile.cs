@@ -19,11 +19,13 @@ public class CharacterProjectile : MonoBehaviour
     private PenetrationType penetrationType = PenetrationType.NonPenetrate;
 
     private bool isReleased = false; // 중복 Release 방지용
+    private bool alreadyHit = false; // 이미 맞았는지 확인
     private CancellationTokenSource cts;
 
     private void OnEnable()
     {
         isReleased = false;
+        alreadyHit = false;
 
         cts = new CancellationTokenSource();
 
@@ -56,8 +58,13 @@ public class CharacterProjectile : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        if (alreadyHit)
+            return;
+
         if (collision.CompareTag(Tag.Monster))
         {
+            alreadyHit = true;
+
             var monsterBehavior = collision.GetComponent<MonsterBehavior>();
             monsterBehavior.OnDamage(damage);
 

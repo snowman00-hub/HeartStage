@@ -1,6 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
 
 public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 {
@@ -68,12 +66,17 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         }
     }
 
-    public void OnDamage(int damage)
+    public void OnDamage(int damage, bool isCritical = false)
     {
         if (monsterData != null)
         {
             currentHP -= damage;
-            //Debug.Log($"{monsterData.monsterName}이(가) {damage}의 피해를 입었습니다. 남은 HP: {currentHP}");
+
+            var ondamageEvents = GetComponents<IDamaged>();
+            foreach(var ondamageEvent in ondamageEvents)
+            {
+                ondamageEvent.OnDamaged(damage, gameObject, isCritical);
+            }
         }
 
         if (currentHP <= 0)
