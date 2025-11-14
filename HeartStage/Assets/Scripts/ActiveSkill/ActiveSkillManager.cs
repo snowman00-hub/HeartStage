@@ -5,7 +5,7 @@ public class ActiveSkillManager : MonoBehaviour
 {
     public static ActiveSkillManager Instance;
 
-    private Dictionary<int, ActiveSkillData> skillDB = new Dictionary<int, ActiveSkillData>();
+    private Dictionary<int, SkillData> skillDB = new Dictionary<int, SkillData>();
     private Dictionary<GameObject, Dictionary<int, ISkillBehavior>> skillBehaviors = new Dictionary<GameObject, Dictionary<int, ISkillBehavior>>();
     private List<ActiveSkillTimer> activeTimers = new List<ActiveSkillTimer>();
 
@@ -27,10 +27,10 @@ public class ActiveSkillManager : MonoBehaviour
 
     private void Start()
     {
-        skillDB = DataTableManager.ActiveSkillTable.GetAll();
+        skillDB = DataTableManager.SkillTable.GetAll();
         foreach(var skill in skillDB)
         {
-            skill.Value.UpdateData(DataTableManager.ActiveSkillTable.Get(skill.Value.skill_id));
+            skill.Value.UpdateData(DataTableManager.SkillTable.Get(skill.Value.skill_id));
         }
     }
 
@@ -114,12 +114,12 @@ public class ActiveSkillManager : MonoBehaviour
 
 public class ActiveSkillTimer
 {
-    public ActiveSkillData SkillData { get; private set; }
+    public SkillData SkillData { get; private set; }
     public GameObject Caster { get; private set; }
 
     private float currentTime;
 
-    public ActiveSkillTimer(GameObject caster, ActiveSkillData data)
+    public ActiveSkillTimer(GameObject caster, SkillData data)
     {
         Caster = caster;
         SkillData = data;

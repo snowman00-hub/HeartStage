@@ -2,14 +2,14 @@
 
 public class SonicAttackSkill : MonoBehaviour, ISkillBehavior
 {
-    private ActiveSkillData skillData;
+    private SkillData skillData;
     private GameObject sonicAttackPrefab;
     private string sonicAttackId = "SonicAttack";
     private string skillDataAssetName = "얼굴천재";
 
     private void Start()
     {
-        skillData = ResourceManager.Instance.Get<ActiveSkillData>(skillDataAssetName);
+        skillData = ResourceManager.Instance.Get<SkillData>(skillDataAssetName);
         sonicAttackPrefab = ResourceManager.Instance.Get<GameObject>(sonicAttackId);
         PoolManager.Instance.CreatePool(sonicAttackId, sonicAttackPrefab, 10, 30);
         // 스킬매니저에 등록

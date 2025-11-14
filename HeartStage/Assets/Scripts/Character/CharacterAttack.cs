@@ -51,10 +51,6 @@ public class CharacterAttack : MonoBehaviour
         var texture = ResourceManager.Instance.Get<Texture2D>(data.image_AssetName);
         spriteRenderer.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
         // 액티브 스킬 등록
-        ActiveSkillManager.Instance.RegisterSkill(gameObject, data.skill_id);
-
-
-        EffectRegistry.Apply(gameObject, 3001, 0.15f, 10f);
     }
 
     private void Update()
@@ -94,10 +90,17 @@ public class CharacterAttack : MonoBehaviour
             finalDmg = (int)(data.atk_dmg * atkMul);
         }
 
+        // Critical Check
+        bool isCritical = Random.Range(0, 100) < data.crt_chance;
+        if (isCritical)
+        {
+            finalDmg = Mathf.FloorToInt(finalDmg * data.crt_dmg);
+        }
+
         var dir = (targetPos - transform.position).normalized;
 
         projectile.GetComponent<CharacterProjectile>()
-            .SetMissile(data.projectile_AssetName, data.hitEffect_AssetName, transform.position, dir, data.bullet_speed, finalDmg);
+            .SetMissile(data.projectile_AssetName, data.hitEffect_AssetName, transform.position, dir, data.bullet_speed, finalDmg,isCritical:isCritical);
     }
 
     private GameObject GetClosestEnemy()

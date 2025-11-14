@@ -7,30 +7,37 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 [System.Serializable]
 public class CharacterCSVData
 {
-    public int ID { get; set; }
-    public string ch_name { get; set; }
-    public int ch_level { get; set; }
-    public int ch_level_count { get; set; }
-    public int rank { get; set; }
-    public int atk_name { get; set; }
-    public int atk_info { get; set; }
-    public int atk_effect { get; set; }
+    public int char_id { get; set; }
+    public string char_name { get; set; }
+    public int char_lv { get; set; }
+    public int char_exp { get; set; }
+    public int char_rank { get; set; }
+    public int char_type { get; set; }
+
     public int atk_dmg { get; set; }
     public float atk_speed { get; set; }
     public float atk_range { get; set; }
-    public float bullet_speed { get; set; }
+    public float atk_addcount { get; set; }
+
     public int bullet_count { get; set; }
-    public int Stamina { get; set; }
+    public float bullet_speed { get; set; }
+    public int char_hp { get; set; }
+
     public float crt_chance { get; set; }
     public float crt_dmg { get; set; }
-    public int passive_id { get; set; }
-    public int skill_id { get; set; }
-    public int synergy_id { get; set; }
-    public int Unlock { get; set; }
+
+    public int skill_id1 { get; set; }
+    public int skill_id2 { get; set; }
+    public int skill_id3 { get; set; }
+    public int skill_id4 { get; set; }
+    public int skill_id5 { get; set; }
+    public int skill_id6 { get; set; }
+
     public string Info { get; set; }
+
     public string image_AssetName { get; set; }
-    public string bullet_PrefabName { get; set; }
     public string data_AssetName { get; set; }
+    public string bullet_PrefabName { get; set; }
     public string projectile_AssetName { get; set; }
     public string hitEffect_AssetName { get; set; }
 }
@@ -56,9 +63,9 @@ public class CharacterTable : DataTable
 
         foreach (var item in list)
         {
-            if (!table.ContainsKey(item.ID))
+            if (!table.ContainsKey(item.char_id))
             {
-                table.Add(item.ID, item);
+                table.Add(item.char_id, item);
             }
             else
             {

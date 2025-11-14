@@ -26,7 +26,7 @@ public class ActiveSkillCreator : MonoBehaviour
         PoolManager.Instance.CreatePool(sonicAttackId, sonicAttackPrefab, 10, 30);
     }
 
-    public void CreateSonicAttack(GameObject caster, ActiveSkillData data)
+    public void CreateSonicAttack(GameObject caster, SkillData data)
     {       
         if (caster == null)
             return;

@@ -12,29 +12,30 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e535f5d000b0f24a99a7749b7762841, type: 3}
   m_Name: lia1
   m_EditorClassIdentifier: 
-  ID: 11010409
-  ch_name: "\uB9AC\uC544"
-  ch_level: 1
-  ch_level_count: 0
-  rank: 1
-  atk_name: 3333
-  atk_info: 3331
-  atk_effect: 4
+  char_id: 11010409
+  char_name: "\uB9AC\uC544"
+  char_lv: 1
+  char_exp: 0
+  char_rank: 1
+  char_type: 4
   atk_dmg: 105
   atk_speed: 0.85
   atk_range: 6.2
-  bullet_speed: 12
+  atk_addcount: 2
   bullet_count: 1
-  Stamina: 750
+  bullet_speed: 8
+  char_hp: 750
   crt_chance: 9
   crt_dmg: 1.55
-  passive_id: 40430505
-  skill_id: 1555
-  synergy_id: 123
-  Unlock: 1
+  skill_id1: 32105
+  skill_id2: 0
+  skill_id3: 0
+  skill_id4: 0
+  skill_id5: 0
+  skill_id6: 0
   Info: "\uBBFC\uCCA9\uD558\uC9C0\uB9CC \uC57D\uD568"
   image_AssetName: Testch2
-  bullet_PrefabName: baseBullet
   data_AssetName: lia1
-  projectile_AssetName: GreenProjectile
-  hitEffect_AssetName: GreenHit
+  bullet_PrefabName: baseBullet
+  projectile_AssetName: StarProjectile
+  hitEffect_AssetName: StarHit

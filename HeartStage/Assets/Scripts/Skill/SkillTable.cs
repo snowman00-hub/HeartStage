@@ -62,4 +62,28 @@ public class SkillTable : DataTable
 
         return result;
     }
+
+    public List<int> GetEffectIds(int id)
+    {
+        var list = new List<int>();
+        if (table.ContainsKey(id))
+        {
+            if (table[id].skill_eff1 != 0)
+            {
+                list.Add(table[id].skill_eff1);
+            }
+
+            if (table[id].skill_eff2 != 0)
+            {
+                list.Add(table[id].skill_eff2);
+            }
+
+            if (table[id].skill_eff3 != 0)
+            {
+                list.Add(table[id].skill_eff3);
+            }
+        }
+
+        return list;
+    }
 }

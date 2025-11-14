@@ -21,7 +21,7 @@ public class DraggableSlot : MonoBehaviour,
     
     public int GetCharacterID()
     {
-        return characterData != null ? characterData.ID : -1;
+        return characterData != null ? characterData.char_id : -1;
     }
 
 
@@ -146,7 +146,7 @@ public class DraggableSlot : MonoBehaviour,
                 DragSourceRegistry.Register(characterData, src);
             }
 
-            if (characterData != null) Debug.Log($"{characterData.ch_name}");
+            if (characterData != null) Debug.Log($"{characterData.char_name}");
             return;
         }
 
@@ -155,7 +155,7 @@ public class DraggableSlot : MonoBehaviour,
         if (sourceSlot != null)
         {
             HandleDropFromSlot(sourceSlot);
-            if (characterData != null) Debug.Log($"{characterData.ch_name}");
+            if (characterData != null) Debug.Log($"{characterData.char_name}");
         }
     }
 
