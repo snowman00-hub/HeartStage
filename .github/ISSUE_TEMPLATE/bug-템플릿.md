@@ -2,8 +2,8 @@
 name: Bug 템플릿
 about: Bug 템플릿
 title: "[Bug]"
-labels: bug
-assignees: ''
+labels: bug, refactor
+assignees: snowman00-hub
 
 ---
 
