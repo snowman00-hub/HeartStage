@@ -42,13 +42,6 @@ public static class DataTableManager
         }
 
         {
-            var table = new ActiveSkillTable();
-            var id = DataTableIds.ActiveSkill;
-            await table.LoadAsync(id);
-            tables.Add(id, table);
-        }
-
-        {
             var table = new SkillTable();
             var id = DataTableIds.Skill;
             await table.LoadAsync(id);
@@ -99,14 +92,6 @@ public static class DataTableManager
         get
         {
             return Get<CharacterTable>(DataTableIds.Character);
-        }
-    }
-
-    public static ActiveSkillTable ActiveSkillTable
-    {
-        get
-        {
-            return Get<ActiveSkillTable>(DataTableIds.ActiveSkill);
         }
     }
     

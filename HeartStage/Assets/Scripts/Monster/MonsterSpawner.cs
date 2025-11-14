@@ -99,7 +99,6 @@ public class MonsterSpawner : MonoBehaviour
 
         if (stageWaveIds.Count == 0)
         {
-            Debug.LogError("스테이지에 웨이브가 없습니다.");
             return;
         }
 
@@ -112,8 +111,6 @@ public class MonsterSpawner : MonoBehaviour
                 await StartWaveSpawning();
                 await WaitForWaveCompletion();
 
-                Debug.Log($"웨이브 {currentWaveData.wave_name} 완료!");
-
                 // 마지막 웨이브가 아니면 잠시 대기
                 if (currentWaveIndex < stageWaveIds.Count - 1)
                 {
@@ -122,7 +119,6 @@ public class MonsterSpawner : MonoBehaviour
             }
         }
 
-        Debug.Log($"스테이지 {currentStageData.stage_name} 완료!");
         await ProgressToNextStage();
     }
 
@@ -139,7 +135,6 @@ public class MonsterSpawner : MonoBehaviour
 
         SetUpWaveMonster();
         UpdateStageUI();
-        Debug.Log($"웨이브 로드: {currentWaveData.wave_name}, 총 {GetTotalWaveMonsterCount()}마리, 간격: {currentWaveData.enemy_spown_time}초");
     }
 
     private void SetUpWaveMonster()

@@ -3,93 +3,116 @@
 [CreateAssetMenu(fileName = "CharacterData", menuName = "Scriptable Objects/CharacterData")]
 public class CharacterData : ScriptableObject
 {
-    public int ID;
-    public string ch_name;
-    public int ch_level;
-    public int ch_level_count;
-    public int rank;
-    public int atk_name;
-    public int atk_info;
-    public int atk_effect;
+    public int char_id;
+    public string char_name;
+    public int char_lv;
+    public int char_exp;
+    public int char_rank;
+    public int char_type;
+
     public int atk_dmg;
     public float atk_speed;
     public float atk_range;
-    public float bullet_speed;
+    public float atk_addcount;
+
     public int bullet_count;
-    public int Stamina;
+    public float bullet_speed;
+    public int char_hp;
+
     public float crt_chance;
     public float crt_dmg;
-    public int passive_id;
-    public int skill_id;
-    public int synergy_id;
-    public int Unlock;
+
+    public int skill_id1;
+    public int skill_id2;
+    public int skill_id3;
+    public int skill_id4;
+    public int skill_id5;
+    public int skill_id6;
+
     public string Info;
+
     public string image_AssetName;
-    public string bullet_PrefabName;
     public string data_AssetName;
+    public string bullet_PrefabName;
     public string projectile_AssetName;
     public string hitEffect_AssetName;
 
-    public void UpdateData(CharacterCSVData csvData)
+    // CSV → ScriptableObject
+    public void UpdateData(CharacterCSVData csv)
     {
-        ID = csvData.ID;
-        ch_name = csvData.ch_name;
-        ch_level = csvData.ch_level;
-        ch_level_count = csvData.ch_level_count;
-        rank = csvData.rank;
-        atk_name = csvData.atk_name;
-        atk_info = csvData.atk_info;
-        atk_effect = csvData.atk_effect;
-        atk_dmg = csvData.atk_dmg;
-        atk_speed = csvData.atk_speed;
-        atk_range = csvData.atk_range;
-        bullet_speed = csvData.bullet_speed;
-        bullet_count = csvData.bullet_count;
-        Stamina = csvData.Stamina;
-        crt_chance = csvData.crt_chance;
-        crt_dmg = csvData.crt_dmg;
-        passive_id = csvData.passive_id;
-        skill_id = csvData.skill_id;
-        synergy_id = csvData.synergy_id;
-        Unlock = csvData.Unlock;
-        Info = csvData.Info;
-        image_AssetName = csvData.image_AssetName;
-        bullet_PrefabName = csvData.bullet_PrefabName;
-        data_AssetName = csvData.data_AssetName;
-        projectile_AssetName = csvData.projectile_AssetName;
-        hitEffect_AssetName = csvData.hitEffect_AssetName;
+        char_id = csv.char_id;
+        char_name = csv.char_name;
+        char_lv = csv.char_lv;
+        char_exp = csv.char_exp;
+        char_rank = csv.char_rank;
+        char_type = csv.char_type;
+
+        atk_dmg = csv.atk_dmg;
+        atk_speed = csv.atk_speed;
+        atk_range = csv.atk_range;
+        atk_addcount = csv.atk_addcount;
+
+        bullet_count = csv.bullet_count;
+        bullet_speed = csv.bullet_speed;
+        char_hp = csv.char_hp;
+
+        crt_chance = csv.crt_chance;
+        crt_dmg = csv.crt_dmg;
+
+        skill_id1 = csv.skill_id1;
+        skill_id2 = csv.skill_id2;
+        skill_id3 = csv.skill_id3;
+        skill_id4 = csv.skill_id4;
+        skill_id5 = csv.skill_id5;
+        skill_id6 = csv.skill_id6;
+
+        Info = csv.Info;
+
+        image_AssetName = csv.image_AssetName;
+        data_AssetName = csv.data_AssetName;
+        bullet_PrefabName = csv.bullet_PrefabName;
+        projectile_AssetName = csv.projectile_AssetName;
+        hitEffect_AssetName = csv.hitEffect_AssetName;
     }
 
+    // ScriptableObject → CSV
     public CharacterCSVData ToCSVData()
     {
-        CharacterCSVData csvData = new CharacterCSVData();
-        csvData.ID = ID;
-        csvData.ch_name = ch_name;
-        csvData.ch_level = ch_level;
-        csvData.ch_level_count = ch_level_count;
-        csvData.rank = rank;
-        csvData.atk_name = atk_name;
-        csvData.atk_info = atk_info;
-        csvData.atk_effect = atk_effect;
-        csvData.atk_dmg = atk_dmg;
-        csvData.atk_speed = atk_speed;
-        csvData.atk_range = atk_range;
-        csvData.bullet_speed = bullet_speed;
-        csvData.bullet_count = bullet_count;
-        csvData.Stamina = Stamina;
-        csvData.crt_chance = crt_chance;
-        csvData.crt_dmg = crt_dmg;
-        csvData.passive_id = passive_id;
-        csvData.skill_id = skill_id;
-        csvData.synergy_id = synergy_id;
-        csvData.Unlock = Unlock;
-        csvData.Info = Info;
-        csvData.image_AssetName = image_AssetName;
-        csvData.bullet_PrefabName = bullet_PrefabName;
-        csvData.data_AssetName = data_AssetName;
-        csvData.projectile_AssetName = projectile_AssetName;
-        csvData.hitEffect_AssetName = hitEffect_AssetName;
+        return new CharacterCSVData
+        {
+            char_id = char_id,
+            char_name = char_name,
+            char_lv = char_lv,
+            char_exp = char_exp,
+            char_rank = char_rank,
+            char_type = char_type,
 
-        return csvData;
+            atk_dmg = atk_dmg,
+            atk_speed = atk_speed,
+            atk_range = atk_range,
+            atk_addcount = atk_addcount,
+
+            bullet_count = bullet_count,
+            bullet_speed = bullet_speed,
+            char_hp = char_hp,
+
+            crt_chance = crt_chance,
+            crt_dmg = crt_dmg,
+
+            skill_id1 = skill_id1,
+            skill_id2 = skill_id2,
+            skill_id3 = skill_id3,
+            skill_id4 = skill_id4,
+            skill_id5 = skill_id5,
+            skill_id6 = skill_id6,
+
+            Info = Info,
+
+            image_AssetName = image_AssetName,
+            data_AssetName = data_AssetName,
+            bullet_PrefabName = bullet_PrefabName,
+            projectile_AssetName = projectile_AssetName,
+            hitEffect_AssetName = hitEffect_AssetName
+        };
     }
 }

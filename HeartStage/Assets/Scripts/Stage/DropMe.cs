@@ -31,7 +31,7 @@ public class DropMe : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointe
         if (droppedCharacterData != null)
             characterData = droppedCharacterData;
 
-        Debug.Log($"{characterData.ch_name}");
+        Debug.Log($"{characterData.char_name}");
     }
 
     public void OnPointerEnter(PointerEventData data)
