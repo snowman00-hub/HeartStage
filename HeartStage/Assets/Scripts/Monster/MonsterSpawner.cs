@@ -302,15 +302,13 @@ public class MonsterSpawner : MonoBehaviour
                         monsterBehavior.Init(monsterDataSO);
                         monsterBehavior.SetMonsterSpawner(this);
 
-                        SetMonsterSprite(monster, monsterDataSO);
-
-                        var monsterNav = monster.GetComponent<MonsterNavMeshAgent>();
-                        if (monsterNav != null)
+                        var monsterMovement = monster.GetComponent<MonsterMovement>();
+                        if(monsterMovement != null)
                         {
-                            monsterNav.ApplyMoveSpeed(monsterDataSO.moveSpeed);
-                            monsterNav.SetUp();
+                            monsterMovement.Init(monsterDataSO, Vector3.down); // 아래 방향으로 이동
                         }
 
+                        SetMonsterSprite(monster, monsterDataSO);
                         //Debug.Log($"몬스터 소환: ID={monsterId}, 이름={monsterDataSO.monsterName}");
                     }
                     else
@@ -435,12 +433,7 @@ public class MonsterSpawner : MonoBehaviour
         Vector3 worldPos = Camera.main.ScreenToWorldPoint(screenCenter);
         worldPos.z = 0f;
 
-        NavMeshHit hit;
-        if (NavMesh.SamplePosition(worldPos, out hit, 10f, NavMesh.AllAreas))
-        {
-            Debug.Log($"보스 몬스터 스폰: {hit.position}");
-            return hit.position;
-        }
+
 
         Debug.LogWarning("보스 스폰 위치를 찾을 수 없습니다!");
         return worldPos;

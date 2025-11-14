@@ -59,12 +59,7 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
 
                         MonsterSpawner.SetMonsterSprite(monster, monsterData);
 
-                        var monsterNav = monster.GetComponent<MonsterNavMeshAgent>();
-                        if (monsterNav != null)
-                        {
-                            monsterNav.ApplyMoveSpeed(monsterData.moveSpeed);
-                            monsterNav.SetUp();
-                        }
+
 
                         Debug.Log($"DeceptionSkill 몬스터 소환 성공: {i + 1}번째");
                     }
