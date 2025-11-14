@@ -6,4 +6,4 @@ public class BlindSkill : MonoBehaviour, ISkillBehavior
     {
         Debug.Log("BlindSkill()");
     }
-}
+} //
