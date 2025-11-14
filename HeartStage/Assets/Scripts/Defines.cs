@@ -14,9 +14,7 @@ public static class DataTableIds
     public static string ActiveSkill => "ActiveSkillTable";
     public static string Skill => "SkillTable";
     public static string Effect => "EffectTable";
-
     public static string Stage => "StageTable";
-
 }
 
 public static class IBuffIds
@@ -27,6 +25,7 @@ public static class IBuffIds
     };
     public static string AttackPowerBuff => BuffIds[0];
 }
+
 
 public class Tag
 {

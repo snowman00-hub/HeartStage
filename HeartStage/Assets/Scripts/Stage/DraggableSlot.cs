@@ -18,12 +18,6 @@ public class DraggableSlot : MonoBehaviour,
     private Color normalColor;
     public Color highlightColor = Color.yellow;
     public CharacterData characterData;
-    
-    public int GetCharacterID()
-    {
-        return characterData != null ? characterData.ID : -1;
-    }
-
 
     // ---------- Drag (슬롯 자체도 드래그 가능하도록) ----------
     public void OnBeginDrag(PointerEventData eventData)
