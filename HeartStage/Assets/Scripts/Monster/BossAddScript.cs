@@ -4,7 +4,7 @@ public class BossAddScript : MonoBehaviour
 {
     private bool skillsRegistered = false;
 
-    private void OnEnable() // Start 대신 OnEnable 사용
+    private void OnEnable() 
     {
         if (!skillsRegistered)
         {
@@ -20,7 +20,8 @@ public class BossAddScript : MonoBehaviour
         skillsRegistered = false;
     }
 
-    private void RegisterSkills()
+    
+    private void RegisterSkills() // 스킬 등록 
     {
         ScriptAttacher.AttachById(this.gameObject, 9991);
         ScriptAttacher.AttachById(this.gameObject, 9992);
@@ -43,7 +44,7 @@ public class BossAddScript : MonoBehaviour
         }
     }
 
-    private void UnregisterSkills()
+    private void UnregisterSkills() // 스킬 해제 
     {
         if (ActiveSkillManager.Instance != null)
         {
