@@ -1,12 +1,12 @@
 ﻿using UnityEngine;
 
 // 실명 효과 주기
-public class ReverseCharmSkill : MonoBehaviour, ISkillBehavior
+public class ReverseCharmSkillV2 : MonoBehaviour, ISkillBehavior
 {
     private SkillData skillData;
     private GameObject reverseCharmPrefab;
     private string reverseCharmAssetName = "ReverseCharm";
-    private string skillDataAssetName = "반전매력";
+    private string skillDataAssetName = "넘치는 반전매력";
 
     private void Start()
     {
@@ -52,7 +52,7 @@ public class ReverseCharmSkill : MonoBehaviour, ISkillBehavior
         float speed = skillData.skill_speed;
         int damage = skillData.skill_dmg;
 
-        proj.SetMissile(reverseCharmAssetName, string.Empty, startPos, dir, speed, damage, PenetrationType.NonPenetrate, false);
+        proj.SetMissile(reverseCharmAssetName, string.Empty, startPos, dir, speed, damage, PenetrationType.Penetrate, false);
     }
 
     private void OnDisable()

@@ -14,6 +14,9 @@ public static class ScriptAttacher
         { 31204, "SonicAttackSkill" },
         { 31205, "SonicAttackSkillV2" },
         { 31206, "ReverseCharmSkill" },
+        { 31207, "ReverseCharmSkillV2" },
+        { 31208, "HeartBombSkill" },
+        { 31209, "HeartBombSkillV2" },
         { 9991, "DeceptionBossSkill"},
         { 9992, "SpeedBuffBossSkill"},
     };

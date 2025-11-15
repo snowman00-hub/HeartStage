@@ -79,15 +79,15 @@ public class CharacterProjectile : MonoBehaviour
                 ReleaseToPool();
 
             if(hitEffectId != string.Empty)
-                HitEffectAsync().Forget();
+                HitEffectAsync(collision.transform.position).Forget();
         }
     }
 
     // 히트이펙트 발동
-    private async UniTask HitEffectAsync()
+    private async UniTask HitEffectAsync(Vector3 hitPos)
     {
         var hitGo = PoolManager.Instance.Get(hitEffectId);
-        hitGo.transform.position = transform.position;
+        hitGo.transform.position = hitPos;
 
         var particle = hitGo.GetComponent<ParticleSystem>();
         particle.Play();

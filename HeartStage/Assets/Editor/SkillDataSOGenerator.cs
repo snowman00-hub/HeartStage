@@ -51,18 +51,18 @@ public class SkillDataSOGenerator : EditorWindow
 
             foreach (var record in records)
             {
-                // 파일 이름: skill_name 기준 (없으면 skill_id)
-                string assetName = !string.IsNullOrEmpty(record.skill_name)
-                    ? $"{record.skill_name}.asset"
-                    : $"Skill_{record.skill_id}.asset";
-
+                string assetName = $"{record.skill_name}.asset";
                 string assetPath = Path.Combine(saveFolderPath, assetName);
 
-                // ScriptableObject 생성 및 데이터 갱신
-                SkillData so = ScriptableObject.CreateInstance<SkillData>();
+                SkillData so = AssetDatabase.LoadAssetAtPath<SkillData>(assetPath);
+                if (so == null)
+                {
+                    // 없으면 새로 생성
+                    so = ScriptableObject.CreateInstance<SkillData>();
+                    AssetDatabase.CreateAsset(so, assetPath);
+                }
                 so.UpdateData(record);
-
-                AssetDatabase.CreateAsset(so, assetPath);
+                EditorUtility.SetDirty(so);
 
                 // Addressable 등록
                 AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.Settings;

@@ -54,10 +54,16 @@ public class CharacterDataSOGenerator : EditorWindow
                 string assetName = $"{record.data_AssetName}.asset";
                 string assetPath = Path.Combine(saveFolderPath, assetName);
 
-                CharacterData so = ScriptableObject.CreateInstance<CharacterData>();
-                so.UpdateData(record);
+                CharacterData so = AssetDatabase.LoadAssetAtPath<CharacterData>(assetPath);
+                if (so == null)
+                {
+                    // 없으면 새로 생성
+                    so = ScriptableObject.CreateInstance<CharacterData>();
+                    AssetDatabase.CreateAsset(so, assetPath);
+                }
 
-                AssetDatabase.CreateAsset(so, assetPath);
+                so.UpdateData(record);
+                EditorUtility.SetDirty(so);
 
                 // Addressable로 등록
                 AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.Settings;
