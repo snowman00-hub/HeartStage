@@ -25,6 +25,7 @@ public class ResourceManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
+    // 해당 Addressable Label이 할당된 에셋들을 모두 로드, bootStrap에서 호출
     public async UniTask PreloadLabelAsync(string label)
     {
         var handle = Addressables.LoadAssetsAsync<Object>(label, asset =>
@@ -40,6 +41,7 @@ public class ResourceManager : MonoBehaviour
         Debug.Log($"[ResourceManager] Label {label} 로드 완료 ({_assetCache.Count}개 캐싱됨)");
     }
 
+    // 해당 에셋 가져가기, ID는 에셋이름으로
     public T Get<T>(string assetName) where T : Object
     {
         if (_assetCache.TryGetValue(assetName, out var asset))
@@ -49,6 +51,7 @@ public class ResourceManager : MonoBehaviour
         return null;
     }
 
+    // 로드된 리소스들 해제
     public void ReleaseAll()
     {
         foreach (var handle in _handles)

@@ -22,6 +22,7 @@ public class PoolManager : MonoBehaviour
         }
     }
 
+    // 오브젝트 풀 생성, 해당 ID는 Get(), Release() 할때 필요
     public void CreatePool(string id, GameObject prefab, int defaultCapacity = 30, int maxSize = 300)
     {
         if (poolDict.ContainsKey(id))
@@ -49,6 +50,7 @@ public class PoolManager : MonoBehaviour
         WarmUp(id, defaultCapacity);
     }
 
+    // 가져가기
     public GameObject Get(string id)
     {
         if (!poolDict.ContainsKey(id))
@@ -60,6 +62,21 @@ public class PoolManager : MonoBehaviour
         return poolDict[id].Get();
     }
 
+    // 해당 오브젝트를 풀로 복귀시키기
+    public void Release(string id, GameObject obj)
+    {
+        if (poolDict.ContainsKey(id))
+        {
+            poolDict[id].Release(obj);
+        }
+        else
+        {
+            Debug.Log("파괴됨");
+            Destroy(obj); // 혹시 모를 예외 대비
+        }
+    }
+
+    // 오브젝트 풀 사이즈 증가
     private void WarmUp(string id, int count)
     {
         var pool = poolDict[id];
@@ -73,18 +90,5 @@ public class PoolManager : MonoBehaviour
 
         foreach (var obj in temp)
             pool.Release(obj);
-    }
-
-    public void Release(string id, GameObject obj)
-    {
-        if (poolDict.ContainsKey(id))
-        {
-            poolDict[id].Release(obj);
-        }
-        else
-        {
-            Debug.Log("파괴됨");
-            Destroy(obj); // 혹시 모를 예외 대비
-        }
     }
 }

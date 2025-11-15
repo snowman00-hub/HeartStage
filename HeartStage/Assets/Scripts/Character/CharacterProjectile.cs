@@ -42,11 +42,13 @@ public class CharacterProjectile : MonoBehaviour
         cts = null;
     }
 
+    // 이동
     private void Update()
     {
         transform.position += dir * moveSpeed * Time.deltaTime;
     }
 
+    // 미사일 정보 세팅
     public void SetMissile(string id,string hitEffectId, Vector3 startPos,  Vector3 dir, float speed, int dmg, PenetrationType penetration = PenetrationType.NonPenetrate, bool isCritical = false)
     {
         this.id = id;
@@ -59,9 +61,11 @@ public class CharacterProjectile : MonoBehaviour
         this.isCritical = isCritical;
     }
 
+    // 피격시
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (alreadyHit)
+        // 이미 맞았거나 비관통이면 return
+        if (alreadyHit && penetrationType == PenetrationType.NonPenetrate)
             return;
 
         if (collision.CompareTag(Tag.Monster))
@@ -79,6 +83,7 @@ public class CharacterProjectile : MonoBehaviour
         }
     }
 
+    // 히트이펙트 발동
     private async UniTask HitEffectAsync()
     {
         var hitGo = PoolManager.Instance.Get(hitEffectId);
@@ -95,6 +100,7 @@ public class CharacterProjectile : MonoBehaviour
         }
     }
 
+    // 딜레이 후에 오브젝트 풀로 돌아가기
     private async UniTaskVoid AutoReleaseAfterDelay(float delay, CancellationToken token)
     {
         try

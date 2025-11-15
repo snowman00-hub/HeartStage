@@ -24,6 +24,7 @@ public class CameraAutoScaler : MonoBehaviour
 #endif
     }
 
+    // 카메라 OrthoGraphic Size 자동 조정
     private void UpdateCameraSize()
     {
         float currentAspect = (float)Screen.width / Screen.height;

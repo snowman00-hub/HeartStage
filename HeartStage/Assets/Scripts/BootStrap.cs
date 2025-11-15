@@ -9,9 +9,11 @@ public class BootStrap : MonoBehaviour
 {
     private const string Key = "LastPlayedScenePath";
 
-    // Scene Addressable 주소 바꾸지 말기
+    // Scene 새로 복사했으면 Addressable 체크하고 플레이 하기, 등록 안되면 오류 뜸!
+    // Scene Addressable 주소 바꾸지 말기, 그냥 체크만 하기
     private async UniTask Start()
     {
+        // 비동기로 미리 해야하는 작업들 있으면 가능한 부트 씬에서 하고 해당 씬에선 동기로 쓰기
         await ResourceManager.Instance.PreloadLabelAsync(AddressableLabel.Stage);
         await DataTableManager.Initialization;
 

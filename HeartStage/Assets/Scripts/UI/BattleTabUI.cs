@@ -14,6 +14,7 @@ public class BattleTabUI : MonoBehaviour
     public int stagesPerChapter = 3;      // 챕터당 스테이지 수
     public float verticalPadding = 100f;
 
+    // 자식 오브젝트 삭제
     [ContextMenu("DeleteChildren")]
     public void DeleteChildren()
     {
@@ -23,6 +24,7 @@ public class BattleTabUI : MonoBehaviour
         }
     }
 
+    // 스테이지 이미지 간격에 맞게 생성
     [ContextMenu("GenerateStages()")]
     public void GenerateStages()
     {
