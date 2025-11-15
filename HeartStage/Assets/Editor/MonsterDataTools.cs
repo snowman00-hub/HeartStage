@@ -111,14 +111,14 @@ public class MonsterDataTools : EditorWindow
         }
     }
 
-    private async void OverwriteDataTableFromSO()
+    private void OverwriteDataTableFromSO()
     {
         if (_isProcessing) return;
 
         _isProcessing = true;
         try
         {
-            string csvPath = "Assets/DataTables/MonsterTable.csv"; // 덮어쓸 CSV 파일 경로
+            string csvPath = "Assets/DataTables/MonsterTable.csv";
 
             string[] guids = AssetDatabase.FindAssets("t:MonsterData");
             if (guids.Length == 0)
@@ -127,7 +127,6 @@ public class MonsterDataTools : EditorWindow
                 return;
             }
 
-            // SO 데이터를 CSV 데이터로 변환
             List<MonsterCSVData> csvDataList = new List<MonsterCSVData>();
 
             foreach (string guid in guids)
@@ -148,25 +147,12 @@ public class MonsterDataTools : EditorWindow
                 return;
             }
 
-            // ID 순으로 정렬
             csvDataList.Sort((a, b) => a.mon_id.CompareTo(b.mon_id));
 
-            // CsvHelper를 사용해서 기존 CSV 파일에 덮어쓰기
             using (var writer = new System.IO.StreamWriter(csvPath))
             using (var csv = new CsvHelper.CsvWriter(writer, System.Globalization.CultureInfo.InvariantCulture))
             {
                 csv.WriteRecords(csvDataList);
-            }
-
-            // DataTableManager의 테이블도 업데이트 
-            await EnsureInitialized();
-            var monsterTable = DataTableManager.MonsterTable;
-            if (monsterTable != null)
-            {
-                foreach (var csvData in csvDataList)
-                {
-                    monsterTable.UpdateOrAdd(csvData);
-                }
             }
 
             AssetDatabase.Refresh();

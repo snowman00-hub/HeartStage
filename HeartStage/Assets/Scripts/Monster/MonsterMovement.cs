@@ -4,8 +4,7 @@ using UnityEngine;
 public class MonsterMovement : MonoBehaviour
 {
     [Header("Movement Settings")]
-    private float moveSpeed = 1f;
-    private MonsterData monsterData;
+    private MonsterData monsterData; // SO를 직접 참조
     private bool isInitialized = false;
 
     [Header("Anti-Overlap Settings")]
@@ -43,7 +42,7 @@ public class MonsterMovement : MonoBehaviour
 
     private void Update()
     {
-        if (!isInitialized) return;
+        if (!isInitialized || monsterData == null) return;
 
         if (!boundsInitialized)
         {
@@ -68,11 +67,11 @@ public class MonsterMovement : MonoBehaviour
 
     public void Init(MonsterData data, Vector3 direction)
     {
-        monsterData = data;
-        moveSpeed = data.moveSpeed;
+        monsterData = data; 
         isInitialized = true;
     }
 
+    // 화면 경계 초기화
     private void InitializeScreenBounds()
     {
         if (Camera.main != null)
@@ -86,17 +85,19 @@ public class MonsterMovement : MonoBehaviour
         }
     }
 
+    // 벽 근접 확인 (SO의 최신 attackRange 사용)
     private void CheckWallProximity()
     {
         Collider2D wallCollider = Physics2D.OverlapCircle(
             transform.position,
-            monsterData.attackRange,
+            monsterData.attackRange, // SO의 최신 값 직접 사용
             LayerMask.GetMask(Tag.Wall)
         );
 
         isNearWall = (wallCollider != null);
     }
 
+    // 앞줄 막힘 확인
     private void CheckFrontBlocked()
     {
         isFrontBlocked = false;
@@ -125,10 +126,11 @@ public class MonsterMovement : MonoBehaviour
         }
     }
 
+    // 아래쪽 이동 (SO의 최신 moveSpeed 사용)
     private void MoveDown()
     {
-        // 1. 기본 아래쪽 이동
-        Vector3 downwardMovement = Vector3.down * moveSpeed * Time.deltaTime;
+        // 1. 기본 아래쪽 이동 (SO의 최신 moveSpeed 직접 사용)
+        Vector3 downwardMovement = Vector3.down * monsterData.moveSpeed * Time.deltaTime;
 
         // 2. 좌우 분리만 적용 (y축 이동 방해 안함)
         Vector3 separationMovement = GetHorizontalSeparationForce();
@@ -143,6 +145,7 @@ public class MonsterMovement : MonoBehaviour
         transform.position = newPosition;
     }
 
+    // 좌우 분리만 적용
     private void ApplyOnlyHorizontalSeparation()
     {
         // 앞이 막혔을 때는 좌우 분리만 적용
@@ -155,6 +158,7 @@ public class MonsterMovement : MonoBehaviour
         transform.position = newPosition;
     }
 
+    // 좌우 분리 힘 계산 (SO의 최신 moveSpeed 사용)
     private Vector3 GetHorizontalSeparationForce()
     {
         Vector3 separationForceVector = Vector3.zero;
@@ -188,8 +192,8 @@ public class MonsterMovement : MonoBehaviour
             }
         }
 
-        // 분리 힘 제한 (좌우로만)
-        float maxSeparationSpeed = moveSpeed * 0.5f;
+        // 분리 힘 제한 (좌우로만) - SO의 최신 moveSpeed 직접 사용
+        float maxSeparationSpeed = monsterData.moveSpeed * 0.5f;
         if (separationForceVector.magnitude > maxSeparationSpeed)
         {
             separationForceVector = separationForceVector.normalized * maxSeparationSpeed;
@@ -198,6 +202,7 @@ public class MonsterMovement : MonoBehaviour
         return separationForceVector;
     }
 
+    // 화면 경계 제한
     private Vector3 ClampToScreenBounds(Vector3 position)
     {
         if (!boundsInitialized) return position;
@@ -206,6 +211,7 @@ public class MonsterMovement : MonoBehaviour
         return position;
     }
 
+    // 몬스터 리스트 정리 (성능 최적화)
     private void LateUpdate()
     {
         if (Time.frameCount % 60 == 0)
@@ -214,6 +220,7 @@ public class MonsterMovement : MonoBehaviour
         }
     }
 
+    // 비활성 몬스터 정리
     private static void CleanupMonsterList()
     {
         allActiveMonsters.RemoveAll(monster => monster == null || !monster.gameObject.activeInHierarchy);
@@ -235,7 +242,7 @@ public class MonsterMovement : MonoBehaviour
         Vector3 frontCheckPos = transform.position + Vector3.down * frontCheckDistance;
         Gizmos.DrawWireCube(frontCheckPos, new Vector3(minDistance * 2, frontCheckDistance * 0.5f, 0));
 
-        // 벽 감지 범위 표시
+        // 벽 감지 범위 표시 (SO의 최신 값 사용)
         if (monsterData != null)
         {
             Gizmos.color = isNearWall ? Color.red : Color.green;
