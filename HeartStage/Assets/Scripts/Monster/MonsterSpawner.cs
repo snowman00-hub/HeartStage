@@ -31,11 +31,14 @@ public class MonsterSpawner : MonoBehaviour
     [SerializeField] private GameObject monsterProjectilePrefab;
 
     [Header("Field")]
-    [SerializeField] private int poolSize = 60; // wave pool size
+    [SerializeField] private int poolSize = 150; // wave pool size
     [SerializeField] private int currentStageId = 601; // 현재 스테이지 ID
 
-    // MonsterData SO 캐시 (방법 2의 핵심)
+    // MonsterData SO 캐시 
     private Dictionary<int, MonsterData> monsterDataCache = new Dictionary<int, MonsterData>();
+
+    // 몬스터 타입별 풀 관리 (주 사용)
+    private Dictionary<int, List<GameObject>> monsterPools = new Dictionary<int, List<GameObject>>();
 
     private StageCsvData currentStageData;
     private List<int> stageWaveIds = new List<int>();
@@ -49,12 +52,6 @@ public class MonsterSpawner : MonoBehaviour
     private const string MonsterProjectilePoolId = "MonsterProjectile";
     public static string GetMonsterProjectilePoolId() => MonsterProjectilePoolId;
 
-    private List<GameObject> monsterList = new List<GameObject>();
-    private List<GameObject> bossMonsterList = new List<GameObject>();
-
-    public List<GameObject> MonsterList => monsterList;
-
-    // 게임 시작 시 초기화 실행
     private async void Start()
     {
         await InitializeAsync();
@@ -119,9 +116,8 @@ public class MonsterSpawner : MonoBehaviour
             var monsterDataSO = await handle.Task;
             if (monsterDataSO != null)
             {
-                monsterDataSO.Init(monsterId); // 스테이지 시작 시에만 CSV로 초기화
-                monsterDataCache[monsterId] = monsterDataSO; // 캐시에 저장
-                Debug.Log($"MonsterData_{monsterId} 캐시에 로드됨");
+                monsterDataSO.InitFromCSV(monsterId); // Init 대신 InitFromCSV 사용
+                monsterDataCache[monsterId] = monsterDataSO;
             }
         }
     }
@@ -311,19 +307,34 @@ public class MonsterSpawner : MonoBehaviour
         return true;
     }
 
-    // 개별 몬스터 스폰 (캐시된 MonsterData 사용, Init 호출 안 함)
     private bool SpawnMonster(int monsterId)
     {
-        var targetList = MonsterBehavior.IsBossMonster(monsterId) ? bossMonsterList : monsterList;
+        if (!monsterPools.TryGetValue(monsterId, out var pool))
+        {
+            Debug.LogError($"몬스터 ID {monsterId}에 대한 풀이 없습니다.");
+            return false;
+        }
 
-        foreach (var monster in targetList)
+        foreach (var monster in pool)
         {
             if (monster != null && !monster.activeInHierarchy)
             {
-                Vector3 spawnPos = MonsterBehavior.IsBossMonster(monsterId) ? GetBossSpawnPosition() : GetRandomSpawnPosition();
-
+                // 위치 설정
+                bool isBoss = MonsterBehavior.IsBossMonster(monsterId);
+                Vector3 spawnPos = isBoss ? GetBossSpawnPosition() : GetRandomSpawnPosition();
                 monster.transform.position = spawnPos;
 
+                if (monsterDataCache.TryGetValue(monsterId, out var monsterData))
+                {
+                    var monsterBehavior = monster.GetComponent<MonsterBehavior>();
+                    if (monsterBehavior != null)
+                    {
+                        // MonsterBehavior 초기화만 수행 (HealthBar는 Init 내부에서 처리됨)
+                        monsterBehavior.Init(monsterData);
+                    }
+                }
+
+                // 렌더러 활성화 및 오브젝트 활성화
                 var renderers = monster.GetComponentsInChildren<Renderer>();
                 foreach (var renderer in renderers)
                 {
@@ -331,31 +342,10 @@ public class MonsterSpawner : MonoBehaviour
                 }
 
                 monster.SetActive(true);
-
-                // 캐시에서 MonsterData 가져오기 (Init 호출 안 함 - 런타임 변경사항 유지)
-                if (monsterDataCache.TryGetValue(monsterId, out var monsterDataSO))
-                {
-                    var monsterBehavior = monster.GetComponent<MonsterBehavior>();
-                    monsterBehavior.Init(monsterDataSO);
-                    monsterBehavior.SetMonsterSpawner(this);
-
-                    var monsterMovement = monster.GetComponent<MonsterMovement>();
-                    if (monsterMovement != null)
-                    {
-                        monsterMovement.Init(monsterDataSO, Vector3.down);
-                    }
-
-                    SetMonsterSprite(monster, monsterDataSO);
-                }
-                else
-                {
-                    Debug.LogError($"MonsterData_{monsterId}가 캐시에 없습니다.");
-                    return false;
-                }
-
                 return true;
             }
         }
+
         return false;
     }
 
@@ -410,38 +400,95 @@ public class MonsterSpawner : MonoBehaviour
         }
     }
 
-    // 몬스터 오브젝트 풀 초기화
+    // 몬스터 오브젝트 풀 초기화 - 모든 초기화를 여기서 처리
     private async UniTask InitializePool()
     {
-        // 일반 몬스터 풀 생성
-        for (int i = 0; i < poolSize; i++)
+        // 데이터 테이블 로딩 대기
+        while (DataTableManager.StageTable == null || DataTableManager.StageWaveTable == null)
         {
-            var handle = Addressables.InstantiateAsync(monsterPrefab, GetRandomSpawnPosition(), Quaternion.identity);
-            var monster = await handle.Task;
-
-            monster.SetActive(false);
-
-            var renderers = monster.GetComponentsInChildren<Renderer>();
-            foreach (var renderer in renderers)
-            {
-                renderer.enabled = false;
-            }
-
-            monsterList.Add(monster);
+            await UniTask.Delay(100);
         }
 
-        // 보스 몬스터 풀 생성
-        var bossHandle = Addressables.InstantiateAsync(bossMonsterPrefab, GetBossSpawnPosition(), Quaternion.identity);
-        var bossMonster = await bossHandle.Task;
-
-        bossMonster.SetActive(false);
-
-        bossMonsterList.Add(bossMonster);
-
-        var bossRenderers = bossMonster.GetComponentsInChildren<Renderer>();
-        foreach (var renderer in bossRenderers)
+        // 현재 스테이지에서 사용할 몬스터 ID 수집
+        var monsterIds = new HashSet<int>();
+        var stageData = DataTableManager.StageTable.GetStage(currentStageId);
+        if (stageData != null)
         {
-            renderer.enabled = false;
+            var waveIds = DataTableManager.StageTable.GetWaveIds(currentStageId);
+            foreach (var waveId in waveIds)
+            {
+                var waveData = DataTableManager.StageWaveTable.Get(waveId);
+                if (waveData != null)
+                {
+                    if (waveData.EnemyID1 > 0) monsterIds.Add(waveData.EnemyID1);
+                    if (waveData.EnemyID2 > 0) monsterIds.Add(waveData.EnemyID2);
+                    if (waveData.EnemyID3 > 0) monsterIds.Add(waveData.EnemyID3);
+                }
+            }
+        }
+
+        // MonsterData 캐시 로드
+        foreach (var monsterId in monsterIds)
+        {
+            var handle = Addressables.LoadAssetAsync<MonsterData>($"MonsterData_{monsterId}");
+            var monsterDataSO = await handle.Task;
+            if (monsterDataSO != null)
+            {
+                monsterDataSO.InitFromCSV(monsterId); // Init 대신 InitFromCSV 사용 ✅
+                monsterDataCache[monsterId] = monsterDataSO;
+            }
+        }
+
+        // 몬스터 타입별 풀 생성 
+        foreach (var monsterId in monsterIds)
+        {
+            bool isBoss = MonsterBehavior.IsBossMonster(monsterId);
+            var prefab = isBoss ? bossMonsterPrefab : monsterPrefab;
+            int poolCount = isBoss ? 1 : poolSize / monsterIds.Count;
+
+            monsterPools[monsterId] = new List<GameObject>();
+
+            for (int i = 0; i < poolCount; i++)
+            {
+                Vector3 offScreenPosition = new Vector3(-10000, -10000, 0);
+                var handle = Addressables.InstantiateAsync(prefab, offScreenPosition, Quaternion.identity);
+                var monster = await handle.Task;
+
+                monster.SetActive(false);
+
+                // 몬스터 완전 초기화 (한 번만 수행)
+                if (monsterDataCache.TryGetValue(monsterId, out var monsterDataSO))
+                {
+                    var monsterBehavior = monster.GetComponent<MonsterBehavior>();
+                    monsterBehavior.Init(monsterDataSO); // 이건 MonsterBehavior 초기화 (문제없음)
+                    monsterBehavior.SetMonsterSpawner(this);
+
+                    var monsterMovement = monster.GetComponent<MonsterMovement>();
+                    if (monsterMovement != null)
+                    {
+                        monsterMovement.Init(monsterDataSO, Vector3.down);
+                    }
+
+                    var healthBar = monster.GetComponentInChildren<HealthBar>();
+                    if (healthBar == null)
+                    {
+                        Debug.LogWarning($"Monster {monsterId}에 HealthBar가 없습니다.");
+                    }
+
+                    // 스프라이트 설정
+                    SetMonsterSprite(monster, monsterDataSO);
+                }
+
+                // 초기 상태 설정
+                monster.SetActive(false);
+                var renderers = monster.GetComponentsInChildren<Renderer>();
+                foreach (var renderer in renderers)
+                {
+                    renderer.enabled = false;
+                }
+
+                monsterPools[monsterId].Add(monster);
+            }
         }
 
         await CreateAllPools();
@@ -451,7 +498,7 @@ public class MonsterSpawner : MonoBehaviour
     private Vector3 GetRandomSpawnPosition()
     {
         int randomRange = Random.Range(0, Screen.width);
-        int height = Random.Range(Screen.height, Screen.height + 200);
+        int height = Random.Range(Screen.height, Screen.height + 500);
 
         Vector3 screenPosition = new Vector3(randomRange, height, 0);
         Vector3 spawnPos = Camera.main.ScreenToWorldPoint(screenPosition);
@@ -463,34 +510,29 @@ public class MonsterSpawner : MonoBehaviour
     // 보스 스폰 위치 계산
     private Vector3 GetBossSpawnPosition()
     {
-        Vector3 screenCenter = new Vector3(Screen.width / 2f, Screen.height, 0f);
+        Vector3 screenCenter = new Vector3(Screen.width / 2f, Screen.height + 200, 0f);
         Vector3 worldPos = Camera.main.ScreenToWorldPoint(screenCenter);
         worldPos.z = 0f;
 
         return worldPos;
     }
 
-    // 리소스 정리
+    // 리소스 정리 - monsterPools 사용
     private void OnDestroy()
     {
-        foreach (var monster in monsterList)
+        foreach (var pool in monsterPools.Values)
         {
-            if (monster != null && monster.gameObject != null)
+            foreach (var monster in pool)
             {
-                Addressables.ReleaseInstance(monster);
+                if (monster != null && monster.gameObject != null)
+                {
+                    Addressables.ReleaseInstance(monster);
+                }
             }
         }
 
-        foreach (var bossMonster in bossMonsterList)
-        {
-            if (bossMonster != null && bossMonster.gameObject != null)
-            {
-                Addressables.ReleaseInstance(bossMonster);
-            }
-        }
-
-        // 캐시 정리
         monsterDataCache.Clear();
+        monsterPools.Clear();
     }
 
     // 스테이지 변경
@@ -502,29 +544,37 @@ public class MonsterSpawner : MonoBehaviour
         // 모든 활성 몬스터 비활성화
         DeactivateAllMonsters();
 
-        // 캐시 정리 (새 스테이지에서 다시 캐시 구축)
+        // 기존 풀과 캐시 정리
+        foreach (var pool in monsterPools.Values)
+        {
+            foreach (var monster in pool)
+            {
+                if (monster != null && monster.gameObject != null)
+                {
+                    Addressables.ReleaseInstance(monster);
+                }
+            }
+        }
+        monsterPools.Clear();
         monsterDataCache.Clear();
 
+        // 새 스테이지 초기화
+        await InitializePool();
         await LoadStageData();
         await StartStageProgression();
     }
 
-    // 모든 활성 몬스터 비활성화
+    // 모든 활성 몬스터 비활성화 - monsterPools 사용
     private void DeactivateAllMonsters()
     {
-        foreach (var monster in monsterList)
+        foreach (var pool in monsterPools.Values)
         {
-            if (monster.activeInHierarchy)
+            foreach (var monster in pool)
             {
-                monster.SetActive(false);
-            }
-        }
-
-        foreach (var bossMonster in bossMonsterList)
-        {
-            if (bossMonster.activeInHierarchy)
-            {
-                bossMonster.SetActive(false);
+                if (monster.activeInHierarchy)
+                {
+                    monster.SetActive(false);
+                }
             }
         }
     }

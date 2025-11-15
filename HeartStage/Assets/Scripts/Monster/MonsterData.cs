@@ -27,6 +27,9 @@ public class MonsterData : ScriptableObject
     public string prefab1;
     public string prefab2;
 
+
+    private bool isInitialized = false; // 초기화 플래그 추가
+
     // CharacterData처럼 UpdateData 구현
     public void UpdateData(MonsterCSVData csvData)
     {
@@ -55,6 +58,19 @@ public class MonsterData : ScriptableObject
         
         // 호환성을 위해 기존 필드도 설정
         image_AssetName = csvData.prefab1;
+    }
+    public void InitFromCSV(int monsterId)
+    {
+        if (isInitialized) return; // 이미 초기화됐으면 skip
+
+        var monsterTable = DataTableManager.MonsterTable;
+        if (monsterTable == null) return;
+
+        var data = monsterTable.Get(monsterId);
+        if (data == null) return;
+
+        UpdateData(data);
+        isInitialized = true;
     }
 
     // 기존 Init 메서드는 유지 (하위 호환성)
