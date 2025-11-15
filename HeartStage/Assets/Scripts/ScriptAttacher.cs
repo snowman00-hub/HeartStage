@@ -10,8 +10,10 @@ public static class ScriptAttacher
     // 데이터 테이블에 있는 ID들과 짝에 맞는 스크립트 등록하기
     private static readonly Dictionary<int, string> _idToScript = new()
     {
+        { 31202, "FaceGeniusSkill" },
         { 31204, "SonicAttackSkill" },
         { 31205, "SonicAttackSkillV2" },
+        { 31206, "ReverseCharmSkill" },
         { 9991, "DeceptionBossSkill"},
         { 9992, "SpeedBuffBossSkill"},
     };
