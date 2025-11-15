@@ -112,23 +112,6 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 
         if (hit != null)
         {
-            //Vector3 targetPosition = hit.transform.position;
-            //Vector3 direction = (targetPosition - transform.position).normalized;
-
-            //var projectileObj = PoolManager.Instance.Get(MonsterProjectilePoolId);
-            //if (projectileObj != null)
-            //{
-            //    projectileObj.transform.position = transform.position;
-            //    projectileObj.transform.rotation = Quaternion.identity;
-
-            //    var projectile = projectileObj.GetComponent<MonsterProjectile>();
-            //    if (projectile != null)
-            //    {
-            //        projectile.Init(direction, monsterData.bulletSpeed, monsterData.att);
-            //    }
-
-            //    projectileObj.SetActive(true);
-            //}
             Vector3 direction = Vector3.down;
 
             var projectileObj = PoolManager.Instance.Get(MonsterProjectilePoolId);

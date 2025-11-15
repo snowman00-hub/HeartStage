@@ -433,9 +433,6 @@ public class MonsterSpawner : MonoBehaviour
         Vector3 worldPos = Camera.main.ScreenToWorldPoint(screenCenter);
         worldPos.z = 0f;
 
-
-
-        Debug.LogWarning("보스 스폰 위치를 찾을 수 없습니다!");
         return worldPos;
     }
 

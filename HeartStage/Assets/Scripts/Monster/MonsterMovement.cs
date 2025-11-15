@@ -5,50 +5,64 @@ public class MonsterMovement : MonoBehaviour
 {
     [Header("Movement Settings")]
     private float moveSpeed = 1f;
-    private Vector3 direction = Vector3.down;
     private MonsterData monsterData;
     private bool isInitialized = false;
 
-    [Header("Slot System")]
-    [SerializeField] private float slotSize = 1f; // 슬롯 간격
-    [SerializeField] private int maxMonsterPerSlot = 1; // 슬롯당 1마리만
+    [Header("Anti-Overlap Settings")]
+    [SerializeField] private float separationRadius = 1.0f;  // 분리 반경
+    [SerializeField] private float separationForce = 3f;     // 분리 힘
+    [SerializeField] private float minDistance = 0.6f;       // 최소 거리 유지
+    [SerializeField] private float frontCheckDistance = 0.8f; // 앞줄 체크 거리
 
-    // 슬롯 관리 (전역 공유)
-    private static Dictionary<Vector3, List<MonsterMovement>> slotDictionary = new Dictionary<Vector3, List<MonsterMovement>>();
-    private Vector3 assignedSlot;
-    private Vector3 targetPosition;
-    private bool hasAssignedSlot = false;
-    private float repositionCooldown = 0f;
+    [Header("Screen Bounds")]
+    [SerializeField] private float screenMargin = 0.5f;
 
     // 벽 감지 관련
     private bool isNearWall = false;
-    private bool shouldStop = false;
+    private bool isFrontBlocked = false; // 앞줄 막힘 상태
 
-    private void Start()
+    // 화면 경계 캐싱
+    private float leftBound, rightBound;
+    private bool boundsInitialized = false;
+
+    // 모든 활성 몬스터 추적 (정적)
+    private static List<MonsterMovement> allActiveMonsters = new List<MonsterMovement>();
+
+    private void OnEnable()
     {
-        FindAndAssignSlot();
+        if (!allActiveMonsters.Contains(this))
+        {
+            allActiveMonsters.Add(this);
+        }
+    }
+
+    private void OnDisable()
+    {
+        allActiveMonsters.Remove(this);
     }
 
     private void Update()
     {
         if (!isInitialized) return;
 
-        repositionCooldown -= Time.deltaTime;
-
-        // 벽 근처인지 체크
-        CheckWallProximity();
-
-        // 이동 로직
-        if (!shouldStop)
+        if (!boundsInitialized)
         {
-            MoveToTarget();
+            InitializeScreenBounds();
         }
 
-        // 주기적으로 더 좋은 슬롯 찾기
-        if (repositionCooldown <= 0f)
+        // 벽과 앞줄 체크
+        CheckWallProximity();
+        CheckFrontBlocked();
+
+        // 막혀있지 않으면 이동
+        if (!isNearWall && !isFrontBlocked)
         {
-            CheckForBetterSlot();
-            repositionCooldown = 1f;
+            MoveDown();
+        }
+        else if (!isNearWall && isFrontBlocked)
+        {
+            // 앞이 막혀있으면 좌우 분리만 적용
+            ApplyOnlyHorizontalSeparation();
         }
     }
 
@@ -56,183 +70,186 @@ public class MonsterMovement : MonoBehaviour
     {
         monsterData = data;
         moveSpeed = data.moveSpeed;
-        this.direction = Vector3.down; // 강제로 아래 방향
         isInitialized = true;
+    }
+
+    private void InitializeScreenBounds()
+    {
+        if (Camera.main != null)
+        {
+            Vector3 leftScreen = Camera.main.ScreenToWorldPoint(new Vector3(0, 0, Camera.main.nearClipPlane));
+            Vector3 rightScreen = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width, 0, Camera.main.nearClipPlane));
+
+            leftBound = leftScreen.x + screenMargin;
+            rightBound = rightScreen.x - screenMargin;
+            boundsInitialized = true;
+        }
     }
 
     private void CheckWallProximity()
     {
-        // 벽과의 거리 체크
-        Collider2D wallCollider = Physics2D.OverlapCircle(transform.position, monsterData.attackRange, LayerMask.GetMask(Tag.Wall));
-
-        if (wallCollider != null)
-        {
-            // 벽 근처에 도달 - 정지
-            isNearWall = true;
-            shouldStop = true;
-        }
-        else
-        {
-            // 앞에 다른 몬스터가 있는지 체크
-            Vector3 frontCheckPos = transform.position + Vector3.down * slotSize;
-            Collider2D frontMonster = Physics2D.OverlapCircle(frontCheckPos, slotSize * 0.4f, LayerMask.GetMask(Tag.Monster));
-
-            if (frontMonster != null && frontMonster.gameObject != gameObject)
-            {
-                // 앞에 몬스터가 있으면 정지
-                shouldStop = true;
-            }
-            else
-            {
-                // 앞이 비어있으면 계속 이동
-                shouldStop = false;
-                isNearWall = false;
-            }
-        }
-    }
-
-    private void FindAndAssignSlot()
-    {
-        Vector3 currentPos = transform.position;
-        Vector3 slot = FindNearSlot(currentPos);
-        AssignToSlot(slot);
-    }
-
-    private Vector3 FindNearSlot(Vector3 worldPosition)
-    {
-        Vector3 baseSlot = new Vector3(
-            Mathf.Round(worldPosition.x / slotSize) * slotSize,
-            Mathf.Round(worldPosition.y / slotSize) * slotSize,
-            0f
+        Collider2D wallCollider = Physics2D.OverlapCircle(
+            transform.position,
+            monsterData.attackRange,
+            LayerMask.GetMask(Tag.Wall)
         );
 
-        // y축으로만 3칸 체크 (x축 고정)
-        var slotsToCheck = new List<Vector3>();
-        for (int y = -1; y <= 1; y++)  // y축으로만 3개
-        {
-            var checkSlot = baseSlot + new Vector3(0, y * slotSize, 0f);
-            slotsToCheck.Add(checkSlot);
-        }
-
-        // 거리순으로 정렬
-        slotsToCheck.Sort((a, b) =>
-            Vector3.Distance(worldPosition, a).CompareTo(Vector3.Distance(worldPosition, b)));
-
-        // 사용 가능한 슬롯 찾기
-        foreach (var slot in slotsToCheck)
-        {
-            if (!slotDictionary.ContainsKey(slot))
-            {
-                slotDictionary[slot] = new List<MonsterMovement>();
-            }
-
-            if (slotDictionary[slot].Count < maxMonsterPerSlot)
-            {
-                return slot;
-            }
-        }
-
-        return slotsToCheck[0];
+        isNearWall = (wallCollider != null);
     }
 
-    private void AssignToSlot(Vector3 slot)
+    private void CheckFrontBlocked()
     {
-        // 이전 슬롯에서 제거
-        if (hasAssignedSlot)
+        isFrontBlocked = false;
+
+        // 앞쪽(아래쪽) 영역에 다른 몬스터가 있는지 체크
+        Vector3 frontCheckPosition = transform.position + Vector3.down * frontCheckDistance;
+
+        foreach (var otherMonster in allActiveMonsters)
         {
-            UnregisterFromSlot();
-        }
+            if (otherMonster == this || otherMonster == null) continue;
+            if (!otherMonster.gameObject.activeInHierarchy) continue;
 
-        // 새 슬롯에 등록
-        assignedSlot = slot;
-
-        if (!slotDictionary.ContainsKey(assignedSlot))
-        {
-            slotDictionary[assignedSlot] = new List<MonsterMovement>();
-        }
-
-        slotDictionary[assignedSlot].Add(this);
-        hasAssignedSlot = true;
-        targetPosition = assignedSlot;
-    }
-
-    private void UnregisterFromSlot()
-    {
-        if (!hasAssignedSlot) return;
-
-        if (slotDictionary.ContainsKey(assignedSlot))
-        {
-            slotDictionary[assignedSlot].Remove(this);
-
-            // 슬롯이 비어있으면 딕셔너리에서 제거
-            if (slotDictionary[assignedSlot].Count == 0)
+            // 다른 몬스터가 내 앞(아래쪽)에 있는지 체크
+            if (otherMonster.transform.position.y < transform.position.y)
             {
-                slotDictionary.Remove(assignedSlot);
+                float horizontalDistance = Mathf.Abs(otherMonster.transform.position.x - transform.position.x);
+                float verticalDistance = transform.position.y - otherMonster.transform.position.y;
+
+                // 앞쪽 근처에 있으면 막힌 것으로 판정
+                if (horizontalDistance < minDistance && verticalDistance < frontCheckDistance)
+                {
+                    isFrontBlocked = true;
+                    break;
+                }
             }
         }
-
-        hasAssignedSlot = false;
     }
 
-    private void MoveToTarget()
+    private void MoveDown()
     {
-        if (!hasAssignedSlot) return;
+        // 1. 기본 아래쪽 이동
+        Vector3 downwardMovement = Vector3.down * moveSpeed * Time.deltaTime;
 
-        // 1. y축 아래 방향 이동 (기본 이동)
-        Vector3 forwardMovement = Vector3.down * moveSpeed * Time.deltaTime;
-
-        // 2. 슬롯 위치 조정 (x축으로만, y축은 건드리지 않음)
-        Vector3 directionToSlot = (targetPosition - transform.position);
-        directionToSlot.y = 0f; // y축 이동 제거
-        directionToSlot = directionToSlot.normalized;
-
-        Vector3 slotAdjustment = directionToSlot * moveSpeed * 0.3f * Time.deltaTime;
+        // 2. 좌우 분리만 적용 (y축 이동 방해 안함)
+        Vector3 separationMovement = GetHorizontalSeparationForce();
 
         // 3. 최종 이동
-        Vector3 finalMovement = forwardMovement + slotAdjustment;
-        transform.position += finalMovement;
+        Vector3 finalMovement = downwardMovement + separationMovement;
+        Vector3 newPosition = transform.position + finalMovement;
 
-        // 4. 목표 슬롯도 아래로 함께 이동 (대형 유지)
-        targetPosition += Vector3.down * moveSpeed * Time.deltaTime;
-        assignedSlot += Vector3.down * moveSpeed * Time.deltaTime;
+        // 4. 화면 경계 제한 적용
+        newPosition = ClampToScreenBounds(newPosition);
+
+        transform.position = newPosition;
     }
 
-    private void CheckForBetterSlot()
+    private void ApplyOnlyHorizontalSeparation()
     {
-        // 더 좋은 슬롯이 있는지 확인
-        Vector3 idealSlot = FindNearSlot(transform.position);
+        // 앞이 막혔을 때는 좌우 분리만 적용
+        Vector3 separationMovement = GetHorizontalSeparationForce();
+        Vector3 newPosition = transform.position + separationMovement;
 
-        float currentDistance = Vector3.Distance(transform.position, assignedSlot);
-        float idealDistance = Vector3.Distance(transform.position, idealSlot);
+        // 화면 경계 제한
+        newPosition = ClampToScreenBounds(newPosition);
 
-        // 현재 슬롯보다 0.5f 이상 가까운 슬롯이 있으면 이동
-        if (idealDistance < currentDistance - 0.5f)
+        transform.position = newPosition;
+    }
+
+    private Vector3 GetHorizontalSeparationForce()
+    {
+        Vector3 separationForceVector = Vector3.zero;
+
+        foreach (var otherMonster in allActiveMonsters)
         {
-            AssignToSlot(idealSlot);
+            if (otherMonster == this || otherMonster == null) continue;
+            if (!otherMonster.gameObject.activeInHierarchy) continue;
+
+            float distance = Vector3.Distance(transform.position, otherMonster.transform.position);
+
+            // 분리 반경 내에 있으면 좌우로만 밀어내기
+            if (distance < separationRadius && distance > 0.01f)
+            {
+                Vector3 directionAway = transform.position - otherMonster.transform.position;
+                directionAway.y = 0f; // y축 제거 - 좌우로만 밀어내기
+
+                if (directionAway.magnitude > 0.01f)
+                {
+                    float normalizedDistance = distance / separationRadius;
+                    float strength = separationForce * (1f - normalizedDistance) * Time.deltaTime;
+
+                    // 너무 가까우면 더 강한 힘
+                    if (distance < minDistance)
+                    {
+                        strength *= 1.5f;
+                    }
+
+                    separationForceVector += directionAway.normalized * strength;
+                }
+            }
+        }
+
+        // 분리 힘 제한 (좌우로만)
+        float maxSeparationSpeed = moveSpeed * 0.5f;
+        if (separationForceVector.magnitude > maxSeparationSpeed)
+        {
+            separationForceVector = separationForceVector.normalized * maxSeparationSpeed;
+        }
+
+        return separationForceVector;
+    }
+
+    private Vector3 ClampToScreenBounds(Vector3 position)
+    {
+        if (!boundsInitialized) return position;
+
+        position.x = Mathf.Clamp(position.x, leftBound, rightBound);
+        return position;
+    }
+
+    private void LateUpdate()
+    {
+        if (Time.frameCount % 60 == 0)
+        {
+            CleanupMonsterList();
         }
     }
 
-    // 몬스터가 죽거나 제거될 때 슬롯에서 해제
-    private void OnDestroy()
+    private static void CleanupMonsterList()
     {
-        UnregisterFromSlot();
+        allActiveMonsters.RemoveAll(monster => monster == null || !monster.gameObject.activeInHierarchy);
     }
 
     // 디버그용 시각화
     private void OnDrawGizmosSelected()
     {
-        if (!hasAssignedSlot) return;
+        // 분리 반경 표시
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, separationRadius);
 
-        // 할당된 슬롯 표시
-        Gizmos.color = Color.green;
-        Gizmos.DrawWireCube(assignedSlot, Vector3.one * slotSize);
+        // 최소 거리 표시
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, minDistance);
 
-        // 목표 위치 표시
-        Gizmos.color = Color.blue;
-        Gizmos.DrawSphere(targetPosition, 0.1f);
+        // 앞줄 체크 영역 표시
+        Gizmos.color = isFrontBlocked ? Color.red : Color.blue;
+        Vector3 frontCheckPos = transform.position + Vector3.down * frontCheckDistance;
+        Gizmos.DrawWireCube(frontCheckPos, new Vector3(minDistance * 2, frontCheckDistance * 0.5f, 0));
 
         // 벽 감지 범위 표시
-        Gizmos.color = isNearWall ? Color.red : Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, monsterData.attackRange);
+        if (monsterData != null)
+        {
+            Gizmos.color = isNearWall ? Color.red : Color.green;
+            Gizmos.DrawWireSphere(transform.position, monsterData.attackRange);
+        }
+
+        // 화면 경계 표시
+        if (boundsInitialized)
+        {
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawLine(new Vector3(leftBound, transform.position.y - 2f, 0),
+                          new Vector3(leftBound, transform.position.y + 2f, 0));
+            Gizmos.DrawLine(new Vector3(rightBound, transform.position.y - 2f, 0),
+                          new Vector3(rightBound, transform.position.y + 2f, 0));
+        }
     }
 }
