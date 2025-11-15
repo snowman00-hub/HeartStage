@@ -50,6 +50,11 @@ public class CharacterAttack : MonoBehaviour
         var texture = ResourceManager.Instance.Get<Texture2D>(data.image_AssetName);
         spriteRenderer.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
         // 액티브 스킬 등록
+        var skillList = DataTableManager.CharacterTable.GetSkillIds(data.char_id);
+        foreach (var skillId in skillList)
+        {
+            ScriptAttacher.AttachById(gameObject, skillId);
+        }
     }
 
     private void Update()

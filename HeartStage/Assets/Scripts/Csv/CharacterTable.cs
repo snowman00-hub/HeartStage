@@ -1,5 +1,6 @@
 ﻿using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -84,5 +85,13 @@ public class CharacterTable : DataTable
             return null;
         }
         return table[key];
+    }
+
+    public List<int> GetSkillIds(int id)
+    {
+        var data = table[id];
+        var skills = new[] { data.skill_id1, data.skill_id2, data.skill_id3, data.skill_id4, data.skill_id5, data.skill_id6 };
+
+        return skills.Where(s => s != 0).ToList();
     }
 }

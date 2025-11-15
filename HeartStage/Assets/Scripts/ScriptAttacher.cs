@@ -11,6 +11,7 @@ public static class ScriptAttacher
     private static readonly Dictionary<int, string> _idToScript = new()
     {
         { 31204, "SonicAttackSkill" },
+        { 31205, "SonicAttackSkillV2" },
         { 9991, "DeceptionBossSkill"},
         { 9992, "SpeedBuffBossSkill"},
     };

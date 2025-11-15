@@ -1,12 +1,12 @@
 ﻿using UnityEngine;
 
 // 컴포넌트 장착시 쿨타임마다 윗방향으로 음파 공격 스킬 발사
-public class SonicAttackSkill : MonoBehaviour, ISkillBehavior
+public class SonicAttackSkillV2 : MonoBehaviour, ISkillBehavior
 {
     private SkillData skillData;
     private GameObject sonicAttackPrefab;
     private string sonicAttackId = "SonicAttack";
-    private string skillDataAssetName = "만능 엔터테이너";
+    private string skillDataAssetName = "다재다능한 만능 엔터테이너";
 
     private void Start()
     {
