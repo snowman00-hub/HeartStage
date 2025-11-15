@@ -1,8 +1,29 @@
 ﻿using Cysharp.Threading.Tasks;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+
+[Serializable]
+public class ItemCSVData
+{
+    public int item_id { get; set; }
+    public string item_name { get; set; }
+    public string item_desc { get; set; }
+    public int item_type { get; set; }
+    public int item_use { get; set; }
+    public int item_drop { get; set; }
+    public string item_dropinfo { get; set; }
+    public int item_inv { get; set; }
+    public int item_dup { get; set; }
+    public bool item_canbuy { get; set; }
+    public int item_shop { get; set; }
+    public int price_type { get; set; }
+    public float item_price { get; set; }
+    public string info { get; set; }
+    public string prefab { get; set; }
+}
 
 public class ItemTable : DataTable
 {
@@ -25,9 +46,9 @@ public class ItemTable : DataTable
 
         foreach (var item in list)
         {
-            if (!table.ContainsKey(item.ID))
+            if (!table.ContainsKey(item.item_id))
             {
-                table.Add(item.ID, item);
+                table.Add(item.item_id, item);
             }
             else
             {
@@ -46,5 +67,18 @@ public class ItemTable : DataTable
             return null;
         }
         return table[key];
+    }
+
+    public Dictionary<int, ItemData> GetAll()
+    {
+        Dictionary<int, ItemData> result = new Dictionary<int, ItemData>();
+
+        foreach (var kvp in table)
+        {
+            var so = ResourceManager.Instance.Get<ItemData>(kvp.Value.item_name);
+            result.Add(kvp.Key, so);
+        }
+
+        return result;
     }
 }

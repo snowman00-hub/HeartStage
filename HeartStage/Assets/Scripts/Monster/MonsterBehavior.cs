@@ -77,6 +77,8 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
             {
                 ondamageEvent.OnDamaged(damage, gameObject, isCritical);
             }
+
+            ItemManager.Instance.SpawnExp(transform.position);
         }
 
         if (currentHP <= 0)
