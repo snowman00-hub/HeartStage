@@ -20,12 +20,14 @@ public class ActiveSkillCreator : MonoBehaviour
         }
     }
 
+    // 액티브 스킬들 오브젝트 풀 생성
     private void Start()
     {
         sonicAttackPrefab = ResourceManager.Instance.Get<GameObject>(sonicAttackId);
         PoolManager.Instance.CreatePool(sonicAttackId, sonicAttackPrefab, 10, 30);
     }
 
+    // 음파 공격 생성
     public void CreateSonicAttack(GameObject caster, SkillData data)
     {       
         if (caster == null)

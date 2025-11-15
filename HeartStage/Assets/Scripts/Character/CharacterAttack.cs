@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class CharacterAttack : MonoBehaviour
@@ -66,13 +67,46 @@ public class CharacterAttack : MonoBehaviour
         if (Time.time < nextAttackTime)
             return;
 
+        // 공격
         GameObject target = GetClosestEnemy();
         if (target != null)
         {
-            Fire(target.transform.position);
+            // 추가 공격 체크 & bullet_count 만큼 발사
+            bool isPlusAttack = Random.Range(0, 100) < data.atk_addcount;
+            if (isPlusAttack)
+            {
+                for (int i = 0; i < data.bullet_count; i++)
+                {
+                    FireAsync(target.transform.position, 0.5f * i).Forget();
+                }
+
+                for (int i = 0; i < data.bullet_count; i++)
+                {
+                    FireAsync(target.transform.position, 0.5f * (i + data.bullet_count) + 0.5f).Forget();
+                }
+            }
+            else
+            {
+                for (int i = 0; i < data.bullet_count; i++)
+                {
+                    FireAsync(target.transform.position, 0.5f * i).Forget();
+                }
+            }
+
             nextAttackTime = Time.time + data.atk_speed;
         }
+
+#if UNITY_EDITOR
+        // 에디터일 때 SO 주기적으로 갱신
+        editorTimer += Time.deltaTime;
+        if (editorTimer >= 1f)
+        {
+            editorTimer = 0f;
+            circleCollider.radius = data.atk_range;
+        }
+#endif
     }
+    private float editorTimer = 0f;
 
     private void Fire(Vector3 targetPos)
     {
@@ -80,18 +114,9 @@ public class CharacterAttack : MonoBehaviour
         if (projectile == null)
             return;
 
-        // 1) 기본 공격력 (나중에 런타임 스탯으로 바꿔도 됨)
-        int baseAtk = data.atk_dmg;
-        Debug.Log($"CharacterAttack.Fire: baseAtk={baseAtk}");
-        // 2) 이 캐릭터에 붙어 있는 모든 IStatMulSource들 중
-        //    Attack에 해당하는 배율을 전부 곱한 값
+        // 데미지 계산
         float atkMul = StatMultiplier.GetTotalMultiplier(gameObject, StatType.Attack);
-        // 또는 this.gameObject.GetStatMul(StatType.Attack);
-
-        // 3) 최종 대미지 계산
-        int finalDmg = Mathf.RoundToInt(baseAtk * atkMul);
-        Debug.Log($"CharacterAttack.Fire: baseAtk={baseAtk}, atkMul={atkMul}, finalDmg={finalDmg}");
-
+        int finalDmg = Mathf.RoundToInt(data.atk_dmg * atkMul);
         // Critical Check
         bool isCritical = Random.Range(0, 100) < data.crt_chance;
         if (isCritical)
@@ -99,12 +124,19 @@ public class CharacterAttack : MonoBehaviour
             finalDmg = Mathf.FloorToInt(finalDmg * data.crt_dmg);
         }
 
+        // 투사체 세팅
         var dir = (targetPos - transform.position).normalized;
-
         projectile.GetComponent<CharacterProjectile>()
-            .SetMissile(data.projectile_AssetName, data.hitEffect_AssetName, transform.position, dir, data.bullet_speed, finalDmg,isCritical:isCritical);
+            .SetMissile(data.projectile_AssetName, data.hitEffect_AssetName, transform.position, dir, data.bullet_speed, finalDmg, isCritical: isCritical);
     }
 
+    private async UniTask FireAsync(Vector3 targetpos, float delay)
+    {
+        await UniTask.WaitForSeconds(delay);
+        Fire(targetpos);
+    }
+
+    // 가장 가까운 적 찾기
     private GameObject GetClosestEnemy()
     {
         GameObject closest = null;
@@ -123,6 +155,7 @@ public class CharacterAttack : MonoBehaviour
         return closest;
     }
 
+    // 콜라이더에 접촉 시 사정거리로 들어왔다고 판정
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.CompareTag(Tag.Monster))

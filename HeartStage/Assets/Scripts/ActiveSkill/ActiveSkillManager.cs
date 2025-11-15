@@ -15,16 +15,9 @@ public class ActiveSkillManager : MonoBehaviour
         {
             Instance = this;
         }
-        else if (Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
     }
 
-    // 로비로 복귀 시 파괴하기
-    // Destroy(ActiveSkillManager.Instance.gameObject);
-
+    // 스킬테이블 데이터 -> SO에 덮어쓰기
     private void Start()
     {
         skillDB = DataTableManager.SkillTable.GetAll();
@@ -34,6 +27,7 @@ public class ActiveSkillManager : MonoBehaviour
         }
     }
 
+    // 등록된 스킬들 쿨타임 자동으로 관리
     private void Update()
     {
         foreach (var timer in activeTimers)
@@ -48,6 +42,7 @@ public class ActiveSkillManager : MonoBehaviour
         }
     }
 
+    // 스킬 사용하기
     private void UseSkill(ActiveSkillTimer timer)
     {
         var data = timer.SkillData;
@@ -63,6 +58,7 @@ public class ActiveSkillManager : MonoBehaviour
 
         }
     }
+
     // 사용할 스킬등록하기
     public void RegisterSkill(GameObject caster, int skillId)
     {
@@ -71,6 +67,7 @@ public class ActiveSkillManager : MonoBehaviour
             activeTimers.Add(new ActiveSkillTimer(caster, data));
         }
     }
+
     // 캐스터 죽으면 스킬해제하기
     public void UnRegisterSkill(GameObject caster, int skillId)
     {
@@ -96,6 +93,7 @@ public class ActiveSkillManager : MonoBehaviour
             }
         }
     }
+
     // 실제 스킬 스크립트 등록
     public void RegisterSkillBehavior(GameObject caster, int skillId, ISkillBehavior behavior)
     {
@@ -112,6 +110,7 @@ public class ActiveSkillManager : MonoBehaviour
     }
 }
 
+// 타이머 클래스
 public class ActiveSkillTimer
 {
     public SkillData SkillData { get; private set; }

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 
+// 컴포넌트 장착시 쿨타임마다 윗방향으로 음파 공격 스킬 발사
 public class SonicAttackSkill : MonoBehaviour, ISkillBehavior
 {
     private SkillData skillData;
@@ -17,6 +18,7 @@ public class SonicAttackSkill : MonoBehaviour, ISkillBehavior
         ActiveSkillManager.Instance.RegisterSkill(gameObject, skillData.skill_id);
     }
 
+    // 발사
     public void Execute()
     {
         var projectileGo = PoolManager.Instance.Get(sonicAttackId);
