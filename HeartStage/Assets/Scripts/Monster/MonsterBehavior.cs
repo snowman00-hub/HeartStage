@@ -77,8 +77,6 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
             {
                 ondamageEvent.OnDamaged(damage, gameObject, isCritical);
             }
-
-            ItemManager.Instance.SpawnExp(transform.position);
         }
 
         if (currentHP <= 0)
@@ -95,6 +93,17 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         }
 
         gameObject.SetActive(false);
+        // 경험치 생성
+        ItemManager.Instance.SpawnExp(transform.position);
+        // 드랍아이템 생성
+        if (monsterData == null) // 왜 없는 경우가 있는지 ?
+            return;
+
+        var dropList = DataTableManager.MonsterTable.GetDropItemInfo(monsterData.id);
+        foreach(var dropItem in dropList)
+        {
+            ItemManager.Instance.SpawnItem(dropItem.Key, dropItem.Value, transform.position);
+        }
     }
 
     private void MeleeAttack()

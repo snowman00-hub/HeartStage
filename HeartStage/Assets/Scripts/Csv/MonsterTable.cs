@@ -122,4 +122,20 @@ public class MonsterTable : DataTable
 
         File.WriteAllText(filePath, csv.ToString());
     }
+
+    // 아이템 ID랑 수량 반환
+    public Dictionary<int,int> GetDropItemInfo(int monsterId)
+    {
+        var dict = new Dictionary<int, int>();
+        if (table[monsterId].item_id1 != 0)
+        {
+            dict[table[monsterId].item_id1] = table[monsterId].drop_count1;
+        }
+        if (table[monsterId].item_id2 != 0)
+        {
+            dict[table[monsterId].item_id2] = table[monsterId].drop_count2;
+        }
+
+        return dict;
+    }
 }

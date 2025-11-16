@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 [Serializable]
 public abstract class SaveData
@@ -11,12 +12,11 @@ public abstract class SaveData
 [Serializable]
 public class SaveDataV1 : SaveData
 {
-    public int hp = 0;
+    public Dictionary<int, int> itemList = new Dictionary<int, int>(); // 아이템 ID와 수량을 저장
 
     public SaveDataV1()
     {
         Version = 1;
-        hp = 0;
     }
 
     public override SaveData VersionUp()

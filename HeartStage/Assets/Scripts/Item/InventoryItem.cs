@@ -1,9 +1,9 @@
 ﻿using UnityEngine;
 
-// 함성 게이지 아이템
-public class ExpItem : MonoBehaviour
+// 인벤토리에 쌓이는 아이템
+public class InventoryItem : MonoBehaviour
 {
-    private Vector3 targetPos = new Vector3(4.65f, 9.84f, 0);
+    private Vector3 targetPos = new Vector3(-4.7f, 9.2f, 0);
 
     private float delayTime = 0.5f;
     private float flyTime = 0.5f;
@@ -12,6 +12,11 @@ public class ExpItem : MonoBehaviour
     private bool isFlying = false;
 
     private Vector3 startPos;
+
+    [HideInInspector]
+    public int amount = 1;
+    [HideInInspector]
+    public int itemId = 0;
 
     private void OnEnable()
     {
@@ -48,7 +53,7 @@ public class ExpItem : MonoBehaviour
                 transform.position = targetPos;
                 isFlying = false;
                 PoolManager.Instance.Release(ItemManager.expItemAssetName, gameObject);
-                StageManager.Instance.ExpGet(3); // 임시 값
+                ItemManager.Instance.AddToInventory(itemId, amount);
                 return;
             }
 
