@@ -1,17 +1,26 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
+using UnityEngine.Audio;
 
 public class SoundManager : MonoBehaviour
 {
-    public static SoundManager Instance { get; private set; } // 싱글톤
+    public static SoundManager Instance { get; private set; } 
 
     [Header("Field")]
     [SerializeField] private AudioSource sfxSource;
     [SerializeField] private AudioSource bgmSource;
 
+    [SerializeField] private AudioMixer audioMixer;
+
+    [SerializeField] private AudioMixerGroup sfxMixerGroup;
+    [SerializeField] private AudioMixerGroup bgmMixerGroup;
+
     private Dictionary<string, AudioClip> sfxDictionary = new Dictionary<string, AudioClip>();
     private Dictionary<string, AudioClip> bgmDictionary = new Dictionary<string, AudioClip>();
+
+    private Dictionary<string, float> soundCooldowns = new Dictionary<string, float>();
+    private float defaultCooldownTime = 0.1f; // 기본 쿨타임 0.1초
 
     private void Awake()
     {
@@ -21,9 +30,17 @@ public class SoundManager : MonoBehaviour
             DontDestroyOnLoad(gameObject);
 
             if (sfxSource == null)
+            {
                 sfxSource = gameObject.AddComponent<AudioSource>();
+            }
+            sfxSource.outputAudioMixerGroup = sfxMixerGroup; // 믹서 그룹 할당
+
             if (bgmSource == null)
+            {
                 bgmSource = gameObject.AddComponent<AudioSource>();
+            }
+            bgmSource.outputAudioMixerGroup = bgmMixerGroup; // 믹서 그룹 할당
+
         }
         else
         {
@@ -31,12 +48,22 @@ public class SoundManager : MonoBehaviour
         }
     }
 
-    public void PlaySFX(string clipName)
+    public void PlaySFX(string clipName, float volume = 1f, float cooldownTime = -1f)
     {
-        var clip = GetSFXClip(clipName);
-        if(clip != null)
+        // 쿨타임 확인
+        if (soundCooldowns.ContainsKey(clipName))
         {
-            sfxSource.PlayOneShot(clip);
+            if (Time.time < soundCooldowns[clipName])
+                return;
+        }
+
+        var clip = GetSFXClip(clipName);
+        if (clip != null)
+        {
+            sfxSource.PlayOneShot(clip, volume);
+
+            float actualCooldown = cooldownTime > 0 ? cooldownTime : defaultCooldownTime;
+            soundCooldowns[clipName] = Time.time + actualCooldown;
         }
     }
     public void PlayBGM(string clipName, bool loop = true)
@@ -89,7 +116,7 @@ public class SoundManager : MonoBehaviour
         bgmSource.Stop();
     }
 
-    public void SetSFXVolume(float volume)
+    public void SetSFXVolume(float volume) // 개인 오디오 볼륨 조절
     {
         sfxSource.volume = Mathf.Clamp01(volume);
     }
@@ -97,5 +124,38 @@ public class SoundManager : MonoBehaviour
     public void SetBGMVolume(float volume)
     {
         bgmSource.volume = Mathf.Clamp01(volume);
+    }
+
+    public void PlayRandomSFX(string[] clipNames) // 여러개 클립 중 랜덤으로 재생
+    {
+        if (clipNames == null || clipNames.Length == 0)
+        {
+            Debug.LogWarning("[SoundManager] 재생할 사운드 클립이 없습니다.");
+            return;
+        }
+
+        int randomIndex = Random.Range(0, clipNames.Length);
+        string selectedClip = clipNames[randomIndex];
+
+        PlaySFX(selectedClip);
+    }
+
+    public void PlayMonsterHitSound()
+    {
+        string[] hitSounds = 
+        {
+            "mon_hit_01",
+            "mon_hit_02",
+            "mon_hit_03"
+        };
+
+        PlayRandomSFX(hitSounds);
+    }
+
+    public void SetSFXVolumeByMixer(float volume)
+    {
+        // 0~1 값을 dB로 변환 (-80dB ~ 0dB)
+        float dB = volume > 0 ? Mathf.Log10(volume) * 20 : -80f;
+        audioMixer.SetFloat("SFXVolume", dB);
     }
 }

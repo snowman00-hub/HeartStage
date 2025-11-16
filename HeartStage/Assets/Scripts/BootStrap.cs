@@ -15,7 +15,7 @@ public class BootStrap : MonoBehaviour
         await ResourceManager.Instance.PreloadLabelAsync(AddressableLabel.Stage);
 
         await ResourceManager.Instance.PreloadLabelAsync("SFX"); // 사운드 추가 로드
-        await ResourceManager.Instance.PreloadLabelAsync("BGM");
+        //await ResourceManager.Instance.PreloadLabelAsync("BGM");
 
         await DataTableManager.Initialization;
 

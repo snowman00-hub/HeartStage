@@ -84,6 +84,7 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         if (monsterData != null)
         {
             currentHP -= damage;
+            SoundManager.Instance.PlayMonsterHitSound();
             //Debug.Log($"{monsterData.monsterName}이(가) {damage}의 피해를 입었습니다. 남은 HP: {currentHP}");
         }
 

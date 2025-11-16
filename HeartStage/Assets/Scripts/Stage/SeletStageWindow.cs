@@ -39,6 +39,7 @@ public class SeletStageWindow : MonoBehaviour
     {
         GetStagePos();
         PlaceAll();
+        SoundManager.Instance.PlaySFX("Ui_click_01");
         Time.timeScale = 1f;
         gameObject.SetActive(false);
     }
