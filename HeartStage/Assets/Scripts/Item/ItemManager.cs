@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class ItemManager : MonoBehaviour
@@ -9,6 +10,9 @@ public class ItemManager : MonoBehaviour
 
     public GameObject inventoryItem; // 경험치 이외의 아이템
     public static readonly string inventoryItemId = "inventoryItem";
+
+    public TextMeshProUGUI lightStickCount;
+    private int invenItemCount = 0;
 
     private void Awake()
     {
@@ -27,6 +31,7 @@ public class ItemManager : MonoBehaviour
         var expItemPrefab = ResourceManager.Instance.Get<GameObject>(expItemAssetName);
         PoolManager.Instance.CreatePool(expItemAssetName, expItemPrefab, 50);
         PoolManager.Instance.CreatePool(inventoryItemId, inventoryItem, 50);
+        SetItemCountUI();
     }
 
     // 경험치 아이템
@@ -67,7 +72,16 @@ public class ItemManager : MonoBehaviour
             itemList.Add(itemId, amount);
         }
 
+        // UI 변경 근데 라이트 스틱만 떨어지나?
+        invenItemCount += amount;
+        SetItemCountUI();
+
         // 저장 타이밍 나중에 옮기기
         SaveLoadManager.Save();
+    }
+
+    private void SetItemCountUI()
+    {
+        lightStickCount.text = $"X{invenItemCount}";
     }
 }
