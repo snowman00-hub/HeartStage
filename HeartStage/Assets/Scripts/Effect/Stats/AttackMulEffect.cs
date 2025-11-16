@@ -2,7 +2,7 @@
 
 public class AttackMulEffect : EffectBase, IStatMulSource
 {
-    private const int EffectId = 3001; // 🔥 CSV와 맞춰줄 ID
+    private const int EffectId = 3001; // CSV와 맞춰줄 ID
 
     // Unity가 런타임 시작할 때 자동으로 호출해주는 함수
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -18,12 +18,12 @@ public class AttackMulEffect : EffectBase, IStatMulSource
     // ====== 기존 구현들 ======
     protected override void OnApply()
     {
-        Debug.Log($"[AttackMulEffect] OnApply mag={magnitude}, dur={duration}", this);
+        //Debug.Log($"[AttackMulEffect] OnApply mag={magnitude}, dur={duration}", this);
     }
 
     protected override void OnRemove()
     {
-        Debug.Log("[AttackMulEffect] OnRemove", this);
+        //Debug.Log("[AttackMulEffect] OnRemove", this);
     }
 
     public bool TryGetMul(StatType stat, out float mul)
@@ -45,15 +45,12 @@ public class AttackMulEffect : EffectBase, IStatMulSource
         return false;
     }
 }
-// 1) 기본 공격력 (나중에 런타임 스탯으로 바꿔도 됨)
-//int baseAtk = data.atk_dmg;
-//Debug.Log($"CharacterAttack.Fire: baseAtk={baseAtk}");
 
-// 2) 이 캐릭터에 붙어 있는 모든 IStatMulSource들 중
-//    Attack에 해당하는 배율을 전부 곱한 값
-//float atkMul = StatMultiplier.GetTotalMultiplier(gameObject, StatType.Attack);
-// 또는 this.gameObject.GetStatMul(StatType.Attack);
+/*
+사용 예시 (CharacterAttack 등에서):
 
-// 3) 최종 대미지 계산
-//int finalDmg = Mathf.RoundToInt(baseAtk * atkMul);
-//Debug.Log($"CharacterAttack.Fire: baseAtk={baseAtk}, atkMul={atkMul}, finalDmg={finalDmg}");
+int baseAtk = data.atk_dmg;
+float finalAtk = StatCalc.GetFinalStat(gameObject, StatType.Attack, baseAtk);
+// 또는 단순 배율만 필요하면:
+// float atkMul = gameObject.GetStatMul(StatType.Attack);
+*/
