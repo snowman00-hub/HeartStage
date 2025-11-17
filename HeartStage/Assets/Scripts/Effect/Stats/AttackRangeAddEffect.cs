@@ -21,12 +21,12 @@ public class AttackRangeAddEffect : EffectBase, IStatAddSource
 
     protected override void OnApply()
     {
-        //Debug.Log($"[AttackRangeAddEffect] OnApply mag={magnitude}, dur={duration}", this);
+        Debug.Log($"[AttackRangeAddEffect] OnApply mag={magnitude}, dur={duration}", this);
     }
 
     protected override void OnRemove()
     {
-        //Debug.Log("[AttackRangeAddEffect] OnRemove", this);
+        Debug.Log("[AttackRangeAddEffect] OnRemove", this);
     }
 
     public bool TryGetAdd(StatType stat, out float add)

@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 
-public class AttackSpeedAddEffect : EffectBase, IStatAddSource
+public class ProjectileCountAddEffect : EffectBase, IStatAddSource
 {
-    private const int EffectId = 3002; // EffectTable의 사거리 증감 ID
+    private const int EffectId = 3016; // 투사체 증가
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void RegisterSelf()
@@ -10,24 +10,25 @@ public class AttackSpeedAddEffect : EffectBase, IStatAddSource
         EffectRegistry.Register(
             EffectId,
             (target, value, duration, tick) =>
-                EffectBase.Add<AttackSpeedAddEffect>(target, duration, value, tick)
+                Add<ProjectileCountAddEffect>(target, duration, value, tick)
         );
     }
 
     protected override void OnApply()
     {
-        Debug.Log($"[AttackSpeedAddEffect] OnApply mag={magnitude}, dur={duration}", this);
+        Debug.Log($"[ProjectileCountAddEffect] OnApply mag={magnitude}, dur={duration}", this);
     }
 
     protected override void OnRemove()
     {
-        Debug.Log("[AttackSpeedAddEffect] OnRemove", this);
+        Debug.Log("[ProjectileCountAddEffect] OnRemove", this);
     }
 
     public bool TryGetAdd(StatType stat, out float add)
     {
-        if (stat == StatType.AttackSpeed)
+        if (stat == StatType.ProjectileCount)
         {
+            // mag = 1 → +1발, mag = 2 → +2발
             add = magnitude;
             return true;
         }
@@ -36,10 +37,3 @@ public class AttackSpeedAddEffect : EffectBase, IStatAddSource
         return false;
     }
 }
-
-/*
-사용 예시:
-
-float baseSpeed = data.atk_speed;
-float finalSpeed = StatCalc.GetFinalStat(gameObject, StatType.AttackSpeed, baseSpeed);
-*/
