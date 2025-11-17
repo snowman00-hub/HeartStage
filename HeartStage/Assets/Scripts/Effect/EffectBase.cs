@@ -9,7 +9,7 @@ public abstract class EffectBase : MonoBehaviour
     float remain, tickAcc;
     bool initialized;
 
-    // 🔧 Add<T>가 호출한 뒤에 Initialize()로 시작시킨다
+    // Add<T>가 호출한 뒤에 Initialize()로 시작시킨다
     public void Initialize(float dur, float mag, float tick)
     {
         duration = dur;

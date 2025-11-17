@@ -17,6 +17,9 @@ public static class EffectRegistry
 
     public static void Apply(GameObject target, int effectId, float value, float duration, float tickInterval = 0f)
     {
+        if (effectId == 0)
+            return;
+
         if (target == null)
         {
             //Debug.LogWarning("[EffectRegistry] target is null");

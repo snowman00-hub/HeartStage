@@ -51,7 +51,7 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 
     private void Update()
     {
-        if (monsterData == null)
+        if (monsterData == null || IsStunned(gameObject))
             return;
 
         // SO의 최신 공격속도 값을 직접 사용 (런타임 변경사항 즉시 반영)
@@ -170,5 +170,15 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         }
 
         return id == 22201 || id == 22214; // 보스 id
+    }
+
+    private bool IsStunned(GameObject owner)
+    {
+        foreach (var src in owner.GetComponents<IConditionSource>())
+        {
+            if (src.TryGetCondition(ConditionType.Stun, out float v) && v > 0)
+                return true;
+        }
+        return false;
     }
 }
