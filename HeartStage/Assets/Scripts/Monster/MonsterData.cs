@@ -61,7 +61,7 @@ public class MonsterData : ScriptableObject
     }
     public void InitFromCSV(int monsterId)
     {
-        if (isInitialized) return; // 이미 초기화됐으면 skip
+        //if (isInitialized) return; // 이미 초기화됐으면 skip
 
         var monsterTable = DataTableManager.MonsterTable;
         if (monsterTable == null) return;

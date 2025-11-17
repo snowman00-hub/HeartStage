@@ -77,7 +77,6 @@ public class BossAddScript : MonoBehaviour
             case 22201: // 치프 스테프
                 RegisterDeceptionSkill(31001); // 대량 현혹 튜토리얼 근접
 
-
                 RegisterSpeedBuffSkill(31201); // 단체 강화 테스트
                 RegisterBooingSkill(31101); // 야유 스킬 테스트
                 break;
@@ -125,6 +124,9 @@ public class BossAddScript : MonoBehaviour
         var speedBuffBehavior = GetComponent<SpeedBuffBossSkill>();
         if (speedBuffBehavior != null)
         {
+            var skillData = DataTableManager.SkillTable.Get(skillId);
+            speedBuffBehavior.Init(skillData);
+
             ActiveSkillManager.Instance.RegisterSkillBehavior(this.gameObject, skillId, speedBuffBehavior);
             ActiveSkillManager.Instance.RegisterSkill(this.gameObject, skillId);
             Debug.Log($"{gameObject.name}에 SpeedBuffBossSkill (ID: {skillId}) 등록 완료");
