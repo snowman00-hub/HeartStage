@@ -27,6 +27,22 @@ public class CharacterAttack : MonoBehaviour
 
     private void Init()
     {
+        //공격력 테스트
+        EffectRegistry.Apply(gameObject, 3001, 50f, 999f);
+        //공격속도 테스트
+        EffectRegistry.Apply(gameObject, 3002, -0.5f, 999f);
+        //공격 범위 테스트 
+        EffectRegistry.Apply(gameObject, 3003, 100f, 999f);
+        //큐트 확률 테스트
+        EffectRegistry.Apply(gameObject, 3004, 30f, 999f);
+        //치명타 테스트
+        EffectRegistry.Apply(gameObject, 3006, 20f, 999f);
+        //치명타 데미지 테스트
+        EffectRegistry.Apply(gameObject, 3007, 1.5f, 999f);
+        //투사체 개수 테스트
+        EffectRegistry.Apply(gameObject, 3016, 3f, 999f);
+
+
         // CSV → ScriptableObject 반영
         var csvData = DataTableManager.CharacterTable.Get(id);
         data = ResourceManager.Instance.Get<CharacterData>(csvData.data_AssetName);
@@ -43,8 +59,9 @@ public class CharacterAttack : MonoBehaviour
         // 히트 이펙트 풀 생성
         var hitEffectGo = ResourceManager.Instance.Get<GameObject>(data.hitEffect_AssetName);
         PoolManager.Instance.CreatePool(data.hitEffect_AssetName, hitEffectGo);
+
         // 범위 설정
-        circleCollider.radius = data.atk_range;
+        circleCollider.radius = StatCalc.GetFinalStat(gameObject, StatType.AttackRange, data.atk_range);
         // 캐릭터 스프라이트 변경
         spriteRenderer = GetComponentInChildren<SpriteRenderer>();
         var texture = ResourceManager.Instance.Get<Texture2D>(data.image_AssetName);
@@ -77,22 +94,27 @@ public class CharacterAttack : MonoBehaviour
         if (target != null)
         {
             // 추가 공격 체크 & bullet_count 만큼 발사
-            bool isPlusAttack = Random.Range(0, 100) < data.atk_addcount;
+
+            bool isPlusAttack = Random.Range(0, 100) < StatCalc.GetFinalStat(gameObject, StatType.ExtraAttackChance, data.atk_addcount);
+            int bulletCountStat = Mathf.RoundToInt(StatCalc.GetFinalStat(gameObject, StatType.ProjectileCount, data.bullet_count));
+
+            Debug.Log($"추가 공격 여부: {isPlusAttack}, 투사체 개수: {bulletCountStat}");
+
             if (isPlusAttack)
             {
-                for (int i = 0; i < data.bullet_count; i++)
+                for (int i = 0; i < bulletCountStat; i++)
                 {
                     FireAsync(target.transform.position, 0.5f * i).Forget();
                 }
 
-                for (int i = 0; i < data.bullet_count; i++)
+                for (int i = 0; i < bulletCountStat; i++)
                 {
-                    FireAsync(target.transform.position, 0.5f * (i + data.bullet_count) + 0.5f).Forget();
+                    FireAsync(target.transform.position, 0.5f * (i + bulletCountStat) + 0.5f).Forget();
                 }
             }
             else
             {
-                for (int i = 0; i < data.bullet_count; i++)
+                for (int i = 0; i < bulletCountStat; i++)
                 {
                     FireAsync(target.transform.position, 0.5f * i).Forget();
                 }
@@ -101,15 +123,14 @@ public class CharacterAttack : MonoBehaviour
             nextAttackTime = Time.time + data.atk_speed;
         }
 
-#if UNITY_EDITOR
-        // 에디터일 때 SO 주기적으로 갱신
+
         editorTimer += Time.deltaTime;
         if (editorTimer >= 1f)
         {
             editorTimer = 0f;
-            circleCollider.radius = data.atk_range;
+            circleCollider.radius = StatCalc.GetFinalStat(gameObject, StatType.AttackRange, data.atk_range);
         }
-#endif
+
     }
     private float editorTimer = 0f;
 
@@ -120,19 +141,22 @@ public class CharacterAttack : MonoBehaviour
             return;
 
         // 데미지 계산
-        float atkMul = StatMultiplier.GetTotalMultiplier(gameObject, StatType.Attack);
-        int finalDmg = Mathf.RoundToInt(data.atk_dmg * atkMul);
+        int final = Mathf.RoundToInt(StatCalc.GetFinalStat(gameObject, StatType.Attack, data.atk_dmg));
+
         // Critical Check
-        bool isCritical = Random.Range(0, 100) < data.crt_chance;
+        float critChance = StatCalc.GetFinalStat(gameObject, StatType.CritChance, data.crt_chance);
+        bool isCritical = Random.Range(0, 100) < critChance;
         if (isCritical)
         {
-            finalDmg = Mathf.FloorToInt(finalDmg * data.crt_dmg);
+            float crtDmgStat = StatCalc.GetFinalStat(gameObject, StatType.CritDamage, data.crt_dmg);
+            Debug.Log($"크리티컬! crtDmgStat: {crtDmgStat}");
+            final = Mathf.FloorToInt(final * crtDmgStat);
         }
 
         // 투사체 세팅
         var dir = (targetPos - transform.position).normalized;
         projectile.GetComponent<CharacterProjectile>()
-            .SetMissile(data.projectile_AssetName, data.hitEffect_AssetName, transform.position, dir, data.bullet_speed, finalDmg, isCritical: isCritical);
+            .SetMissile(data.projectile_AssetName, data.hitEffect_AssetName, transform.position, dir, data.bullet_speed, final, isCritical: isCritical);
     }
 
     private async UniTask FireAsync(Vector3 targetpos, float delay)

@@ -9,7 +9,7 @@ public static class EffectRegistry
 
     private static readonly Dictionary<int, EffectApplier> map = new();
 
-    // 🔥 이걸 각 Effect 클래스에서 호출해주게 할 거임
+    // 이걸 각 Effect 클래스에서 호출해주게 할 거임
     public static void Register(int effectId, EffectApplier applier)
     {
         map[effectId] = applier;

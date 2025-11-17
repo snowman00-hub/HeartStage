@@ -15,10 +15,19 @@ public static class StatMultiplier
             return mul;
 
         var sources = owner.GetComponents<IStatMulSource>();
+        if (sources == null || sources.Length == 0)
+            return mul;
+
         for (int i = 0; i < sources.Length; i++)
         {
-            if (sources[i].TryGetMul(stat, out float m))
+            var src = sources[i];
+            if (src == null)
+                continue;
+
+            if (src.TryGetMul(stat, out float m))
             {
+                // 각 Effect에서 "최종 배율"을 넘겨준다고 가정.
+                // ex) AttackMulEffect 에서 1f + magnitude 로 계산 후 반환.
                 mul *= m;
             }
         }
