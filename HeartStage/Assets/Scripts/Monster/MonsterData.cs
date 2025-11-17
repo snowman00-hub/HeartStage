@@ -28,7 +28,7 @@ public class MonsterData : ScriptableObject
     public string prefab2;
 
 
-    private bool isInitialized = false; // 초기화 플래그 추가
+    public bool isInitialized = false; // 초기화 플래그 추가
 
     // CharacterData처럼 UpdateData 구현
     public void UpdateData(MonsterCSVData csvData)
