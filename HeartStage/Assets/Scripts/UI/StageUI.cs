@@ -19,13 +19,13 @@ public class StageUI : MonoBehaviour
         }
         else
         {
-            waveCountText.text = $"{stageNumber} - {waveOrder}";
+            waveCountText.text = $"{stageNumber}스테이지\n{waveOrder}웨이브";
         }
     }
 
     public void SetReaminMonsterCount(int remainMonsterCount)
     {
-        remainMonsterCountText.text = $"{remainMonsterCount}";
+        remainMonsterCountText.text = $"남은 적군\n{remainMonsterCount}";
     }
 
 
