@@ -71,6 +71,9 @@ public class CharacterAttack : MonoBehaviour
         {
             ScriptAttacher.AttachById(gameObject, skillId);
         }
+
+        // 야유 스킬에 자신을 등록
+        BooingBossSkill.SummonCharacter(this);
     }
 
     private void Update()
@@ -194,5 +197,11 @@ public class CharacterAttack : MonoBehaviour
         {
             monsters.Remove(collision.gameObject);
         }
+    }
+
+    private void OnDestroy()
+    {
+        // 야유 스킬에서 자신을 해제
+        BooingBossSkill.RemoveSummonedCharacter(this);
     }
 }

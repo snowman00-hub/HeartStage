@@ -4,7 +4,7 @@ using UnityEngine;
 public class MonsterMovement : MonoBehaviour
 {
     [Header("Movement Settings")]
-    private MonsterData monsterData; // SO를 직접 참조
+    private MonsterData monsterData; 
     private bool isInitialized = false;
 
     [Header("Anti-Overlap Settings")]
@@ -24,7 +24,7 @@ public class MonsterMovement : MonoBehaviour
     private float leftBound, rightBound;
     private bool boundsInitialized = false;
 
-    // 모든 활성 몬스터 추적 (정적)
+    // 모든 활성 몬스터 추적
     private static List<MonsterMovement> allActiveMonsters = new List<MonsterMovement>();
 
     private void OnEnable()
@@ -91,7 +91,8 @@ public class MonsterMovement : MonoBehaviour
     // 벽 근접 확인 (SO의 최신 attackRange 사용)
     private void CheckWallProximity()
     {
-        Collider2D wallCollider = Physics2D.OverlapCircle(
+        Collider2D wallCollider = Physics2D.OverlapCircle
+        (
             transform.position,
             monsterData.attackRange, // SO의 최신 값 직접 사용
             LayerMask.GetMask(Tag.Wall)
@@ -129,7 +130,7 @@ public class MonsterMovement : MonoBehaviour
         }
     }
 
-    // 아래쪽 이동 (SO의 최신 moveSpeed 사용)
+  
     private void MoveDown()
     {
         // 1. 기본 아래쪽 이동 (SO의 최신 moveSpeed 직접 사용)

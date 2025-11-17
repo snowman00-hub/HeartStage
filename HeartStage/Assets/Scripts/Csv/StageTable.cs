@@ -11,6 +11,9 @@ public class StageCsvData
     public string stage_name { get; set; }
     public int stage_step1 { get; set; }
     public int stage_step2 { get; set; }
+    public int stage_type { get; set; }
+    public int member_count { get; set; }
+    public int dispatch_member { get; set; }
     public int debut_stamina { get; set; }
     public int regular_stamina { get; set; }
     public int wave_time { get; set; }
@@ -18,8 +21,8 @@ public class StageCsvData
     public int wave2_id { get; set; }
     public int wave3_id { get; set; }
     public int wave4_id { get; set; }
-    public int fail_stamina1 { get; set; }
-    public int fail_stamina2 { get; set; }
+    public int wave5_id { get; set; }
+    public int fail_stamina { get; set; }
     public string prefab { get; set; }
 }
 
@@ -91,6 +94,7 @@ public class StageTable : DataTable
         if (stage.wave2_id > 0) waveIds.Add(stage.wave2_id);
         if (stage.wave3_id > 0) waveIds.Add(stage.wave3_id);
         if (stage.wave4_id > 0) waveIds.Add(stage.wave4_id);
+        if (stage.wave5_id > 0) waveIds.Add(stage.wave5_id);
 
         return waveIds;
     }

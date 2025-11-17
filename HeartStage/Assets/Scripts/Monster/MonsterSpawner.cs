@@ -1,10 +1,8 @@
 ﻿using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using TMPro.EditorUtilities;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using UnityEngine.AI;
 
 [System.Serializable]
 public struct WaveMonsterInfo
@@ -364,7 +362,7 @@ public class MonsterSpawner : MonoBehaviour
                 }
                 else
                 {
-                    Debug.LogWarning($"몬스터 이미지 로드 실패: {monsterData.image_AssetName}");
+                    Debug.Log($"몬스터 이미지 로드 실패: {monsterData.image_AssetName}");
                 }
             }
         }
@@ -490,14 +488,14 @@ public class MonsterSpawner : MonoBehaviour
             }
         }
 
-        await CreateAllPools();
+        CreateAllPools();
     }
 
     // 랜덤 스폰 위치 계산
     private Vector3 GetRandomSpawnPosition()
     {
         int randomRange = Random.Range(0, Screen.width);
-        int height = Random.Range(Screen.height, Screen.height + 500);
+        int height = Random.Range(Screen.height - 100, Screen.height);
 
         Vector3 screenPosition = new Vector3(randomRange, height, 0);
         Vector3 spawnPos = Camera.main.ScreenToWorldPoint(screenPosition);
@@ -579,13 +577,9 @@ public class MonsterSpawner : MonoBehaviour
     }
 
     // 추가 오브젝트 풀 생성
-    private async UniTask CreateAllPools()
+    private void CreateAllPools()
     {
         PoolManager.Instance.CreatePool(MonsterProjectilePoolId, monsterProjectilePrefab, 100);
-
-        var handle = Addressables.LoadAssetAsync<GameObject>(monsterPrefab);
-        var monsterPrefabGO = await handle.Task;
-        PoolManager.Instance.CreatePool("21101", monsterPrefabGO, 15); // test
     }
 
     // 스테이지 UI 업데이트

@@ -62,7 +62,7 @@ public class MonsterDataTools : EditorWindow
 
             var monsterTable = DataTableManager.MonsterTable;
             if (monsterTable == null)
-            {
+             {
                 Debug.LogError("MonsterTable이 초기화되지 않았습니다.");
                 return;
             }
