@@ -49,18 +49,7 @@ public class SpeedBuffBossSkill : MonoBehaviour, ISkillBehavior
         {
             if (monster.activeInHierarchy)
             {
-                var navAgent = monster.GetComponent<MonsterNavMeshAgent>();
-                if (navAgent != null)
-                {
-                    float currentSpeed = navAgent.GetComponent<UnityEngine.AI.NavMeshAgent>().speed;
-                    originalSpeeds[monster] = currentSpeed;
 
-                    // 버프된 속도 적용
-                    float buffedSpeed = currentSpeed * buffMultiplier;
-                    navAgent.ApplyMoveSpeed(buffedSpeed);
-
-                    Debug.Log($"몬스터 {monster.name} 속도 버프: {currentSpeed} → {buffedSpeed}");
-                }
             }
         }
 
@@ -74,12 +63,7 @@ public class SpeedBuffBossSkill : MonoBehaviour, ISkillBehavior
 
             if (monster != null && monster.activeInHierarchy)
             {
-                var navAgent = monster.GetComponent<MonsterNavMeshAgent>();
-                if (navAgent != null)
-                {
-                    navAgent.ApplyMoveSpeed(originalSpeed);
-                    Debug.Log($"몬스터 {monster.name} 속도 복구: {originalSpeed}");
-                }
+
             }
         }
         originalSpeeds.Clear();

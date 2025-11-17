@@ -2,6 +2,10 @@
 using UnityEngine;
 using UnityEditor;
 using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
+using CsvHelper;
+using System.IO;
+using System.Globalization;
 
 public class MonsterDataTools : EditorWindow
 {
@@ -107,21 +111,14 @@ public class MonsterDataTools : EditorWindow
         }
     }
 
-    private async void OverwriteDataTableFromSO()
+    private void OverwriteDataTableFromSO()
     {
         if (_isProcessing) return;
 
         _isProcessing = true;
         try
         {
-            await EnsureInitialized();
-
-            var monsterTable = DataTableManager.MonsterTable;
-            if (monsterTable == null)
-            {
-                Debug.LogError("MonsterTable이 초기화되지 않았습니다.");
-                return;
-            }
+            string csvPath = "Assets/DataTables/MonsterTable.csv";
 
             string[] guids = AssetDatabase.FindAssets("t:MonsterData");
             if (guids.Length == 0)
@@ -130,7 +127,7 @@ public class MonsterDataTools : EditorWindow
                 return;
             }
 
-            int updateCount = 0;
+            List<MonsterCSVData> csvDataList = new List<MonsterCSVData>();
 
             foreach (string guid in guids)
             {
@@ -139,28 +136,31 @@ public class MonsterDataTools : EditorWindow
 
                 if (so != null && so.id > 0)
                 {
-                    var tableData = so.ToTableData();
-                    monsterTable.UpdateOrAdd(tableData);
-                    updateCount++;
-                    Debug.Log($"테이블 업데이트: {so.monsterName} (ID: {so.id})");
+                    csvDataList.Add(so.ToTableData());
+                    Debug.Log($"SO 데이터 변환: {so.monsterName} (ID: {so.id})");
                 }
             }
 
-            string csvPath = EditorUtility.SaveFilePanel("Monster CSV 저장", "Assets", "monster_data_updated", "csv");
-            if (!string.IsNullOrEmpty(csvPath))
+            if (csvDataList.Count == 0)
             {
-                monsterTable.SaveToCSV(csvPath);
-                Debug.Log($"성공! {updateCount}개 SO 데이터를 테이블에 반영하고 {csvPath}에 저장했습니다.");
-                AssetDatabase.Refresh();
+                Debug.LogWarning("변환할 SO 데이터가 없습니다.");
+                return;
             }
-            else
+
+            csvDataList.Sort((a, b) => a.mon_id.CompareTo(b.mon_id));
+
+            using (var writer = new System.IO.StreamWriter(csvPath))
+            using (var csv = new CsvHelper.CsvWriter(writer, System.Globalization.CultureInfo.InvariantCulture))
             {
-                Debug.Log($"{updateCount}개 SO 데이터를 테이블에 반영했습니다. (CSV 저장 취소됨)");
+                csv.WriteRecords(csvDataList);
             }
+
+            AssetDatabase.Refresh();
+            Debug.Log($"성공! {csvDataList.Count}개 SO 데이터를 {csvPath}에 덮어쓰기 완료!");
         }
         catch (System.Exception e)
         {
-            Debug.LogError($"테이블 덮어쓰기 실패: {e.Message}");
+            Debug.LogError($"CSV 덮어쓰기 실패: {e.Message}");
         }
         finally
         {

@@ -5,12 +5,12 @@ using UnityEngine.AddressableAssets;
 public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
 {
     [SerializeField] private int spawnCount = 5;
-    private string poolId = "21101";
+    private string poolId = "21101"; // test
 
     private void Awake()
     {
         if (string.IsNullOrEmpty(poolId))
-            poolId = "21101";
+            poolId = "21101"; // test
 
         if (spawnCount <= 0)
             spawnCount = 5;
@@ -59,28 +59,21 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
 
                         MonsterSpawner.SetMonsterSprite(monster, monsterData);
 
-                        var monsterNav = monster.GetComponent<MonsterNavMeshAgent>();
-                        if (monsterNav != null)
+                        var monsterMovement = monster.GetComponent<MonsterMovement>();
+
+                        if(monsterMovement != null)
                         {
-                            monsterNav.ApplyMoveSpeed(monsterData.moveSpeed);
-                            monsterNav.SetUp();
+                            monsterMovement.Init(monsterData, Vector3.down);
                         }
 
                         Debug.Log($"DeceptionSkill 몬스터 소환 성공: {i + 1}번째");
                     }
-                    else
-                    {
-                        Debug.LogError("MonsterData_111011 로드 실패!");
-                    }
+
                 }
                 catch (System.Exception e)
                 {
                     Debug.LogError($"DeceptionSkill MonsterData 로드 오류: {e.Message}");
                 }
-            }
-            else
-            {
-                Debug.LogError($"PoolManager에서 {poolId}로 몬스터를 가져올 수 없습니다!");
             }
         }
 

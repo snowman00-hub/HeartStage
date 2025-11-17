@@ -19,8 +19,9 @@ public class HealthBar : MonoBehaviour
         if (monster != null && monster.GetMonsterData() != null)
         {
             maxHealth = monster.GetMonsterData().hp;
-
         }
+
+        
     }
 
     public void UpdateHealthBar(int currentHP)
