@@ -16,12 +16,10 @@ public class ShoutGainMulEffect : EffectBase, IStatMulSource
 
     protected override void OnApply()
     {
-        Debug.Log($"[ShoutGainMulEffect] OnApply mag={magnitude}, dur={duration}", this);
     }
 
     protected override void OnRemove()
     {
-        Debug.Log("[ShoutGainMulEffect] OnRemove", this);
     }
 
     public bool TryGetMul(StatType stat, out float mul)

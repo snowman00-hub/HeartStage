@@ -16,12 +16,10 @@ public class ExtraAttackChanceAddEffect : EffectBase, IStatAddSource
 
     protected override void OnApply()
     {
-        Debug.Log($"[ExtraAttackChanceAddEffect] OnApply mag={magnitude}, dur={duration}", this);
     }
 
     protected override void OnRemove()
     {
-        Debug.Log("[ExtraAttackChanceAddEffect] OnRemove", this);
     }
 
     public bool TryGetAdd(StatType stat, out float add)

@@ -16,12 +16,10 @@ public class IncomingDamageMulEffect : EffectBase, IStatMulSource
 
     protected override void OnApply()
     {
-        Debug.Log($"[IncomingDamageMulEffect] OnApply mag={magnitude}, dur={duration}", this);
     }
 
     protected override void OnRemove()
     {
-        Debug.Log("[IncomingDamageMulEffect] OnRemove", this);
     }
 
     public bool TryGetMul(StatType stat, out float mul)

@@ -16,12 +16,10 @@ public class DropAmountMulEffect : EffectBase, IStatMulSource
 
     protected override void OnApply()
     {
-        Debug.Log($"[DropAmountMulEffect] OnApply mag={magnitude}, dur={duration}", this);
     }
 
     protected override void OnRemove()
     {
-        Debug.Log("[DropAmountMulEffect] OnRemove", this);
     }
 
     public bool TryGetMul(StatType stat, out float mul)

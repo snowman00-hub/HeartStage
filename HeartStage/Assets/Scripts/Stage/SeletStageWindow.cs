@@ -13,6 +13,8 @@ public class SeletStageWindow : MonoBehaviour
     public Button StartButton;
     public GameObject basePrefab;
 
+    // 캐릭터 펜스
+    public CharacterFence fence;
 
     //패시브 타입 자리
     public Dictionary<int, (PassiveType, int, float, int, float, int, float)> PassiveIndexs;
@@ -63,13 +65,14 @@ public class SeletStageWindow : MonoBehaviour
 
     private void PlaceAll()
     {
-        Debug.Log("PlaceAll");
-        Debug.Log(StageIndexs.Count);
+        int hpSum = 0;
         foreach (var kvp in StageIndexs)
         {
             Vector3 spawnPosition = SpawnPos[kvp.Key].transform.position;
             PlaceCharacter(kvp.Value, spawnPosition);
+            hpSum += DataTableManager.CharacterTable.Get(kvp.Value).char_hp;
         }
+        fence.Init(hpSum);
     }
 
     private void PlaceCharacter(int characterId, Vector3 worldPos)

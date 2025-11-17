@@ -16,12 +16,10 @@ public class AttackSpeedAddEffect : EffectBase, IStatAddSource
 
     protected override void OnApply()
     {
-        Debug.Log($"[AttackSpeedAddEffect] OnApply mag={magnitude}, dur={duration}", this);
     }
 
     protected override void OnRemove()
     {
-        Debug.Log("[AttackSpeedAddEffect] OnRemove", this);
     }
 
     public bool TryGetAdd(StatType stat, out float add)

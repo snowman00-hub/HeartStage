@@ -16,12 +16,10 @@ public class CritChanceAddEffect : EffectBase, IStatAddSource
 
     protected override void OnApply()
     {
-        Debug.Log($"[CritChanceAddEffect] OnApply mag={magnitude}, dur={duration}", this);
     }
 
     protected override void OnRemove()
     {
-        Debug.Log("[CritChanceAddEffect] OnRemove", this);
     }
 
     public bool TryGetAdd(StatType stat, out float add)

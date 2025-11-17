@@ -16,12 +16,10 @@ public class MoveSpeedMulEffect : EffectBase, IStatMulSource
 
     protected override void OnApply()
     {
-        Debug.Log($"[MoveSpeedMulEffect] OnApply mag={magnitude}, dur={duration}", this);
     }
 
     protected override void OnRemove()
     {
-        Debug.Log("[MoveSpeedMulEffect] OnRemove", this);
     }
 
     public bool TryGetMul(StatType stat, out float mul)

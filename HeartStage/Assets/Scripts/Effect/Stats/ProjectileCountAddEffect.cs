@@ -16,12 +16,10 @@ public class ProjectileCountAddEffect : EffectBase, IStatAddSource
 
     protected override void OnApply()
     {
-        Debug.Log($"[ProjectileCountAddEffect] OnApply mag={magnitude}, dur={duration}", this);
     }
 
     protected override void OnRemove()
     {
-        Debug.Log("[ProjectileCountAddEffect] OnRemove", this);
     }
 
     public bool TryGetAdd(StatType stat, out float add)

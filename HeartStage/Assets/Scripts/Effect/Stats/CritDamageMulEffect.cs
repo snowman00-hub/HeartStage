@@ -16,12 +16,10 @@ public class CritDamageMulEffect : EffectBase, IStatMulSource
 
     protected override void OnApply()
     {
-        Debug.Log($"[CritDamageMulEffect] OnApply mag={magnitude}, dur={duration}", this);
     }
 
     protected override void OnRemove()
     {
-        Debug.Log("[CritDamageMulEffect] OnRemove", this);
     }
 
     public bool TryGetMul(StatType stat, out float mul)
