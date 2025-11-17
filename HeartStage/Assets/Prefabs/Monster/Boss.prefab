@@ -379,6 +379,7 @@ GameObject:
   - component: {fileID: 8210331609131552724}
   - component: {fileID: -2625974372772277966}
   - component: {fileID: 1664435993275153533}
+  - component: {fileID: -1068165606659762709}
   m_Layer: 3
   m_Name: Boss
   m_TagString: Monster
@@ -533,6 +534,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 34740ba6c6490204fa903ffd5af25181, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &-1068165606659762709
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4213113956833109787}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6da8939683f7bef40bfd84ac8b4a89a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spawnCount: 3
+  summonMonsterPrefab:
+    m_AssetGUID: 25d15fac7fc04f64d9f86aad93de2ec1
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_SubObjectGUID: 
+    m_EditorAssetChanged: 0
 --- !u!1 &4266634089282418854
 GameObject:
   m_ObjectHideFlags: 0

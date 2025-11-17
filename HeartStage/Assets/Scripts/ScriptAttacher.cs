@@ -17,8 +17,13 @@ public static class ScriptAttacher
         { 31207, "ReverseCharmSkillV2" },
         { 31208, "HeartBombSkill" },
         { 31209, "HeartBombSkillV2" },
-        { 9991, "DeceptionBossSkill"},
-        { 9992, "SpeedBuffBossSkill"},
+
+        { 31001, "DeceptionBossSkill" }, // 대량 현혹 튜토리얼 근접
+        { 31002, "DeceptionBossSkill" }, // 대량 현혹 튜토리얼 원거리
+        { 31003, "DeceptionBossSkill" }, // 대량 현혹 근접
+        { 31004, "DeceptionBossSkill" }, // 대량 현혹 원거리
+
+        { 31201, "SpeedBuffBossSkill"},
     };
 
     // 등록된 스크립트들 캐싱

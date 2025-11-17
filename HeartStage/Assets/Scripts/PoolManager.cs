@@ -22,7 +22,7 @@ public class PoolManager : MonoBehaviour
         }
     }
 
-    // 오브젝트 풀 생성, 해당 ID는 Get(), Release() 할때 필요
+    // 오브젝트 풀 생성
     public void CreatePool(string id, GameObject prefab, int defaultCapacity = 30, int maxSize = 300)
     {
         if (poolDict.ContainsKey(id))
@@ -32,7 +32,8 @@ public class PoolManager : MonoBehaviour
         parentGo.name = id;
         parentGo.transform.SetParent(transform);
 
-        var pool = new ObjectPool<GameObject>(
+        var pool = new ObjectPool<GameObject>
+        (
            createFunc: () =>
            {
                var obj = Instantiate(prefab, parentGo.transform);
