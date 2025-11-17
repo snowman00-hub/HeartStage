@@ -14,6 +14,7 @@ public static class DataTableIds
     public static string Skill => "SkillTable";
     public static string Effect => "EffectTable";
     public static string Stage => "StageTable";
+    public static string Select => "SelectTable";
 }
 
 public static class IBuffIds

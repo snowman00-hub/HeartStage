@@ -82,6 +82,7 @@ public class StageManager : MonoBehaviour
     // 레벨업
     public void LevelUp()
     {
-        Debug.Log("Level Up!");
+        Time.timeScale = 0f;
+        LevelUpPanel.Instance.gameObject.SetActive(true);
     }
 }
