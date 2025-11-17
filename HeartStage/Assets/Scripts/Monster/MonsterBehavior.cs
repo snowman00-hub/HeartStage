@@ -51,14 +51,21 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 
     private void Update()
     {
-        if (monsterData == null || IsStunned(gameObject))
+        if (monsterData == null || EffectBase.Has<StunEffect>(gameObject))
             return;
 
         // SO의 최신 공격속도 값을 직접 사용 (런타임 변경사항 즉시 반영)
         attackCooldown -= Time.deltaTime;
         if (attackCooldown <= 0f)
         {
-            Attack();
+            if (EffectBase.Has<ConfuseEffect>(gameObject))
+            {
+                ConfuseAttack();
+            }
+            else
+            {
+                Attack();
+            }
             attackCooldown = monsterData.attackSpeed; // SO에서 직접 가져옴
         }
     }
@@ -158,6 +165,21 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         }
     }
 
+    private void ConfuseAttack()
+    { 
+        Collider2D hit = Physics2D.OverlapCircle(transform.position, monsterData.attackRange, LayerMask.GetMask(Tag.Monster));
+
+        if(hit != null)
+        {
+            var target = hit.GetComponent<IDamageable>();
+            if (target != null)
+            {
+                target.OnDamage(monsterData.att);
+            }
+        }
+    }
+
+
     public static bool IsBossMonster(int id)
     {
         if (DataTableManager.MonsterTable != null)
@@ -170,15 +192,5 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         }
 
         return id == 22201 || id == 22214; // 보스 id
-    }
-
-    private bool IsStunned(GameObject owner)
-    {
-        foreach (var src in owner.GetComponents<IConditionSource>())
-        {
-            if (src.TryGetCondition(ConditionType.Stun, out float v) && v > 0)
-                return true;
-        }
-        return false;
     }
 }

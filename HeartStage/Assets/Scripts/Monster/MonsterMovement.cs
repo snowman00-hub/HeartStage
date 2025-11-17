@@ -15,7 +15,7 @@ public class MonsterMovement : MonoBehaviour
 
     [Header("Screen Bounds")]
     [SerializeField] private float screenMargin = 0.5f;
-
+    
     // 벽 감지 관련
     private bool isNearWall = false;
     private bool isFrontBlocked = false; // 앞줄 막힘 상태
@@ -42,7 +42,15 @@ public class MonsterMovement : MonoBehaviour
 
     private void Update()
     {
-        if (!isInitialized || monsterData == null || IsStunned(gameObject)) 
+        if(EffectBase.Has<KnockbackEffect>(gameObject))
+        {
+            return;
+        }
+
+        if (!isInitialized ||
+            monsterData == null || 
+            EffectBase.Has<StunEffect>(gameObject) || 
+            EffectBase.Has<ParalyzeEffect>(gameObject)) 
             return;
 
 
@@ -70,7 +78,7 @@ public class MonsterMovement : MonoBehaviour
 
     public void Init(MonsterData data, Vector3 direction)
     {
-        monsterData = data; 
+        monsterData = data;
         isInitialized = true;
     }
 
@@ -261,15 +269,5 @@ public class MonsterMovement : MonoBehaviour
             Gizmos.DrawLine(new Vector3(rightBound, transform.position.y - 2f, 0),
                           new Vector3(rightBound, transform.position.y + 2f, 0));
         }
-    }
-
-    private bool IsStunned(GameObject owner)
-    {
-        foreach (var src in owner.GetComponents<IConditionSource>())
-        {
-            if (src.TryGetCondition(ConditionType.Stun, out float v) && v > 0)
-                return true;
-        }
-        return false;
     }
 }
