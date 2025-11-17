@@ -8,12 +8,15 @@ public class StageManager : MonoBehaviour
     public StageUI StageUI;
     public LevelUpPanel LevelUpPanel;
     public Slider expSlider;
+    public VictoryDefeatPanel VictoryDefeatPanel;
 
     private float currentTimeScale = 1f;
 
     // 스테이지 관련 추가 한 것
-    private int stageNumber = 1;
-    private int waveOrder = 1;
+    [HideInInspector]
+    public int stageNumber = 1;
+    [HideInInspector]   
+    public int waveOrder = 1;
 
     private int waveCount = 1;
     public int WaveCount
@@ -94,5 +97,19 @@ public class StageManager : MonoBehaviour
     public void RestoreTimeScale()
     {
         Time.timeScale = currentTimeScale;
+    }
+
+    // 승리시 
+    public void Clear()
+    {
+        VictoryDefeatPanel.isClear = true;
+        VictoryDefeatPanel.gameObject.SetActive(true);
+    }
+
+    // 패배시
+    public void Defeat()
+    {
+        VictoryDefeatPanel.isClear = false;
+        VictoryDefeatPanel.gameObject.SetActive(true);
     }
 }
