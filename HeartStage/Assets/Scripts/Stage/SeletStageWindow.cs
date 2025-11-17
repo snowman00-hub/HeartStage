@@ -6,7 +6,7 @@ public class SeletStageWindow : MonoBehaviour
 {
     //드래그 슬롯들
     public DraggableSlot[] DraggableSlots;
-    //스테이지 자리
+    //스테이지 자리 : (인덱스, 캐릭터ID)
     public Dictionary<int, int> StageIndexs;
     //스폰 자리
     public GameObject[] SpawnPos;
@@ -35,7 +35,6 @@ public class SeletStageWindow : MonoBehaviour
     {
         StartButton.onClick.RemoveListener(StartButtonClick);
     }
-
 
     private Dictionary<int, int> GetStagePos()
     {

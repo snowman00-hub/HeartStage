@@ -6,7 +6,10 @@ public class StageManager : MonoBehaviour
     public static StageManager Instance;
 
     public StageUI StageUI;
+    public LevelUpPanel LevelUpPanel;
     public Slider expSlider;
+
+    private float currentTimeScale = 1f;
 
     // 스테이지 관련 추가 한 것
     private int stageNumber = 1;
@@ -47,6 +50,7 @@ public class StageManager : MonoBehaviour
     public void SetTimeScale(float timeScale)
     {
         Time.timeScale = timeScale;
+        currentTimeScale = timeScale;
     }
 
     private void OnDestroy()
@@ -83,6 +87,21 @@ public class StageManager : MonoBehaviour
     public void LevelUp()
     {
         Time.timeScale = 0f;
-        LevelUpPanel.Instance.gameObject.SetActive(true);
+        LevelUpPanel.gameObject.SetActive(true);
+    }
+
+    // 테스트 코드
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            LevelUp();
+        }
+    }
+
+    // 원래 타임스케일 복원
+    public void RestoreTimeScale()
+    {
+        Time.timeScale = currentTimeScale;
     }
 }

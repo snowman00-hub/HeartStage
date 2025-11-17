@@ -3,17 +3,14 @@ using UnityEngine;
 
 public class LevelUpPanel : MonoBehaviour
 {
-    public static LevelUpPanel Instance;
-
     public List<LevelUpSelectSlot> slots;
-
-    private void Awake()
-    {
-        Instance = this;
-    }
-
+    
     private void OnEnable()
     {
-        //var randomDatas = 
+        var randomDatas = DataTableManager.SelectTable.GetRandomThree();
+        for(int i = 0; i < 3; i++)
+        {
+            slots[i].Init(randomDatas[i]);
+        }
     }
 }
