@@ -90,15 +90,6 @@ public class StageManager : MonoBehaviour
         LevelUpPanel.gameObject.SetActive(true);
     }
 
-    // 테스트 코드
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Alpha1))
-        {
-            LevelUp();
-        }
-    }
-
     // 원래 타임스케일 복원
     public void RestoreTimeScale()
     {

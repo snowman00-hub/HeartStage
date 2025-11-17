@@ -2,10 +2,17 @@
 using UnityEngine;
 public class CharacterFence : MonoBehaviour, IDamageable
 {
+    public static CharacterFence Instance;
+
     public TextMeshProUGUI currentHPText;
 
     private int maxHp = 1000;
     private int hp;
+
+    private void Awake()
+    {
+        Instance = this;
+    }
 
     public void Init(int maxHp)
     {
@@ -27,6 +34,14 @@ public class CharacterFence : MonoBehaviour, IDamageable
         {
             Die();
         }
+    }
+
+    public void PlusMaxHp(float ratio)
+    {
+        var plusHp = Mathf.FloorToInt(maxHp * ratio);
+        maxHp += plusHp;
+        hp += plusHp;
+        SetHpText() ;
     }
 
     public void Die()
