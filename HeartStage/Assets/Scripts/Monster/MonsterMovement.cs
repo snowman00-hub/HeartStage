@@ -12,9 +12,6 @@ public class MonsterMovement : MonoBehaviour
     [SerializeField] private float separationForce = 3f;     // 분리 힘
     [SerializeField] private float minDistance = 0.6f;       // 최소 거리 유지
     [SerializeField] private float frontCheckDistance = 0.8f; // 앞줄 체크 거리
-    [SerializeField] private float confuseSearchRadius = 5f; // 혼란 상태에서 타겟 탐색 반경
-    [SerializeField] private float confuseAttackInterval = 0.8f; // 혼란 상태에서 공격 간격
-    private float nextConfuseAttackTime; // 혼란 상태에서 다음 공격 시간
 
     [Header("Screen Bounds")]
     [SerializeField] private float screenMargin = 0.5f;
@@ -30,9 +27,8 @@ public class MonsterMovement : MonoBehaviour
     // 모든 활성 몬스터 추적 (정적)
     private static List<MonsterMovement> allActiveMonsters = new List<MonsterMovement>();
 
-
-    //혼란 전용 셀프 콜라이더
-    private Collider2D selfCollider;
+    private Collider2D selfCollider;  //혼란 전용 셀프 콜라이더
+    [SerializeField] private float confuseSearchRadius = 5f; // 혼란 상태에서 타겟 탐색 반경
 
     public void Awake()
     {
@@ -317,8 +313,9 @@ public class MonsterMovement : MonoBehaviour
             }
         }
 
+        //근처 타겟이없으면 그냥 가만히 서있기
         if (closest == null)
-            return; // 타겟 없으면 그냥 멈춰있게 하고 싶으면 여기서 끝
+            return;
 
         // 2) 사거리 체크
         float attackRangeSq = monsterData.attackRange * monsterData.attackRange;
@@ -329,17 +326,6 @@ public class MonsterMovement : MonoBehaviour
             Vector3 dir = (closest.transform.position - transform.position).normalized;
             transform.position += dir * monsterData.moveSpeed * Time.deltaTime;
             return;
-        }
-
-        // 2-2) 사거리 안이면 → 멈춰서 일정 간격으로 공격
-        if (Time.time < nextConfuseAttackTime)
-            return;
-
-        var target = closest.GetComponent<IDamageable>();
-        if (target != null)
-        {
-            target.OnDamage(monsterData.att);
-            nextConfuseAttackTime = Time.time + confuseAttackInterval;
         }
     }
 
