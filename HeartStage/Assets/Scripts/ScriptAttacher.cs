@@ -11,6 +11,7 @@ public static class ScriptAttacher
     private static readonly Dictionary<int, string> _idToScript = new()
     {
         { 31202, "FaceGeniusSkill" },
+        { 31203, "FaceGeniusSkillV2" },
         { 31204, "SonicAttackSkill" },
         { 31205, "SonicAttackSkillV2" },
         { 31206, "ReverseCharmSkill" },
@@ -40,7 +41,7 @@ public static class ScriptAttacher
         }
         else
         {
-            Debug.Log($"ID {id}에 해당하는 스크립트를 찾을 수 없습니다!");
+            //Debug.Log($"ID {id}에 해당하는 스크립트를 찾을 수 없습니다!");
         }
     }
 
@@ -53,7 +54,7 @@ public static class ScriptAttacher
         }
         else
         {
-            Debug.LogError($"'{scriptName}' 타입을 찾을 수 없습니다!");
+            //Debug.LogError($"'{scriptName}' 타입을 찾을 수 없습니다!");
         }
     }
 }

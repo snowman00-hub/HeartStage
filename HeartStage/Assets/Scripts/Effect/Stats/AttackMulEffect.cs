@@ -18,12 +18,10 @@ public class AttackMulEffect : EffectBase, IStatMulSource
     // ====== 기존 구현들 ======
     protected override void OnApply()
     {
-        Debug.Log($"[AttackMulEffect] OnApply mag={magnitude}, dur={duration}", this);
     }
 
     protected override void OnRemove()
     {
-        Debug.Log("[AttackMulEffect] OnRemove", this);
     }
 
     public bool TryGetMul(StatType stat, out float mul)

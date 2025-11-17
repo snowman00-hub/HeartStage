@@ -1,5 +1,6 @@
 ﻿using Cysharp.Threading.Tasks;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
 
@@ -23,6 +24,9 @@ public class CharacterProjectile : MonoBehaviour
     private CancellationTokenSource cts;
 
     private bool isCritical = false;
+
+    // 디버프 모음(몬스터에게 장착시킬) (ID, 수치, 지속시간)
+    private List<(int id, float value, float duration)> debuffList = new List<(int, float, float)>();
 
     private void OnEnable()
     {
@@ -49,7 +53,9 @@ public class CharacterProjectile : MonoBehaviour
     }
 
     // 미사일 정보 세팅
-    public void SetMissile(string id,string hitEffectId, Vector3 startPos,  Vector3 dir, float speed, int dmg, PenetrationType penetration = PenetrationType.NonPenetrate, bool isCritical = false)
+    public void SetMissile(string id, string hitEffectId, Vector3 startPos,
+        Vector3 dir, float speed, int dmg, PenetrationType penetration = PenetrationType.NonPenetrate,
+        bool isCritical = false, List<(int, float, float)> debuffList = null)
     {
         this.id = id;
         this.hitEffectId = hitEffectId;
@@ -59,6 +65,7 @@ public class CharacterProjectile : MonoBehaviour
         damage = dmg;
         penetrationType = penetration;
         this.isCritical = isCritical;
+        this.debuffList = debuffList;
     }
 
     // 피격시
@@ -71,14 +78,22 @@ public class CharacterProjectile : MonoBehaviour
         if (collision.CompareTag(Tag.Monster))
         {
             alreadyHit = true;
-                        
+
             var monsterBehavior = collision.GetComponent<MonsterBehavior>();
             monsterBehavior.OnDamage(damage, isCritical);
 
-            if(penetrationType == PenetrationType.NonPenetrate)
+            if (debuffList != null)
+            {
+                foreach (var debuff in debuffList)
+                {
+                    EffectRegistry.Apply(collision.gameObject, debuff.id, debuff.value, debuff.duration);
+                }
+            }
+
+            if (penetrationType == PenetrationType.NonPenetrate)
                 ReleaseToPool();
 
-            if(hitEffectId != string.Empty)
+            if (hitEffectId != string.Empty)
                 HitEffectAsync(collision.transform.position).Forget();
         }
     }

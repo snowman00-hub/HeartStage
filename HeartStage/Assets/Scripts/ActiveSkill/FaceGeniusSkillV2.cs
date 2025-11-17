@@ -2,12 +2,12 @@
 using UnityEngine;
 
 // 실명 효과 주기
-public class FaceGeniusSkill : MonoBehaviour, ISkillBehavior
+public class FaceGeniusSkillV2 : MonoBehaviour, ISkillBehavior
 {
     private SkillData skillData;
     private GameObject faceGeniusPrefab;
     private string faceGeniusAssetName = "FaceGenius";
-    private string skillDataAssetName = "얼굴 천재";
+    private string skillDataAssetName = "화려한 얼굴 천재";
 
     // 디버프 모음(몬스터에게 장착시킬) (ID, 수치, 지속시간)
     private List<(int id, float value, float duration)> debuffList = new List<(int, float, float)>();
@@ -66,7 +66,7 @@ public class FaceGeniusSkill : MonoBehaviour, ISkillBehavior
         int damage = skillData.skill_dmg;
 
         proj.SetMissile(faceGeniusAssetName, string.Empty, startPos, dir, speed, damage,
-            PenetrationType.NonPenetrate, false, debuffList);
+            PenetrationType.Penetrate, false, debuffList);
     }
 
     private void OnDisable()

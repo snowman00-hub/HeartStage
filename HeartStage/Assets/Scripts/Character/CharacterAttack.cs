@@ -27,21 +27,20 @@ public class CharacterAttack : MonoBehaviour
 
     private void Init()
     {
-        //공격력 테스트
-        EffectRegistry.Apply(gameObject, 3001, 50f, 999f);
-        //공격속도 테스트
-        EffectRegistry.Apply(gameObject, 3002, -0.5f, 999f);
-        //공격 범위 테스트 
-        EffectRegistry.Apply(gameObject, 3003, 100f, 999f);
-        //큐트 확률 테스트
-        EffectRegistry.Apply(gameObject, 3004, 30f, 999f);
-        //치명타 테스트
-        EffectRegistry.Apply(gameObject, 3006, 20f, 999f);
-        //치명타 데미지 테스트
-        EffectRegistry.Apply(gameObject, 3007, 1.5f, 999f);
-        //투사체 개수 테스트
-        EffectRegistry.Apply(gameObject, 3016, 3f, 999f);
-
+        ////공격력 테스트
+        //EffectRegistry.Apply(gameObject, 3001, 50f, 999f);
+        ////공격속도 테스트
+        //EffectRegistry.Apply(gameObject, 3002, -0.5f, 999f);
+        ////공격 범위 테스트 
+        //EffectRegistry.Apply(gameObject, 3003, 100f, 999f);
+        ////큐트 확률 테스트
+        //EffectRegistry.Apply(gameObject, 3004, 30f, 999f);
+        ////치명타 테스트
+        //EffectRegistry.Apply(gameObject, 3006, 20f, 999f);
+        ////치명타 데미지 테스트
+        //EffectRegistry.Apply(gameObject, 3007, 1.5f, 999f);
+        ////투사체 개수 테스트
+        //EffectRegistry.Apply(gameObject, 3016, 3f, 999f);
 
         // CSV → ScriptableObject 반영
         var csvData = DataTableManager.CharacterTable.Get(id);
@@ -94,11 +93,8 @@ public class CharacterAttack : MonoBehaviour
         if (target != null)
         {
             // 추가 공격 체크 & bullet_count 만큼 발사
-
             bool isPlusAttack = Random.Range(0, 100) < StatCalc.GetFinalStat(gameObject, StatType.ExtraAttackChance, data.atk_addcount);
             int bulletCountStat = Mathf.RoundToInt(StatCalc.GetFinalStat(gameObject, StatType.ProjectileCount, data.bullet_count));
-
-            Debug.Log($"추가 공격 여부: {isPlusAttack}, 투사체 개수: {bulletCountStat}");
 
             if (isPlusAttack)
             {
@@ -122,7 +118,6 @@ public class CharacterAttack : MonoBehaviour
 
             nextAttackTime = Time.time + data.atk_speed;
         }
-
 
         editorTimer += Time.deltaTime;
         if (editorTimer >= 1f)
@@ -149,7 +144,6 @@ public class CharacterAttack : MonoBehaviour
         if (isCritical)
         {
             float crtDmgStat = StatCalc.GetFinalStat(gameObject, StatType.CritDamage, data.crt_dmg);
-            Debug.Log($"크리티컬! crtDmgStat: {crtDmgStat}");
             final = Mathf.FloorToInt(final * crtDmgStat);
         }
 

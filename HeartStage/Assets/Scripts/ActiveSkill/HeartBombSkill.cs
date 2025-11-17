@@ -1,4 +1,5 @@
 ﻿using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
 using UnityEngine;
 
 // 몬스터 밀집 위치에 폭탄 생성
@@ -9,6 +10,9 @@ public class HeartBombSkill : MonoBehaviour, ISkillBehavior
     private string heartBombAssetName = "HeartBomb";
     private string skillDataAssetName = "섹시 다이너마이트";
     private string hitEffectAssetName = "StoneHit";
+
+    // 디버프 모음(몬스터에게 장착시킬) (ID, 수치, 지속시간)
+    private List<(int id, float value, float duration)> debuffList = new List<(int, float, float)>();
 
     private void Start()
     {
@@ -31,11 +35,18 @@ public class HeartBombSkill : MonoBehaviour, ISkillBehavior
         // 스킬매니저에 등록
         ActiveSkillManager.Instance.RegisterSkillBehavior(gameObject, skillData.skill_id, this);
         ActiveSkillManager.Instance.RegisterSkill(gameObject, skillData.skill_id);
-        // 버프 적용
-        var list = DataTableManager.SkillTable.GetEffectIds(skillData.skill_id);
-        foreach (var id in list)
+        // 디버프 등록
+        if (skillData.skill_eff1 != 0)
         {
-            // 버프 적용 코드 추가
+            debuffList.Add((skillData.skill_eff1, skillData.skill_eff1_val, skillData.skill_eff1_duration));
+        }
+        if (skillData.skill_eff2 != 0)
+        {
+            debuffList.Add((skillData.skill_eff2, skillData.skill_eff2_val, skillData.skill_eff2_duration));
+        }
+        if (skillData.skill_eff3 != 0)
+        {
+            debuffList.Add((skillData.skill_eff3, skillData.skill_eff3_val, skillData.skill_eff3_duration));
         }
     }
 
@@ -54,7 +65,8 @@ public class HeartBombSkill : MonoBehaviour, ISkillBehavior
             return;
         }
 
-        proj.SetMissile(heartBombAssetName, hitEffectAssetName, startPos, dir, 0, skillData.skill_dmg, PenetrationType.Penetrate, false);
+        proj.SetMissile(heartBombAssetName, hitEffectAssetName, startPos, dir, 0, skillData.skill_dmg,
+            PenetrationType.Penetrate, false, debuffList);
         ReleaseAsync(projectileGo, skillData.skill_duration).Forget();
     }
 

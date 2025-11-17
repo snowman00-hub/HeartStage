@@ -23,4 +23,3 @@ public enum ConditionType
     Confuse = 3013,    // 3013: 확률적으로 아군 공격
     Knockback = 3014,  // 3014: 뒤로 튕기는 CC
 }
-

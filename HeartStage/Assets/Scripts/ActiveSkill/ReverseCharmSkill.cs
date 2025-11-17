@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 // 실명 효과 주기
 public class ReverseCharmSkill : MonoBehaviour, ISkillBehavior
@@ -7,6 +8,9 @@ public class ReverseCharmSkill : MonoBehaviour, ISkillBehavior
     private GameObject reverseCharmPrefab;
     private string reverseCharmAssetName = "ReverseCharm";
     private string skillDataAssetName = "반전매력";
+
+    // 디버프 모음(몬스터에게 장착시킬) (ID, 수치, 지속시간)
+    private List<(int id, float value, float duration)> debuffList = new List<(int, float, float)>();
 
     private void Start()
     {
@@ -26,11 +30,18 @@ public class ReverseCharmSkill : MonoBehaviour, ISkillBehavior
         // 스킬매니저에 등록
         ActiveSkillManager.Instance.RegisterSkillBehavior(gameObject, skillData.skill_id, this);
         ActiveSkillManager.Instance.RegisterSkill(gameObject, skillData.skill_id);
-        // 버프 적용
-        var list = DataTableManager.SkillTable.GetEffectIds(skillData.skill_id);
-        foreach (var id in list)
+        // 디버프 등록
+        if (skillData.skill_eff1 != 0)
         {
-            // 버프 적용 코드 추가
+            debuffList.Add((skillData.skill_eff1, skillData.skill_eff1_val, skillData.skill_eff1_duration));
+        }
+        if (skillData.skill_eff2 != 0)
+        {
+            debuffList.Add((skillData.skill_eff2, skillData.skill_eff2_val, skillData.skill_eff2_duration));
+        }
+        if (skillData.skill_eff3 != 0)
+        {
+            debuffList.Add((skillData.skill_eff3, skillData.skill_eff3_val, skillData.skill_eff3_duration));
         }
     }
 
@@ -52,7 +63,8 @@ public class ReverseCharmSkill : MonoBehaviour, ISkillBehavior
         float speed = skillData.skill_speed;
         int damage = skillData.skill_dmg;
 
-        proj.SetMissile(reverseCharmAssetName, string.Empty, startPos, dir, speed, damage, PenetrationType.NonPenetrate, false);
+        proj.SetMissile(reverseCharmAssetName, string.Empty, startPos, dir, speed, damage,
+            PenetrationType.NonPenetrate, false, debuffList);
     }
 
     private void OnDisable()

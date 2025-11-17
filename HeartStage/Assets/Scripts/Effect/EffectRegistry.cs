@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public static class EffectRegistry
@@ -20,7 +19,7 @@ public static class EffectRegistry
     {
         if (target == null)
         {
-            Debug.LogWarning("[EffectRegistry] target is null");
+            //Debug.LogWarning("[EffectRegistry] target is null");
             return;
         }
 
@@ -30,7 +29,7 @@ public static class EffectRegistry
         }
         else
         {
-            Debug.LogWarning($"[EffectRegistry] Unknown effectId={effectId}");
+            //Debug.LogWarning($"[EffectRegistry] Unknown effectId={effectId}");
         }
     }
 }
