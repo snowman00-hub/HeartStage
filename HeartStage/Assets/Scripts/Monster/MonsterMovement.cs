@@ -42,7 +42,10 @@ public class MonsterMovement : MonoBehaviour
 
     private void Update()
     {
-        if (!isInitialized || monsterData == null) return;
+        if (!isInitialized || monsterData == null || IsStunned(gameObject)) 
+            return;
+
+
 
         if (!boundsInitialized)
         {
@@ -258,5 +261,15 @@ public class MonsterMovement : MonoBehaviour
             Gizmos.DrawLine(new Vector3(rightBound, transform.position.y - 2f, 0),
                           new Vector3(rightBound, transform.position.y + 2f, 0));
         }
+    }
+
+    private bool IsStunned(GameObject owner)
+    {
+        foreach (var src in owner.GetComponents<IConditionSource>())
+        {
+            if (src.TryGetCondition(ConditionType.Stun, out float v) && v > 0)
+                return true;
+        }
+        return false;
     }
 }

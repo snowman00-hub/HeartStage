@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 
-public class StunEffect : EffectBase, IConditionSource
+public class ConfuseEffect : EffectBase, IConditionSource
 {
-    private const int EffectId = 3011;
+    private const int EffectId = 3013;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void RegisterSelf()
@@ -12,7 +12,7 @@ public class StunEffect : EffectBase, IConditionSource
             (target, value, duration, tick) =>
             {
                 // 1) 이미 붙었으면 duration만 갱신
-                if (EffectBase.TryGet<StunEffect>(target, out var existing))
+                if (EffectBase.TryGet<ConfuseEffect>(target, out var existing))
                 {
                     existing.duration = duration;
                     // magnitude 필요하면 갱신
@@ -21,7 +21,7 @@ public class StunEffect : EffectBase, IConditionSource
                 }
 
                 // 2) 없으면 새로 붙이기
-                EffectBase.Add<StunEffect>(target, duration, value, tick);
+                EffectBase.Add<ConfuseEffect>(target, duration, value, tick);
             }
         );
     }
@@ -30,7 +30,7 @@ public class StunEffect : EffectBase, IConditionSource
 
     public bool TryGetCondition(ConditionType type, out float v)
     {
-        if (type == ConditionType.Stun)
+        if (type == ConditionType.Confuse)
         {
             v = 1f;
             return true;

@@ -98,8 +98,6 @@ public class CharacterAttack : MonoBehaviour
             bool isPlusAttack = Random.Range(0, 100) < StatCalc.GetFinalStat(gameObject, StatType.ExtraAttackChance, data.atk_addcount);
             int bulletCountStat = Mathf.RoundToInt(StatCalc.GetFinalStat(gameObject, StatType.ProjectileCount, data.bullet_count));
 
-            Debug.Log($"추가 공격 여부: {isPlusAttack}, 투사체 개수: {bulletCountStat}");
-
             if (isPlusAttack)
             {
                 for (int i = 0; i < bulletCountStat; i++)
@@ -149,7 +147,6 @@ public class CharacterAttack : MonoBehaviour
         if (isCritical)
         {
             float crtDmgStat = StatCalc.GetFinalStat(gameObject, StatType.CritDamage, data.crt_dmg);
-            Debug.Log($"크리티컬! crtDmgStat: {crtDmgStat}");
             final = Mathf.FloorToInt(final * crtDmgStat);
         }
 
