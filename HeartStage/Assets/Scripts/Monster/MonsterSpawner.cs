@@ -495,7 +495,7 @@ public class MonsterSpawner : MonoBehaviour
     private Vector3 GetRandomSpawnPosition()
     {
         int randomRange = Random.Range(0, Screen.width);
-        int height = Random.Range(Screen.height, Screen.height + 500);
+        int height = Random.Range(Screen.height - 100, Screen.height);
 
         Vector3 screenPosition = new Vector3(randomRange, height, 0);
         Vector3 spawnPos = Camera.main.ScreenToWorldPoint(screenPosition);

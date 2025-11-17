@@ -76,11 +76,16 @@ public class BossAddScript : MonoBehaviour
         {
             case 22201: // 치프 스테프
                 RegisterDeceptionSkill(31001); // 대량 현혹 튜토리얼 근접
+
+
+                RegisterSpeedBuffSkill(31201); // 단체 강화 테스트
+                RegisterBooingSkill(31101); // 야유 스킬 테스트
                 break;
 
             case 22214: // 사람을 홀리는 악마
                 RegisterDeceptionSkill(31003); // 대량 현혹 근접
                 RegisterSpeedBuffSkill(31201); // 단체 강화
+                RegisterBooingSkill(31101); // 야유 스킬
                 break;
 
             default:
@@ -130,6 +135,21 @@ public class BossAddScript : MonoBehaviour
         }
     }
 
+    private void RegisterBooingSkill(int skillId)
+    {
+        ScriptAttacher.AttachById(this.gameObject, skillId);
+
+        var booingSkill = GetComponent<BooingBossSkill>();
+        if (booingSkill != null)
+        {
+            var skillData = DataTableManager.SkillTable.Get(skillId);
+            booingSkill.Init(skillData); // 여기서 Init 호출
+
+            ActiveSkillManager.Instance.RegisterSkillBehavior(this.gameObject, skillId, booingSkill);
+            ActiveSkillManager.Instance.RegisterSkill(this.gameObject, skillId);
+        }
+    }
+
     private void UnregisterSkills() // 스킬 해제 
     {
         if (ActiveSkillManager.Instance == null) return;
@@ -151,13 +171,16 @@ public class BossAddScript : MonoBehaviour
         {
             case 22201: // 치프 스테프
                 ActiveSkillManager.Instance.UnRegisterSkill(this.gameObject, 31001);
-                Debug.Log($"{gameObject.name} DeceptionBossSkill (ID: 31001) 등록 해제");
+
+                ActiveSkillManager.Instance.UnRegisterSkill(this.gameObject, 31201); // 단체 강화 해제 추가
+                ActiveSkillManager.Instance.UnRegisterSkill(this.gameObject, 31101); // 야유 스킬 해제 추가
                 break;
 
             case 22214: // 사람을 홀리는 악마
                 ActiveSkillManager.Instance.UnRegisterSkill(this.gameObject, 31003);
                 ActiveSkillManager.Instance.UnRegisterSkill(this.gameObject, 31201);
-                Debug.Log($"{gameObject.name} 보스 스킬들 (ID: 31003, 31201) 등록 해제");
+                ActiveSkillManager.Instance.UnRegisterSkill(this.gameObject, 31101); // 야유 스킬 해제 추가
+
                 break;
 
             default:
