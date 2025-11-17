@@ -10,12 +10,21 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     private MonsterSpawner monsterSpawner;
     private HealthBar healthBar;
 
+    //혼란 전용 셀프 콜라이더
+    private Collider2D selfCollider;
+
+
     private int currentHP;
     private int maxHP; // 최대 HP는 따로 저장 (SO 변경 시에도 유지)
 
     public int GetCurrentHP() => currentHP;
     public MonsterData GetMonsterData() => monsterData;
     public bool IsBossMonster() => isBoss;
+
+    private void Awake()
+    {
+        selfCollider = GetComponent<Collider2D>();
+    }
 
     // 몬스터 초기화 (SO 참조 설정, HP는 필요시에만 갱신)
     public void Init(MonsterData data)
@@ -51,14 +60,21 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 
     private void Update()
     {
-        if (monsterData == null || IsStunned(gameObject))
+        if (monsterData == null || EffectBase.Has<StunEffect>(gameObject))
             return;
 
         // SO의 최신 공격속도 값을 직접 사용 (런타임 변경사항 즉시 반영)
         attackCooldown -= Time.deltaTime;
         if (attackCooldown <= 0f)
         {
-            Attack();
+            if (EffectBase.Has<ConfuseEffect>(gameObject))
+            {
+                ConfuseAttack();
+            }
+            else
+            {
+                Attack();
+            }
             attackCooldown = monsterData.attackSpeed; // SO에서 직접 가져옴
         }
     }
@@ -158,6 +174,39 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         }
     }
 
+    private void ConfuseAttack()
+    {
+        Collider2D[] hits = Physics2D.OverlapCircleAll(
+        transform.position,
+        monsterData.attackRange,
+        LayerMask.GetMask(Tag.Monster)
+    );
+        Collider2D targetCollider = null;
+
+        foreach (var hit in hits)
+        {
+            if (hit == null)
+                continue;
+
+            // ✅ 자기 자신 콜라이더는 스킵
+            if (hit == selfCollider)
+                continue;
+
+            targetCollider = hit;
+            break; // 일단 하나만 때릴 거면 첫 번째만 선택
+        }
+
+        if(targetCollider != null)
+        {
+            var target = targetCollider.GetComponent<IDamageable>();
+            if (target != null)
+            {
+                target.OnDamage(monsterData.att);
+            }
+        }
+    }
+
+
     public static bool IsBossMonster(int id)
     {
         if (DataTableManager.MonsterTable != null)
@@ -170,15 +219,5 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         }
 
         return id == 22201 || id == 22214; // 보스 id
-    }
-
-    private bool IsStunned(GameObject owner)
-    {
-        foreach (var src in owner.GetComponents<IConditionSource>())
-        {
-            if (src.TryGetCondition(ConditionType.Stun, out float v) && v > 0)
-                return true;
-        }
-        return false;
     }
 }

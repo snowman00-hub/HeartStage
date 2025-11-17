@@ -15,7 +15,7 @@ public class MonsterMovement : MonoBehaviour
 
     [Header("Screen Bounds")]
     [SerializeField] private float screenMargin = 0.5f;
-
+    
     // 벽 감지 관련
     private bool isNearWall = false;
     private bool isFrontBlocked = false; // 앞줄 막힘 상태
@@ -26,6 +26,14 @@ public class MonsterMovement : MonoBehaviour
 
     // 모든 활성 몬스터 추적
     private static List<MonsterMovement> allActiveMonsters = new List<MonsterMovement>();
+
+    private Collider2D selfCollider;  //혼란 전용 셀프 콜라이더
+    [SerializeField] private float confuseSearchRadius = 5f; // 혼란 상태에서 타겟 탐색 반경
+
+    public void Awake()
+    {
+        selfCollider = GetComponent<Collider2D>();
+    }
 
     private void OnEnable()
     {
@@ -42,7 +50,21 @@ public class MonsterMovement : MonoBehaviour
 
     private void Update()
     {
-        if (!isInitialized || monsterData == null || IsStunned(gameObject)) 
+        if(EffectBase.Has<KnockbackEffect>(gameObject))
+        {
+            return;
+        }
+
+        if(EffectBase.Has<ConfuseEffect>(gameObject))
+        {
+            ConfuseMove();
+            return;
+        }
+
+        if (!isInitialized ||
+            monsterData == null || 
+            EffectBase.Has<StunEffect>(gameObject) || 
+            EffectBase.Has<ParalyzeEffect>(gameObject)) 
             return;
 
 
@@ -70,7 +92,7 @@ public class MonsterMovement : MonoBehaviour
 
     public void Init(MonsterData data, Vector3 direction)
     {
-        monsterData = data; 
+        monsterData = data;
         isInitialized = true;
     }
 
@@ -264,13 +286,48 @@ public class MonsterMovement : MonoBehaviour
         }
     }
 
-    private bool IsStunned(GameObject owner)
+    private void ConfuseMove()
     {
-        foreach (var src in owner.GetComponents<IConditionSource>())
+        if (!isInitialized || monsterData == null)
+            return;
+
+        // 1) 주변에서 자기 제외하고 가장 가까운 몬스터 찾기
+        Collider2D[] hits = Physics2D.OverlapCircleAll(
+            transform.position,
+            confuseSearchRadius,
+            LayerMask.GetMask(Tag.Monster)
+        );
+
+        Collider2D closest = null;
+        float bestDistSq = float.MaxValue;
+
+        foreach (var col in hits)
         {
-            if (src.TryGetCondition(ConditionType.Stun, out float v) && v > 0)
-                return true;
+            if (col == null || col == selfCollider)   // 자기 자신 제외
+                continue;
+
+            float dSq = (col.transform.position - transform.position).sqrMagnitude;
+            if (dSq < bestDistSq)
+            {
+                bestDistSq = dSq;
+                closest = col;
+            }
         }
-        return false;
+
+        //근처 타겟이없으면 그냥 가만히 서있기
+        if (closest == null)
+            return;
+
+        // 2) 사거리 체크
+        float attackRangeSq = monsterData.attackRange * monsterData.attackRange;
+
+        if (bestDistSq > attackRangeSq)
+        {
+            // 2-1) 사거리 밖이면 → 타겟 쪽으로 이동
+            Vector3 dir = (closest.transform.position - transform.position).normalized;
+            transform.position += dir * monsterData.moveSpeed * Time.deltaTime;
+            return;
+        }
     }
+
 }

@@ -67,40 +67,43 @@ public class SeletStageWindow : MonoBehaviour
         int hpSum = 0;
         foreach (var kvp in StageIndexs)
         {
-            Vector3 spawnPosition = SpawnPos[kvp.Key].transform.position;
-            PlaceCharacter(kvp.Value, spawnPosition);
-            hpSum += DataTableManager.CharacterTable.Get(kvp.Value).char_hp;
+            int slotIndex = kvp.Key;
+            int characterId = kvp.Value;
+
+            Vector3 spawnPosition = SpawnPos[slotIndex].transform.position;
+            PlaceCharacter(characterId, spawnPosition, slotIndex);
+            hpSum += DataTableManager.CharacterTable.Get(characterId).char_hp;
         }
         fence.Init(hpSum);
     }
 
-    private void PlaceCharacter(int characterId, Vector3 worldPos)
+    private void PlaceCharacter(int characterId, Vector3 worldPos, int slotIndex)
     {
         GameObject obj = Instantiate(basePrefab, worldPos, Quaternion.identity);
         var attack = obj.GetComponent<CharacterAttack>();
 
-        AddPassiveEffects(obj);
+        AddPassiveEffects(obj, slotIndex);
 
         attack.id = characterId;
     }
 
-    private void AddPassiveEffects(GameObject obj)
+    private void AddPassiveEffects(GameObject obj, int slotIndex)
     {
-        //패시브 타입에 따른 이펙트 추가
-        //passiveData.Item1 : PassiveType
-        //passiveData.Item2~7 : 효과값들
-        //PassiveType은 바닥 타일 색상변경이다.
-        //PassiveIndexs 의 Key값은 인덱스 값이다.
-        for(int i = 0; i < PassiveImages.Length; i++)
-        {
-            if(PassiveIndexs.ContainsKey(i))
-            {
-                EffectRegistry.Apply(obj, PassiveIndexs[i].Item2, PassiveIndexs[i].Item3, 99999);
-                EffectRegistry.Apply(obj, PassiveIndexs[i].Item4, PassiveIndexs[i].Item5, 99999);
-                EffectRegistry.Apply(obj, PassiveIndexs[i].Item6, PassiveIndexs[i].Item7, 99999);
-            }
-        }
+        // 이 슬롯에 패시브 정보가 없다면 패시브 없음
+        if (!PassiveIndexs.TryGetValue(slotIndex, out var passiveData))
+            return;
+        // passiveData 구조:
+        // (PassiveType, int eff1Id, float eff1Val, int eff2Id, float eff2Val, int eff3Id, float eff3Val)
+        // 1번 효과
+        if (passiveData.Item2 != 0)
+            EffectRegistry.Apply(obj, passiveData.Item2, passiveData.Item3, 99999);
 
+        // 2번 효과
+        if (passiveData.Item4 != 0)
+            EffectRegistry.Apply(obj, passiveData.Item4, passiveData.Item5, 99999);
+
+        // 3번 효과
+        if (passiveData.Item6 != 0)
+            EffectRegistry.Apply(obj, passiveData.Item6, passiveData.Item7, 99999);
     }
-
 }

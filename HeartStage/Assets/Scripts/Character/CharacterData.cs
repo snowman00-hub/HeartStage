@@ -116,3 +116,15 @@ public class CharacterData : ScriptableObject
         };
     }
 }
+
+public enum CharacterType
+{
+    None = 0, // 없음
+    Vocal = 1, // 보컬 - 공격력
+    Rap = 2, // 랩 - 공격속도
+    Charisma = 3, // 카리스마 - 사거리
+    Cutie = 4, // 큐티 - 추가 공격 확률
+    Dance = 5, // 댄스 - 체력
+    Visual = 6, // 비주얼 - 치명타 확률
+    Sexy = 7, // 섹시 - 치명타 피해
+}
