@@ -12,6 +12,9 @@ public class MonsterMovement : MonoBehaviour
     [SerializeField] private float separationForce = 3f;     // 분리 힘
     [SerializeField] private float minDistance = 0.6f;       // 최소 거리 유지
     [SerializeField] private float frontCheckDistance = 0.8f; // 앞줄 체크 거리
+    [SerializeField] private float confuseSearchRadius = 5f; // 혼란 상태에서 타겟 탐색 반경
+    [SerializeField] private float confuseAttackInterval = 0.8f; // 혼란 상태에서 공격 간격
+    private float nextConfuseAttackTime; // 혼란 상태에서 다음 공격 시간
 
     [Header("Screen Bounds")]
     [SerializeField] private float screenMargin = 0.5f;
@@ -26,6 +29,15 @@ public class MonsterMovement : MonoBehaviour
 
     // 모든 활성 몬스터 추적 (정적)
     private static List<MonsterMovement> allActiveMonsters = new List<MonsterMovement>();
+
+
+    //혼란 전용 셀프 콜라이더
+    private Collider2D selfCollider;
+
+    public void Awake()
+    {
+        selfCollider = GetComponent<Collider2D>();
+    }
 
     private void OnEnable()
     {
@@ -44,6 +56,12 @@ public class MonsterMovement : MonoBehaviour
     {
         if(EffectBase.Has<KnockbackEffect>(gameObject))
         {
+            return;
+        }
+
+        if(EffectBase.Has<ConfuseEffect>(gameObject))
+        {
+            ConfuseMove();
             return;
         }
 
@@ -270,4 +288,59 @@ public class MonsterMovement : MonoBehaviour
                           new Vector3(rightBound, transform.position.y + 2f, 0));
         }
     }
+
+    private void ConfuseMove()
+    {
+        if (!isInitialized || monsterData == null)
+            return;
+
+        // 1) 주변에서 자기 제외하고 가장 가까운 몬스터 찾기
+        Collider2D[] hits = Physics2D.OverlapCircleAll(
+            transform.position,
+            confuseSearchRadius,
+            LayerMask.GetMask(Tag.Monster)
+        );
+
+        Collider2D closest = null;
+        float bestDistSq = float.MaxValue;
+
+        foreach (var col in hits)
+        {
+            if (col == null || col == selfCollider)   // 자기 자신 제외
+                continue;
+
+            float dSq = (col.transform.position - transform.position).sqrMagnitude;
+            if (dSq < bestDistSq)
+            {
+                bestDistSq = dSq;
+                closest = col;
+            }
+        }
+
+        if (closest == null)
+            return; // 타겟 없으면 그냥 멈춰있게 하고 싶으면 여기서 끝
+
+        // 2) 사거리 체크
+        float attackRangeSq = monsterData.attackRange * monsterData.attackRange;
+
+        if (bestDistSq > attackRangeSq)
+        {
+            // 2-1) 사거리 밖이면 → 타겟 쪽으로 이동
+            Vector3 dir = (closest.transform.position - transform.position).normalized;
+            transform.position += dir * monsterData.moveSpeed * Time.deltaTime;
+            return;
+        }
+
+        // 2-2) 사거리 안이면 → 멈춰서 일정 간격으로 공격
+        if (Time.time < nextConfuseAttackTime)
+            return;
+
+        var target = closest.GetComponent<IDamageable>();
+        if (target != null)
+        {
+            target.OnDamage(monsterData.att);
+            nextConfuseAttackTime = Time.time + confuseAttackInterval;
+        }
+    }
+
 }
