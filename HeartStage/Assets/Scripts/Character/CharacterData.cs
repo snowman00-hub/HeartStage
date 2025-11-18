@@ -37,6 +37,13 @@ public class CharacterData : ScriptableObject
     public string projectile_AssetName;
     public string hitEffect_AssetName;
 
+    // 전투력 주기
+    public int GetTotalPower()
+    {
+        float total = atk_dmg + atk_speed + char_hp + crt_chance + crt_dmg + atk_addcount + atk_range;
+        return Mathf.FloorToInt(total);
+    }
+
     // CSV → ScriptableObject
     public void UpdateData(CharacterCSVData csv)
     {
