@@ -64,7 +64,6 @@ public class SeletStageWindow : MonoBehaviour
 
     private void PlaceAll()
     {
-        int hpSum = 0;
         foreach (var kvp in StageIndexs)
         {
             int slotIndex = kvp.Key;
@@ -72,9 +71,7 @@ public class SeletStageWindow : MonoBehaviour
 
             Vector3 spawnPosition = SpawnPos[slotIndex].transform.position;
             PlaceCharacter(characterId, spawnPosition, slotIndex);
-            hpSum += DataTableManager.CharacterTable.Get(characterId).char_hp;
         }
-        fence.Init(hpSum);
     }
 
     private void PlaceCharacter(int characterId, Vector3 worldPos, int slotIndex)
@@ -85,6 +82,9 @@ public class SeletStageWindow : MonoBehaviour
         AddPassiveEffects(obj, slotIndex);
 
         attack.id = characterId;
+
+        // 체력 적용
+        CharacterFence.Instance.Init();
     }
 
     private void AddPassiveEffects(GameObject obj, int slotIndex)

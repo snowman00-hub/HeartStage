@@ -29,13 +29,12 @@ public class LevelUpSelectSlot : MonoBehaviour
         {
             foreach(var buff in buffIds)
             {
-                if(buff.id == 3005) // 체력 증가일때 
-                {
-                    CharacterFence.Instance.PlusMaxHp(buff.value / towers.Length);
-                    continue;
-                }
-
                 EffectRegistry.Apply(tower, buff.id, buff.value, 99999);
+
+                if (buff.id == 3005) // 체력 증가일때 
+                {
+                    CharacterFence.Instance.Init();
+                }
             }
         }
         StageManager.Instance.RestoreTimeScale();

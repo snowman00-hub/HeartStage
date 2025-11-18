@@ -41,7 +41,7 @@ public class PoolManager : MonoBehaviour
            },
            actionOnGet: obj => obj.SetActive(true),
            actionOnRelease: obj => obj.SetActive(false),
-           actionOnDestroy: obj => Addressables.ReleaseInstance(obj),
+           actionOnDestroy: obj => Destroy(obj),
            collectionCheck: false,
            defaultCapacity: defaultCapacity,
            maxSize: maxSize

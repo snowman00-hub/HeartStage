@@ -10,14 +10,14 @@ public static class ScriptAttacher
     // 데이터 테이블에 있는 ID들과 짝에 맞는 스크립트 등록하기
     private static readonly Dictionary<int, string> _idToScript = new()
     {
-        { 31202, "FaceGeniusSkill" },
-        { 31203, "FaceGeniusSkillV2" },
-        { 31204, "SonicAttackSkill" },
-        { 31205, "SonicAttackSkillV2" },
-        { 31206, "ReverseCharmSkill" },
-        { 31207, "ReverseCharmSkillV2" },
-        { 31208, "HeartBombSkill" },
-        { 31209, "HeartBombSkillV2" },
+        { 31202, "FaceGeniusSkill" }, // 얼굴 천재 
+        { 31203, "FaceGeniusSkillV2" }, // 화려한 얼굴 천재
+        { 31204, "SonicAttackSkill" }, // 만능 엔터테이너
+        { 31205, "SonicAttackSkillV2" }, // 다재다능한 만능 엔터테이너
+        { 31206, "ReverseCharmSkill" }, // 반전매력
+        { 31207, "ReverseCharmSkillV2" }, // 넘치는 반전매력
+        { 31208, "HeartBombSkill" }, // 섹시 다이너마이트
+        { 31209, "HeartBombSkillV2" }, // 폭룡적인 섹시 다이너마이트
 
         { 31001, "DeceptionBossSkill" }, // 대량 현혹 튜토리얼 근접
         { 31002, "DeceptionBossSkill" }, // 대량 현혹 튜토리얼 원거리

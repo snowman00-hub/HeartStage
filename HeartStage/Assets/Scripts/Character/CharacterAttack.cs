@@ -27,21 +27,6 @@ public class CharacterAttack : MonoBehaviour
 
     private void Init()
     {
-        ////공격력 테스트
-        //EffectRegistry.Apply(gameObject, 3001, 50f, 999f);
-        ////공격속도 테스트
-        //EffectRegistry.Apply(gameObject, 3002, -0.5f, 999f);
-        ////공격 범위 테스트 
-        //EffectRegistry.Apply(gameObject, 3003, 100f, 999f);
-        ////큐트 확률 테스트
-        //EffectRegistry.Apply(gameObject, 3004, 30f, 999f);
-        ////치명타 테스트
-        //EffectRegistry.Apply(gameObject, 3006, 20f, 999f);
-        ////치명타 데미지 테스트
-        //EffectRegistry.Apply(gameObject, 3007, 1.5f, 999f);
-        ////투사체 개수 테스트
-        //EffectRegistry.Apply(gameObject, 3016, 3f, 999f);
-
         // CSV → ScriptableObject 반영
         var csvData = DataTableManager.CharacterTable.Get(id);
         data = ResourceManager.Instance.Get<CharacterData>(csvData.data_AssetName);
