@@ -7,6 +7,7 @@ public class ReverseCharmSkillV2 : MonoBehaviour, ISkillBehavior
     private SkillData skillData;
     private GameObject reverseCharmPrefab;
     private string reverseCharmAssetName = "ReverseCharm";
+    private string poolId = "ReverseCharmSkillV2";
     private string skillDataAssetName = "넘치는 반전매력";
 
     // 디버프 모음(몬스터에게 장착시킬) (ID, 수치, 지속시간)
@@ -25,7 +26,7 @@ public class ReverseCharmSkillV2 : MonoBehaviour, ISkillBehavior
         var particle = prefabClone.GetComponentInChildren<ParticleSystem>();
         particle.transform.localScale = particle.transform.localScale * skillData.skill_range;
         // 오브젝트 풀 생성
-        PoolManager.Instance.CreatePool(reverseCharmAssetName, prefabClone, 10, 30);
+        PoolManager.Instance.CreatePool(poolId, prefabClone, 10, 30);
         Destroy(prefabClone);
         // 스킬매니저에 등록
         ActiveSkillManager.Instance.RegisterSkillBehavior(gameObject, skillData.skill_id, this);
@@ -48,7 +49,7 @@ public class ReverseCharmSkillV2 : MonoBehaviour, ISkillBehavior
     // 스킬 사용
     public void Execute()
     {
-        var projectileGo = PoolManager.Instance.Get(reverseCharmAssetName);
+        var projectileGo = PoolManager.Instance.Get(poolId);
 
         Vector3 startPos = transform.position;
         Vector3 dir = Vector3.up;
@@ -56,14 +57,14 @@ public class ReverseCharmSkillV2 : MonoBehaviour, ISkillBehavior
         var proj = projectileGo.GetComponent<CharacterProjectile>();
         if (proj == null)
         {
-            PoolManager.Instance.Release(reverseCharmAssetName, projectileGo);
+            PoolManager.Instance.Release(poolId, projectileGo);
             return;
         }
 
         float speed = skillData.skill_speed;
         int damage = skillData.skill_dmg;
 
-        proj.SetMissile(reverseCharmAssetName, string.Empty, startPos, dir, speed, damage, 
+        proj.SetMissile(poolId, string.Empty, startPos, dir, speed, damage, 
             PenetrationType.Penetrate, false, debuffList);
     }
 

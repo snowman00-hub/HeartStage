@@ -8,6 +8,7 @@ public class FaceGeniusSkillV2 : MonoBehaviour, ISkillBehavior
     private GameObject faceGeniusPrefab;
     private string faceGeniusAssetName = "FaceGenius";
     private string skillDataAssetName = "화려한 얼굴 천재";
+    private string poolId = "FaceGeniusSkillV2";
 
     // 디버프 모음(몬스터에게 장착시킬) (ID, 수치, 지속시간)
     private List<(int id, float value, float duration)> debuffList = new List<(int, float, float)>();
@@ -27,7 +28,7 @@ public class FaceGeniusSkillV2 : MonoBehaviour, ISkillBehavior
         particleScale.x *= collider.radius;
         particle.transform.localScale = particleScale;
         // 오브젝트 풀 생성
-        PoolManager.Instance.CreatePool(faceGeniusAssetName, prefabClone, 10, 30);
+        PoolManager.Instance.CreatePool(poolId, prefabClone, 10, 30);
         Destroy(prefabClone);
         // 스킬매니저에 등록
         ActiveSkillManager.Instance.RegisterSkillBehavior(gameObject, skillData.skill_id, this);
@@ -50,7 +51,7 @@ public class FaceGeniusSkillV2 : MonoBehaviour, ISkillBehavior
     // 스킬 사용
     public void Execute()
     {
-        var projectileGo = PoolManager.Instance.Get(faceGeniusAssetName);
+        var projectileGo = PoolManager.Instance.Get(poolId);
 
         Vector3 startPos = transform.position;
         Vector3 dir = Vector3.up;
@@ -58,14 +59,14 @@ public class FaceGeniusSkillV2 : MonoBehaviour, ISkillBehavior
         var proj = projectileGo.GetComponent<CharacterProjectile>();
         if (proj == null)
         {
-            PoolManager.Instance.Release(faceGeniusAssetName, projectileGo);
+            PoolManager.Instance.Release(poolId, projectileGo);
             return;
         }
 
         float speed = skillData.skill_speed;
         int damage = skillData.skill_dmg;
 
-        proj.SetMissile(faceGeniusAssetName, string.Empty, startPos, dir, speed, damage,
+        proj.SetMissile(poolId, string.Empty, startPos, dir, speed, damage,
             PenetrationType.Penetrate, false, debuffList);
     }
 

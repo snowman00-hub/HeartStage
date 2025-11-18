@@ -22,9 +22,9 @@ public class CharacterSelectPanel : MonoBehaviour
         var characterData = dragMe.characterData;
 		rankText.text = $"{characterData.char_rank}";
 		// attributeIcon 변경하기
-		characterName.text = characterData.name;
+		characterName.text = characterData.char_name;
 		idolPowerCount.text = $"{characterData.GetTotalPower()}";
-		levelText.text = $"{characterData.char_lv}";
+		levelText.text = $"LV {characterData.char_lv}";
 		// expSlider 세팅하기
     }
 }

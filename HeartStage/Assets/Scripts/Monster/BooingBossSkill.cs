@@ -44,7 +44,6 @@ public class BooingBossSkill : MonoBehaviour, ISkillBehavior
 
         isInitialized = true;
         nextSkillTime = Time.time + coolTime; // 초기 쿨타임 설정
-        Debug.Log($"BooingBossSkill 초기화: {coolTime}초마다 {skillDuration}초간 공격속도 +{value * 100}% 디버프");
     }
 
     private void Update()
@@ -77,7 +76,6 @@ public class BooingBossSkill : MonoBehaviour, ISkillBehavior
         {
             return;
         }
-        Debug.Log("야유 공격 실행!");
         BoolingSkillEffect();
     }
 
@@ -90,8 +88,6 @@ public class BooingBossSkill : MonoBehaviour, ISkillBehavior
         {
             ApplyAttackSpeedDebuff(character);
         }
-
-        Debug.Log($"야유 효과 적용: {summonedCharacter.Count}명의 캐릭터에게 공격속도 디버프");
     }
 
 
@@ -183,7 +179,6 @@ public class BooingBossSkill : MonoBehaviour, ISkillBehavior
         if (summonedCharacter != null)
         {
             summonedCharacter.Add(character);
-            Debug.Log($"소환 캐릭터 등록: {character.gameObject.name}");
         }
     }
 
@@ -193,7 +188,6 @@ public class BooingBossSkill : MonoBehaviour, ISkillBehavior
         if (summonedCharacter != null && summonedCharacter.Contains(character))
         {
             summonedCharacter.Remove(character);
-            Debug.Log($"소환 캐릭터 해제: {character.gameObject.name}");
         }
     }
 

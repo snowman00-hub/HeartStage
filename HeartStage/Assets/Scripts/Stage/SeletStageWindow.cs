@@ -106,8 +106,6 @@ public class SeletStageWindow : MonoBehaviour
             var data = DataTableManager.SkillTable.Get(cd.skill_id1);
             PassiveType passiveType = (PassiveType)data.passive_type;
 
-            Debug.Log($"[GetStagePos] slot {i} / char {cd.char_name} / passiveType={passiveType}");
-
             if (passiveType == PassiveType.None)
                 continue;
 
@@ -334,4 +332,14 @@ public class SeletStageWindow : MonoBehaviour
         ApplyTileColors();
     }
 
+    // 테스트 함수 (바로 시작 버튼)
+    public void TestStart()
+    {
+        DraggableSlots[1].characterData = ResourceManager.Instance.Get<CharacterData>("hina21");
+        DraggableSlots[2].characterData = ResourceManager.Instance.Get<CharacterData>("jian21");
+        DraggableSlots[3].characterData = ResourceManager.Instance.Get<CharacterData>("sera21");
+        DraggableSlots[6].characterData = ResourceManager.Instance.Get<CharacterData>("lia21");
+        StartButtonClick();
+    }
+    //
 }

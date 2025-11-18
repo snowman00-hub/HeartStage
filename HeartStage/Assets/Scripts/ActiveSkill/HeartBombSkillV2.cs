@@ -10,6 +10,7 @@ public class HeartBombSkillV2 : MonoBehaviour, ISkillBehavior
     private string heartBombAssetName = "HeartBomb";
     private string skillDataAssetName = "폭룡적인 섹시 다이너마이트";
     private string hitEffectAssetName = "StoneHit";
+    private string poolId = "HeartBombSkillV2";
 
     // 디버프 모음(몬스터에게 장착시킬) (ID, 수치, 지속시간)
     private List<(int id, float value, float duration)> debuffList = new List<(int, float, float)>();
@@ -27,7 +28,7 @@ public class HeartBombSkillV2 : MonoBehaviour, ISkillBehavior
         var particle = prefabClone.GetComponentInChildren<ParticleSystem>();
         particle.transform.localScale = particle.transform.localScale * skillData.skill_range;
         // 오브젝트 풀 생성
-        PoolManager.Instance.CreatePool(heartBombAssetName, prefabClone, 10, 30);
+        PoolManager.Instance.CreatePool(poolId, prefabClone, 10, 30);
         Destroy(prefabClone);
         // 히트 이펙트 오브젝트 풀 생성
         var hitEffectGo = ResourceManager.Instance.Get<GameObject>(hitEffectAssetName);
@@ -53,7 +54,7 @@ public class HeartBombSkillV2 : MonoBehaviour, ISkillBehavior
     // 발사
     public void Execute()
     {
-        var projectileGo = PoolManager.Instance.Get(heartBombAssetName);
+        var projectileGo = PoolManager.Instance.Get(poolId);
 
         Vector3 startPos = GetCenterInMonsters();
         Vector3 dir = Vector3.zero;
@@ -61,11 +62,11 @@ public class HeartBombSkillV2 : MonoBehaviour, ISkillBehavior
         var proj = projectileGo.GetComponent<CharacterProjectile>();
         if (proj == null)
         {
-            PoolManager.Instance.Release(heartBombAssetName, projectileGo);
+            PoolManager.Instance.Release(poolId, projectileGo);
             return;
         }
 
-        proj.SetMissile(heartBombAssetName, hitEffectAssetName, startPos, dir, 0, skillData.skill_dmg,
+        proj.SetMissile(poolId, hitEffectAssetName, startPos, dir, 0, skillData.skill_dmg,
             PenetrationType.Penetrate, false, debuffList);
         ReleaseAsync(projectileGo, skillData.skill_duration).Forget();
     }
