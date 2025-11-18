@@ -123,4 +123,34 @@ public class PowerInfoWindow : MonoBehaviour
             buffUI.text = $"- {-diff}";
         }
     }
+
+    public void ApplyNameDisplayMode(bool isRealStatDisplay)
+    {
+        if (isRealStatDisplay)
+        {
+            // 실제 스탯 표기
+            atkName.text = "공격력";
+            atkSpeedName.text = "공격속도";
+            hpName.text = "체력";
+            crtChanceName.text = "치명타 확률";
+            crtDamageName.text = "치명타 피해";
+            addAtkChanceName.text = "추가 공격 확률";
+            rangeName.text = "사거리";
+
+            totalPowerName.text = "전체스탯";
+        }
+        else
+        {
+            // 아이돌 능력 표기 (보컬/랩/댄스 등)
+            atkName.text = "보컬";
+            atkSpeedName.text = "랩";
+            hpName.text = "댄스";
+            crtChanceName.text = "비주얼";
+            crtDamageName.text = "섹시";
+            addAtkChanceName.text = "큐티";
+            rangeName.text = "카리스마";
+
+            totalPowerName.text = "아이돌력";
+        }
+    }
 }
