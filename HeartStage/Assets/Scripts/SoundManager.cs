@@ -16,11 +16,17 @@ public class SoundManager : MonoBehaviour
     [SerializeField] private AudioMixerGroup sfxMixerGroup;
     [SerializeField] private AudioMixerGroup bgmMixerGroup;
 
+    [SerializeField] private int hitSoundPoolSize = 5;
+    private AudioSource[] hitSoundPool;
+    private int currentHitSoundIndex = 0;
+
     private Dictionary<string, AudioClip> sfxDictionary = new Dictionary<string, AudioClip>();
     private Dictionary<string, AudioClip> bgmDictionary = new Dictionary<string, AudioClip>();
 
     private Dictionary<string, float> soundCooldowns = new Dictionary<string, float>();
-    private float defaultCooldownTime = 0.1f; // 기본 쿨타임 0.1초
+
+    [SerializeField] private float defaultCooldownTime = 0.2f; // 기본 쿨타임 
+    private float lastHitSoundTime = 0f;
 
     private void Awake()
     {
@@ -45,6 +51,52 @@ public class SoundManager : MonoBehaviour
         else
         {
             Destroy(gameObject);
+        }
+
+        CreateHitSoundPool();
+    }
+    private void CreateHitSoundPool()
+    {
+        hitSoundPool = new AudioSource[hitSoundPoolSize];
+        for (int i = 0; i < hitSoundPoolSize; i++)
+        {
+            var audioObj = new GameObject($"HitSoundSource_{i}");
+            audioObj.transform.SetParent(transform);
+
+            AudioSource audioSource = audioObj.AddComponent<AudioSource>();
+            audioSource.outputAudioMixerGroup = sfxMixerGroup; // 믹서 그룹 할당
+            audioSource.playOnAwake = false;
+
+            hitSoundPool[i] = audioSource;
+        }
+    }
+
+    private void PlayHitSoundFromPool(string clipName)
+    {
+        AudioSource availableSource = null;
+
+        for(int i = 0; i < hitSoundPoolSize; i++)
+        {
+            int index = (currentHitSoundIndex + i) % hitSoundPoolSize;
+            if (!hitSoundPool[index].isPlaying)
+            {
+                availableSource = hitSoundPool[index];
+                currentHitSoundIndex = (index + 1) % hitSoundPoolSize;
+                break;  
+            }
+        }
+        // 모든 AudioSource가 사용 중이면 가장 오래된 것을 교체
+        if (availableSource == null)
+        {
+            availableSource = hitSoundPool[currentHitSoundIndex];
+            currentHitSoundIndex = (currentHitSoundIndex + 1) % hitSoundPoolSize;
+        }
+
+        var clip = GetSFXClip(clipName);
+        if (clip != null && availableSource != null)
+        {
+            availableSource.clip = clip;
+            availableSource.Play();
         }
     }
 
@@ -142,6 +194,9 @@ public class SoundManager : MonoBehaviour
 
     public void PlayMonsterHitSound()
     {
+        if (Time.time - lastHitSoundTime < defaultCooldownTime)
+            return;
+
         string[] hitSounds = 
         {
             "mon_hit_01",
@@ -149,7 +204,11 @@ public class SoundManager : MonoBehaviour
             "mon_hit_03"
         };
 
-        PlayRandomSFX(hitSounds);
+        int randomIndex = Random.Range(0, hitSounds.Length);
+        string selectedClip = hitSounds[randomIndex];
+        PlayHitSoundFromPool(selectedClip);
+
+        lastHitSoundTime = Time.time;
     }
 
     public void SetSFXVolumeByMixer(float volume)
