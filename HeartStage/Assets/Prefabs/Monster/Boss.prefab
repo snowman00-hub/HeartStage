@@ -76,7 +76,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: -1
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -522,6 +522,7 @@ MonoBehaviour:
   minDistance: 0.6
   frontCheckDistance: 0.8
   screenMargin: 0.5
+  confuseSearchRadius: 5
 --- !u!114 &1664435993275153533
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -546,13 +547,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6da8939683f7bef40bfd84ac8b4a89a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spawnCount: 3
-  summonMonsterPrefab:
-    m_AssetGUID: 25d15fac7fc04f64d9f86aad93de2ec1
-    m_SubObjectName: 
-    m_SubObjectType: 
-    m_SubObjectGUID: 
-    m_EditorAssetChanged: 0
 --- !u!1 &4266634089282418854
 GameObject:
   m_ObjectHideFlags: 0

@@ -5,6 +5,8 @@ public class StageManager : MonoBehaviour
 {
     public static StageManager Instance;
 
+    [SerializeField] private WindowManager windowManager;
+
     public StageUI StageUI;
     public LevelUpPanel LevelUpPanel;
     public Slider expSlider;
@@ -26,7 +28,7 @@ public class StageManager : MonoBehaviour
         set
         {
             waveCount = value;
-            StageUI.SetWaveCount(waveCount);
+            StageUI.SetWaveCount(stageNumber, waveOrder); 
         }
     }
 
@@ -62,10 +64,6 @@ public class StageManager : MonoBehaviour
                 int startingWave = PlayerPrefs.GetInt("StartingWave", 1);
                 SetWaveInfo(stageData.stage_step1, startingWave);
             }
-            else
-            {
-                Debug.LogError($"스테이지 ID {stageID}에 해당하는 데이터를 찾을 수 없습니다.");
-            }
         }
     }
 
@@ -77,6 +75,8 @@ public class StageManager : MonoBehaviour
     public void GoLobby()
     {
         LoadSceneManager.Instance.GoLobby();
+
+        SoundManager.Instance.PlaySFX("Ui_click_01"); // test
     }
 
     public void SetTimeScale(float timeScale)
@@ -100,10 +100,6 @@ public class StageManager : MonoBehaviour
         if (StageUI != null)
         {
             StageUI.SetWaveCount(stageNumber, waveOrder);
-        }
-        else
-        {
-            Debug.LogWarning("StageUI가 null입니다!");
         }
     }
 
@@ -139,6 +135,8 @@ public class StageManager : MonoBehaviour
     {
         Time.timeScale = 0f;
         LevelUpPanel.gameObject.SetActive(true);
+
+        SoundManager.Instance.PlaySFX("Ui_reward_01"); // test
     }
 
     // 원래 타임스케일 복원
@@ -147,17 +145,40 @@ public class StageManager : MonoBehaviour
         Time.timeScale = currentTimeScale;
     }
 
+    public void CompleteStage()
+    {
+        Clear();
+        SoundManager.Instance.PlaySFX("stageClearReward");
+    }
+
     // 승리시 
     public void Clear()
     {
         VictoryDefeatPanel.isClear = true;
-        VictoryDefeatPanel.gameObject.SetActive(true);
+
+        if (windowManager != null)
+        {
+            windowManager.OpenOverlay(WindowType.VictoryDefeat);
+        }
+
+        Time.timeScale = 0f;
     }
 
     // 패배시
     public void Defeat()
     {
         VictoryDefeatPanel.isClear = false;
-        VictoryDefeatPanel.gameObject.SetActive(true);
+
+        if (windowManager != null)
+        {
+            windowManager.OpenOverlay(WindowType.VictoryDefeat);
+        }
+        else
+        {
+            if (VictoryDefeatPanel != null)
+            {
+                VictoryDefeatPanel.gameObject.SetActive(true);
+            }
+        }
     }
 }

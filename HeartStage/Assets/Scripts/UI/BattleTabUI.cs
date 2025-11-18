@@ -106,6 +106,7 @@ public class BattleTabUI : GenericWindow
     private void OnCloseButtonClicked()
     {
         Close();
+        SoundManager.Instance.PlaySFX("Ui_click_01");
     }
 
     private void OnStageInfoButtonClicked(StageCsvData stageData)
@@ -116,6 +117,7 @@ public class BattleTabUI : GenericWindow
         }
 
         windowManager.OpenOverlay(WindowType.StageInfo);
+        SoundManager.Instance.PlaySFX("Ui_click_01");
     }
 
     public override void Open()

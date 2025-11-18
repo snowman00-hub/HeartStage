@@ -38,6 +38,7 @@ public class LevelUpSelectSlot : MonoBehaviour
             }
         }
         StageManager.Instance.RestoreTimeScale();
+        SoundManager.Instance.PlaySFX("LevelUpSelect");
     }
 
     public void Init(SelectData data)

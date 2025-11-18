@@ -27,5 +27,6 @@ public class LobbyUI : GenericWindow
     private void OnStageUiButtonClicked()
     {
         windowManager.OpenOverlay(WindowType.StageSelect);
+        SoundManager.Instance.PlaySFX("Ui_click_01");
     }
 }

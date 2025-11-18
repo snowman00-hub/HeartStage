@@ -52,6 +52,10 @@ public class MonsterSpawner : MonoBehaviour
 
     private async void Start()
     {
+        // 테스트용: 강제로 튜토리얼로 리셋
+        //PlayerPrefs.SetInt("SelectedStageID", 601);
+        //PlayerPrefs.Save();
+
         currentStageId = PlayerPrefs.GetInt("SelectedStageID", 601); // 기본값은 601 (튜토리얼)
         await InitializeAsync();
     }
@@ -85,7 +89,6 @@ public class MonsterSpawner : MonoBehaviour
         currentStageData = DataTableManager.StageTable.GetStage(currentStageId);
         if (currentStageData == null)
         {
-            Debug.LogError($"스테이지 데이터를 찾을 수 없음: {currentStageId}");
             return;
         }
 
@@ -93,7 +96,11 @@ public class MonsterSpawner : MonoBehaviour
         stageWaveIds = DataTableManager.StageTable.GetWaveIds(currentStageId);
         currentWaveIndex = 0;
 
-        Debug.Log($"스테이지 로드: {currentStageData.stage_name}, 웨이브 수: {stageWaveIds.Count}");
+        // 웨이브가 없을 경우 처리
+        if (stageWaveIds.Count == 0)
+        {
+            return;
+        }
 
         // 스테이지에 등장하는 모든 몬스터 ID에 대해 SO 캐시 및 CSV로 초기화
         var monsterIds = new HashSet<int>();
@@ -153,7 +160,7 @@ public class MonsterSpawner : MonoBehaviour
         }
 
         Debug.Log($"스테이지 {currentStageData.stage_name} 완료!");
-        await ProgressToNextStage();
+        ProgressToNextStage();
     }
 
     // 현재 웨이브 데이터 로드 및 UI 업데이트
@@ -264,22 +271,20 @@ public class MonsterSpawner : MonoBehaviour
     }
 
     // 다음 스테이지로 진행
-    private async UniTask ProgressToNextStage()
+    private void ProgressToNextStage()
     {
-        var nextStage = GetNextStage();
-        if (nextStage != null)
+        if (StageManager.Instance != null)
         {
-            Debug.Log($"다음 스테이지로 진행: {nextStage.stage_name}");
-            await ChangeStage(nextStage.stage_ID);
+            StageManager.Instance.CompleteStage();
         }
         else
         {
-            Debug.Log("모든 스테이지 완료!");
+            Debug.LogError("StageManager.Instance가 null입니다!");
         }
     }
 
     // 다음 스테이지 정보 가져오기
-    private StageCsvData GetNextStage()
+    public StageCsvData GetNextStage()
     {
         var orderedStages = DataTableManager.StageTable.GetOrderedStages();
         int currentIndex = orderedStages.FindIndex(s => s.stage_ID == currentStageId);
@@ -558,6 +563,12 @@ public class MonsterSpawner : MonoBehaviour
         // 새 스테이지 초기화
         await InitializePool();
         await LoadStageData();
+
+        if (StageManager.Instance != null && currentStageData != null)
+        {
+            StageManager.Instance.SetCurrentStageData(currentStageData);
+        }
+
         await StartStageProgression();
     }
 
