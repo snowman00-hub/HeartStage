@@ -13,7 +13,7 @@ public class SeletStageWindow : MonoBehaviour
     public Button StartButton;
     public GameObject basePrefab;
 
-    // 캐릭터 펜스
+    // 캐릭터 펜스 (싱글톤으로 사용)
     public CharacterFence fence;
 
     //패시브 타입 보여줄 이미지 바닥 색변경
@@ -21,6 +21,10 @@ public class SeletStageWindow : MonoBehaviour
 
     // 이번 배치에서 "패시브 바닥으로 판정된 타일들"
     private bool[] _passiveTiles;
+
+    // 🔹 타일별 패시브 중첩 개수 (1,2,3...)
+    private int[] _passiveStackCounts;
+
     //미리보기 오버레이
     private bool[] _previewPassiveTiles;
 
@@ -36,25 +40,35 @@ public class SeletStageWindow : MonoBehaviour
             value = v;
         }
     }
+    // 🔹 타일 인덱스 → 그 타일에 쌓인 모든 패시브 효과 리스트
     private Dictionary<int, List<PassiveEffectData>> PassiveIndexs;
 
 
     [Header("Passive Tile Colors")]
-    [SerializeField] private Color passiveTileColor = Color.yellow;
+    [SerializeField] private Color passiveTileColor = new Color(1f, 165f / 255f, 0f); // 주황 느낌
     [SerializeField] private Color normalTileColor = Color.white;
+
+    // 🔹 중첩 개수에 따른 색
+    [SerializeField] private Color stack2Color = Color.green;       // 2중첩: 초록
+    [SerializeField] private Color stack3Color = Color.blue;        // 3중첩: 파랑
+    [SerializeField] private Color stack4Color = Color.yellow;      // 4중첩: 노랑
+    [SerializeField] private Color stack5Color = Color.red;         // 5이상: 빨강
+
+    [SerializeField] private Color previewColor = Color.cyan;       // 미리보기 색
 
     private void OnEnable()
     {
         StageIndexs = new Dictionary<int, int>();
         PassiveIndexs = new Dictionary<int, List<PassiveEffectData>>();
 
-
         if (DraggableSlots != null)
         {
-            _passiveTiles = new bool[DraggableSlots.Length];
+            int len = DraggableSlots.Length;
+            _passiveTiles = new bool[len];
+            _passiveStackCounts = new int[len];
 
-            // 여기 추가: 각 슬롯에 자기 index 부여
-            for (int i = 0; i < DraggableSlots.Length; i++)
+            // 각 슬롯에 자기 index 부여
+            for (int i = 0; i < len; i++)
             {
                 if (DraggableSlots[i] != null)
                     DraggableSlots[i].slotIndex = i;
@@ -158,7 +172,7 @@ public class SeletStageWindow : MonoBehaviour
 
         attack.id = characterId;
 
-        // 체력 적용
+        // 체력 적용 (네 방식 그대로 유지)
         CharacterFence.Instance.Init();
     }
 
@@ -185,24 +199,21 @@ public class SeletStageWindow : MonoBehaviour
     {
         if (DraggableSlots == null) return;
 
-        if (_passiveTiles == null || _passiveTiles.Length != DraggableSlots.Length)
-            _passiveTiles = new bool[DraggableSlots.Length];
+        int len = DraggableSlots.Length;
 
-        System.Array.Clear(_passiveTiles, 0, _passiveTiles.Length);
+        if (_passiveTiles == null || _passiveTiles.Length != len)
+            _passiveTiles = new bool[len];
+        if (_passiveStackCounts == null || _passiveStackCounts.Length != len)
+            _passiveStackCounts = new int[len];
 
-        if (PassiveImages != null)
-        {
-            int len = Mathf.Min(PassiveImages.Length, _passiveTiles.Length);
-            for (int i = 0; i < len; i++)
-            {
-                if (PassiveImages[i] != null)
-                    PassiveImages[i].color = normalTileColor;
-            }
-        }
+        System.Array.Clear(_passiveTiles, 0, len);
+        System.Array.Clear(_passiveStackCounts, 0, len);
+
+        // 색은 ApplyTileColors에서 처리
     }
-  
 
-   /// 현재 DraggableSlots 상태 + 각 캐릭터의 PassiveType을 기준으로
+
+    /// 현재 DraggableSlots 상태 + 각 캐릭터의 PassiveType을 기준으로
     /// 바닥 패시브 타일(_passiveTiles) 계산 + 색칠
     private void RebuildPassiveTiles()
     {
@@ -233,80 +244,105 @@ public class SeletStageWindow : MonoBehaviour
             {
                 Debug.Log($"    -> 패턴 타일 포함 index {idx}");
                 _passiveTiles[idx] = true;
+                _passiveStackCounts[idx]++;   // 🔹 중첩 개수 누적
             }
         }
 
-        // 계산 결과를 바닥 이미지 색에 반영
-        if (PassiveImages != null)
-        {
-            Debug.Log("[RebuildPassiveTiles] 패시브 타일 색칠 시작");
-            int len = Mathf.Min(PassiveImages.Length, _passiveTiles.Length);
-            for (int i = 0; i < len; i++)
-            {
-                var img = PassiveImages[i];
-                if (img == null) continue;
+        ApplyTileColors();
+    }
 
-                img.color = _passiveTiles[i] ? passiveTileColor : normalTileColor;
-            }
+    // 🔹 중첩 개수 → 색 변환
+    private Color GetColorByStackCount(int stack)
+    {
+        if (stack <= 0) return normalTileColor;
+
+        switch (stack)
+        {
+            case 1: return passiveTileColor; // 주황
+            case 2: return stack2Color;      // 초록
+            case 3: return stack3Color;      // 파랑
+            case 4: return stack4Color;      // 노랑
+            default: return stack5Color;     // 5 이상 빨강
+        }
+    }
+
+    // 🔹 실제 바닥 타일 색을 중첩 개수에 맞게 반영
+    private void ApplyTileColors()
+    {
+        if (PassiveImages == null || _passiveStackCounts == null) return;
+
+        Debug.Log("[RebuildPassiveTiles] 패시브 타일 색칠 시작");
+        int len = Mathf.Min(PassiveImages.Length, _passiveStackCounts.Length);
+        for (int i = 0; i < len; i++)
+        {
+            var img = PassiveImages[i];
+            if (img == null) continue;
+
+            int stack = _passiveStackCounts[i];
+            img.color = GetColorByStackCount(stack);
         }
 
         // 마지막으로 전체 결과 한 번 요약
-        string debugLine = "[RebuildPassiveTiles] 최종 passiveTiles: ";
-        for (int i = 0; i < _passiveTiles.Length; i++)
-            debugLine += _passiveTiles[i] ? $" {i}" : "";
+        string debugLine = "[RebuildPassiveTiles] 최종 stackCounts: ";
+        for (int i = 0; i < _passiveStackCounts.Length; i++)
+            if (_passiveStackCounts[i] > 0)
+                debugLine += $" {i}({_passiveStackCounts[i]})";
         Debug.Log(debugLine);
     }
 
     private bool IsPassiveTile(int slotIndex)
     {
-        return _passiveTiles != null &&
+        return _passiveStackCounts != null &&
                slotIndex >= 0 &&
-               slotIndex < _passiveTiles.Length &&
-               _passiveTiles[slotIndex];
+               slotIndex < _passiveStackCounts.Length &&
+               _passiveStackCounts[slotIndex] > 0;
     }
+
     public void ShowPassivePreview(int slotIndex, CharacterData cd)
     {
         if (cd == null) return;
+        if (DraggableSlots == null || PassiveImages == null) return;
 
-        // 먼저 전체 타일 리셋
-        ClearPassivePreview();
+        int slotCount = DraggableSlots.Length;
+
+        if (_previewPassiveTiles == null || _previewPassiveTiles.Length != slotCount)
+            _previewPassiveTiles = new bool[slotCount];
+
+        System.Array.Clear(_previewPassiveTiles, 0, _previewPassiveTiles.Length);
 
         var skill = DataTableManager.SkillTable.Get(cd.skill_id1);
         PassiveType type = (PassiveType)skill.passive_type;
 
         if (type == PassiveType.None) return;
 
-        _previewPassiveTiles = new bool[DraggableSlots.Length];
-
-        foreach (int idx in PassivePatternUtil.GetPatternTiles(slotIndex, type, DraggableSlots.Length))
+        foreach (int idx in PassivePatternUtil.GetPatternTiles(slotIndex, type, slotCount))
         {
-            _previewPassiveTiles[idx] = true;
+            if (idx >= 0 && idx < _previewPassiveTiles.Length)
+                _previewPassiveTiles[idx] = true;
         }
 
         // 미리보기 색 적용 (겹치면 preview가 우선)
-        for (int i = 0; i < PassiveImages.Length; i++)
+        int len = Mathf.Min(PassiveImages.Length, _passiveStackCounts != null ? _passiveStackCounts.Length : PassiveImages.Length);
+        for (int i = 0; i < len; i++)
         {
-            if (_previewPassiveTiles[i])
-                PassiveImages[i].color = Color.cyan;   // 미리보기 색
+            var img = PassiveImages[i];
+            if (img == null) continue;
+
+            bool isPreview = _previewPassiveTiles[i];
+
+            if (isPreview)
+                img.color = previewColor; // 미리보기 색
             else
-                PassiveImages[i].color = _passiveTiles[i] ?
-                                         passiveTileColor :
-                                         normalTileColor;
+                img.color = GetColorByStackCount(
+                    (_passiveStackCounts != null && i < _passiveStackCounts.Length)
+                        ? _passiveStackCounts[i] : 0);
         }
     }
 
     public void ClearPassivePreview()
     {
-        if (PassiveImages == null) return;
-
-        for (int i = 0; i < PassiveImages.Length; i++)
-        {
-            PassiveImages[i].color = _passiveTiles[i] ?
-                                     passiveTileColor :
-                                     normalTileColor;
-        }
-
         _previewPassiveTiles = null;
+        ApplyTileColors();
     }
 
 }
