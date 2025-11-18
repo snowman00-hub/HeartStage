@@ -43,7 +43,7 @@ public class AddressableLabel
 public enum WindowType
 {
     None = -1,
-    TestWindow,
-    Test2Window,
-    // 메인 UI 등 추가
+    Lobby = 0,
+    StageSelect = 1,
+    StageInfo = 2,
 }
