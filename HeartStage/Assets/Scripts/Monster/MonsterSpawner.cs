@@ -169,7 +169,6 @@ public class MonsterSpawner : MonoBehaviour
 
         SetUpWaveMonster();
         UpdateStageUI();
-        Debug.Log($"웨이브 로드: {currentWaveData.wave_name}, 총 {GetTotalWaveMonsterCount()}마리, 간격: {currentWaveData.enemy_spown_time}초");
     }
 
     // 웨이브에 등장할 몬스터 정보 설정

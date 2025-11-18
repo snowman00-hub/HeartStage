@@ -102,7 +102,6 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
 
         if (PoolManager.Instance == null)
         {
-            Debug.LogError("DeceptionBossSkill: PoolManager.Instance가 없습니다");
             return;
         }
 
@@ -117,16 +116,13 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
                 int poolSize = 10;
                 PoolManager.Instance.CreatePool(poolId, monsterPrefabGO, poolSize, poolSize * 2);
                 isPoolInitialized = true;
-                Debug.Log($"DeceptionBossSkill 풀 생성 완료: {poolId}, 풀 크기: {poolSize}");
             }
             else
             {
-                Debug.LogError("DeceptionBossSkill: MonsterPrefab 로드 실패");
             }
         }
         catch (System.Exception e)
         {
-            Debug.LogError($"DeceptionBossSkill 풀 초기화 실패: {e.Message}");
         }
     }
 
@@ -140,11 +136,9 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
 
         if (!isPoolInitialized || skillData == null || cachedMonsterData == null)
         {
-            Debug.LogWarning("DeceptionBossSkill: 초기화되지 않음");
             return;
         }
 
-        Debug.Log($"스킬 실행: {skillData.skill_name} (쿨타임: {skillData.skill_cool}초)");
         ExecuteSkill().Forget();
     }
 
@@ -152,7 +146,6 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
     {
         // SkillTable 데이터에 따른 소환 개수 (15~18마리 → 2~3마리로 조정)
         int spawnCount = Random.Range(2, 4); // 2~3마리 고정
-        Debug.Log($"대량 현혹 스킬 실행: poolId={poolId}, spawnCount={spawnCount}");
 
         // 보스 주위에 소환
         for (int i = 0; i < spawnCount; i++)
@@ -161,7 +154,6 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
             if (monster != null)
             {
                 SetupSummonedMonster(monster);
-                Debug.Log($"DeceptionSkill 몬스터 소환 성공: {i + 1}/{spawnCount}");
             }
             else
             {
@@ -175,7 +167,6 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
             }
         }
 
-        Debug.Log($"스킬 완료, 다음 스킬까지 {skillData.skill_cool}초 대기");
     }
 
     private void SetupSummonedMonster(GameObject monster)

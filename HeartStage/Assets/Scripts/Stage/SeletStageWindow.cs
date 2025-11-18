@@ -234,15 +234,12 @@ public class SeletStageWindow : MonoBehaviour
 
             PassiveType passiveType = (PassiveType)skill.passive_type; // skill.passive_type이 int라고 가정
 
-            Debug.Log($"[RebuildPassiveTiles] slot {i}, char {cd.char_name}, skill_id1={cd.skill_id1}, passiveType={passiveType}({skill.passive_type})");
-
             if (passiveType == PassiveType.None)
                 continue;
 
             // 기준칸 = i, 패턴 오프셋 적용
             foreach (int idx in PassivePatternUtil.GetPatternTiles(i, passiveType, slotCount))
             {
-                Debug.Log($"    -> 패턴 타일 포함 index {idx}");
                 _passiveTiles[idx] = true;
                 _passiveStackCounts[idx]++;   // 🔹 중첩 개수 누적
             }
@@ -271,7 +268,6 @@ public class SeletStageWindow : MonoBehaviour
     {
         if (PassiveImages == null || _passiveStackCounts == null) return;
 
-        Debug.Log("[RebuildPassiveTiles] 패시브 타일 색칠 시작");
         int len = Mathf.Min(PassiveImages.Length, _passiveStackCounts.Length);
         for (int i = 0; i < len; i++)
         {
@@ -281,13 +277,6 @@ public class SeletStageWindow : MonoBehaviour
             int stack = _passiveStackCounts[i];
             img.color = GetColorByStackCount(stack);
         }
-
-        // 마지막으로 전체 결과 한 번 요약
-        string debugLine = "[RebuildPassiveTiles] 최종 stackCounts: ";
-        for (int i = 0; i < _passiveStackCounts.Length; i++)
-            if (_passiveStackCounts[i] > 0)
-                debugLine += $" {i}({_passiveStackCounts[i]})";
-        Debug.Log(debugLine);
     }
 
     private bool IsPassiveTile(int slotIndex)
