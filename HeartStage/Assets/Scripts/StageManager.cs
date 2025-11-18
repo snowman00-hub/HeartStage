@@ -9,6 +9,7 @@ public class StageManager : MonoBehaviour
     public LevelUpPanel LevelUpPanel;
     public Slider expSlider;
     public VictoryDefeatPanel VictoryDefeatPanel;
+    private StageCsvData currentStageData;
 
     private float currentTimeScale = 1f;
 
@@ -73,6 +74,21 @@ public class StageManager : MonoBehaviour
         {
             StageUI.SetWaveCount(stageNumber, waveOrder);
         }
+    }
+
+    public void SetCurrentStageData(StageCsvData stageData)
+    {
+        currentStageData = stageData;
+        if(stageData != null)
+        {
+            stageNumber = stageData.stage_step1;
+            waveOrder = 1; // 스테이지 시작시 첫 번째 웨이브
+        }
+    }
+    // 현재 스테이지 데이터 가져오기
+    public StageCsvData GetCurrentStageData()
+    {
+        return currentStageData;
     }
 
     // 경험치 얻기

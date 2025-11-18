@@ -1,11 +1,19 @@
 ﻿using UnityEngine;
 using TMPro;
+using System.Text;
+using UnityEngine.UI;
 
-public class BattleTabUI : MonoBehaviour
+public class BattleTabUI : GenericWindow
 {
     [Header("UI References")]
-    public RectTransform contentParent;  
+    public RectTransform contentParent;
     public GameObject stagePrefab; // 피벗 (0.5,0), 앵커 (0.5,0)    
+    [SerializeField] private WindowManager windowManager;
+    [SerializeField] private StageInfoUI stageInfoUI;
+
+    [Header("Button")]
+    //[SerializeField] private Button closeButton;
+    [SerializeField] private Button stageInfoButton;
 
     [Header("Layout Settings")]
     public float verticalSpacing = 400f; // 세로 간격
@@ -13,6 +21,18 @@ public class BattleTabUI : MonoBehaviour
     public int totalChapters = 5;         // 총 챕터 수
     public int stagesPerChapter = 3;      // 챕터당 스테이지 수
     public float verticalPadding = 100f;
+
+    [Header("Field")]
+    private StageCsvData stageCsvData;
+    private StageTable stageTable;
+
+    private void Awake()
+    {
+        isOverlayWindow = true; // 오버레이 창으로 설정
+
+        //closeButton.onClick.AddListener(OnCloseButtonClicked);
+
+    }
 
     // 자식 오브젝트 삭제
     [ContextMenu("DeleteChildren")]
@@ -28,42 +48,90 @@ public class BattleTabUI : MonoBehaviour
     [ContextMenu("GenerateStages()")]
     public void GenerateStages()
     {
+        Debug.Log("GenerateStages 시작");
         DeleteChildren();
 
-        int index = 0;
-        int totalStages = totalChapters * stagesPerChapter;
-
-        // 스테이지 생성
-        for (int group = 1; group <= totalChapters; group++)
+        if (stageTable == null)
         {
-            for (int stage = 1; stage <= stagesPerChapter; stage++)
+            stageTable = DataTableManager.StageTable;
+        }
+
+        var allStages = stageTable.GetOrderedStages();
+
+        allStages.Sort((x, y) =>
+        {
+            int result = x.stage_step1.CompareTo(y.stage_step1);
+            if (result == 0)
             {
-                string name = $"{group} - {stage}";
-
-                GameObject stageObj = Instantiate(stagePrefab, contentParent);
-                RectTransform rect = stageObj.GetComponent<RectTransform>();
-
-                // 아래에서 위로 쌓이게
-                float y = index * verticalSpacing + verticalPadding;
-                // 좌우 번갈아 배치
-                float x = (index % 2 == 0) ? -horizontalOffset : horizontalOffset;
-
-                rect.anchoredPosition = new Vector2(x, y);
-                stageObj.name = $"{name}";
-
-                // Text 표시
-                var text = stageObj.GetComponentInChildren<TextMeshProUGUI>();
-                if (text != null)
-                    text.text = name;
-
-                index++;
+                result = x.stage_step2.CompareTo(y.stage_step2);
             }
+            return result;
+        });
+
+        int index = 0;
+
+        for (int i = 0; i < allStages.Count; i++)
+        {
+            var stageData = allStages[i];
+            var sb = new StringBuilder();
+            sb.Clear();
+            sb.Append($"{stageData.stage_step1} - {stageData.stage_step2}");
+
+            GameObject stageObj = Instantiate(stagePrefab, contentParent);
+
+            RectTransform rect = stageObj.GetComponent<RectTransform>();
+
+            float y = index * verticalSpacing + verticalPadding;
+            float x = (index % 2 == 0) ? -horizontalOffset : horizontalOffset;
+
+            rect.anchoredPosition = new Vector2(x, y);
+
+            var text = stageObj.GetComponentInChildren<TextMeshProUGUI>();
+            if (text != null)
+                text.text = sb.ToString();
+
+            var button = stageObj.GetComponent<Button>();
+            if (button != null)
+            {
+                var capturedStageData = stageData; // 클로저 문제 해결을 위해 지역 변수에 할당
+                button.onClick.AddListener(() => OnStageInfoButtonClicked(capturedStageData));
+            }
+
+            index++;
         }
 
         // Content의 높이 자동 조정
-        float contentHeight = (totalStages - 1) * verticalSpacing + 500f;
+        float contentHeight = (allStages.Count - 1) * verticalSpacing + 500f;
         Vector2 size = contentParent.sizeDelta;
         size.y = contentHeight;
         contentParent.sizeDelta = size;
+
+        Debug.Log($"Content 높이 설정: {contentHeight}");
+        Debug.Log("GenerateStages 완료");
+    }
+
+    private void OnCloseButtonClicked()
+    {
+        Close();
+    }
+
+    private void OnStageInfoButtonClicked(StageCsvData stageData)
+    {
+        if (stageInfoUI != null)
+        {
+            stageInfoUI.SetStageData(stageData);
+        }
+
+        windowManager.OpenOverlay(WindowType.StageInfo);
+    }
+
+    public override void Open()
+    {
+        base.Open();
+        GenerateStages();
+    }
+    public override void Close()
+    {
+        base.Close();
     }
 }

@@ -48,6 +48,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sfxSource: {fileID: 6717558550069187121}
   bgmSource: {fileID: 2334482760404264193}
+  audioMixer: {fileID: 24100000, guid: 4a0ec5898f5cb34498868177aeb8cfda, type: 2}
+  sfxMixerGroup: {fileID: 8000605955469031922, guid: 4a0ec5898f5cb34498868177aeb8cfda, type: 2}
+  bgmMixerGroup: {fileID: 177977266687567346, guid: 4a0ec5898f5cb34498868177aeb8cfda, type: 2}
+  hitSoundPoolSize: 5
+  defaultCooldownTime: 0.2
 --- !u!82 &6717558550069187121
 AudioSource:
   m_ObjectHideFlags: 0
