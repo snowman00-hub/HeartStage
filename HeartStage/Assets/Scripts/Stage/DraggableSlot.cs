@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UnityEditor.PackageManager.UI;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -13,11 +14,24 @@ public class DraggableSlot : MonoBehaviour,
     private readonly Dictionary<int, RectTransform> m_DraggingPlanes = new Dictionary<int, RectTransform>();
 
     // drop
-    public Image containerImage;
+    //public Image containerImage;
     public Image receivingImage;
-    private Color normalColor;
-    public Color highlightColor = Color.yellow;
+    //private Color normalColor;
+    //public Color highlightColor = Color.yellow;
     public CharacterData characterData;
+
+    //드래그 슬롯 이벤트 추가
+    public static System.Action OnAnySlotChanged;
+    //부모추가
+    private SeletStageWindow _window;
+    public int slotIndex;
+
+    private void Awake()
+    {
+        _window = GetComponentInParent<SeletStageWindow>();
+    }
+
+    private void NotifySlotChanged() => OnAnySlotChanged?.Invoke();
 
     // ---------- Drag (슬롯 자체도 드래그 가능하도록) ----------
     public void OnBeginDrag(PointerEventData eventData)
@@ -54,7 +68,10 @@ public class DraggableSlot : MonoBehaviour,
     public void OnDrag(PointerEventData eventData)
     {
         if (m_DraggingIcons.TryGetValue(eventData.pointerId, out var icon) && icon != null)
+        {
             SetDraggedPosition(eventData);
+        }
+            
     }
 
     private void SetDraggedPosition(PointerEventData eventData)
@@ -101,13 +118,13 @@ public class DraggableSlot : MonoBehaviour,
     // ---------- Drop ----------
     private void OnEnable()
     {
-        if (containerImage != null)
-            normalColor = containerImage.color;
+        //if (containerImage != null)
+        //    normalColor = containerImage.color;
     }
 
     public void OnDrop(PointerEventData data)
     {
-        if (containerImage != null) containerImage.color = normalColor;
+        //if (containerImage != null) containerImage.color = normalColor;
         if (!TryGetDropPayload(data, out var dropSprite, out var droppedCD)) return;
 
         // (1) DragMe -> Slot 케이스
@@ -139,6 +156,9 @@ public class DraggableSlot : MonoBehaviour,
                 DragSourceRegistry.Register(characterData, src);
             }
 
+            NotifySlotChanged();
+            _window?.ClearPassivePreview();
+
             if (characterData != null) Debug.Log($"{characterData.char_name}");
             return;
         }
@@ -148,6 +168,7 @@ public class DraggableSlot : MonoBehaviour,
         if (sourceSlot != null)
         {
             HandleDropFromSlot(sourceSlot);
+            NotifySlotChanged();
             if (characterData != null) Debug.Log($"{characterData.char_name}");
         }
     }
@@ -155,15 +176,24 @@ public class DraggableSlot : MonoBehaviour,
 
     public void OnPointerEnter(PointerEventData data)
     {
-        if (containerImage == null) return;
-        if (TryGetDropPayload(data, out _, out _))
-            containerImage.color = highlightColor;
+        // 드래그 중이 아니거나, 드롭 페이로드를 못 얻으면 리턴
+        if (!TryGetDropPayload(data, out var sprite, out var cd))
+            return;
+
+        // 아직 진짜로 슬롯에 올린 건 아니고, "여기다 두면" 기준으로 미리보기
+        if (_window != null && cd != null)
+        {
+            _window.ShowPassivePreview(slotIndex, cd);
+        }
     }
 
     public void OnPointerExit(PointerEventData data)
     {
-        if (containerImage == null) return;
-        containerImage.color = normalColor;
+        // 슬롯에서 포인터가 나가면 미리보기 제거
+        if (_window != null)
+        {
+            _window.ClearPassivePreview();
+        }
     }
 
     /// <summary>
@@ -218,6 +248,7 @@ public class DraggableSlot : MonoBehaviour,
                 img.raycastTarget = true;
             }
         }
+        NotifySlotChanged();
     }
 
     private Sprite GetSlotSprite(DraggableSlot slot)
