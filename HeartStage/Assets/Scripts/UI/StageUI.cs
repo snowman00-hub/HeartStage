@@ -19,7 +19,11 @@ public class StageUI : MonoBehaviour
         }
         else
         {
-            waveCountText.text = $"{stageNumber}스테이지\n{waveOrder}웨이브";
+            var currentStage = StageManager.Instance.GetCurrentStageData();
+            if (currentStage != null)
+            {
+                waveCountText.text = $"{currentStage.stage_step1}-{currentStage.stage_step2}스테이지\n{waveOrder}웨이브";
+            }
         }
     }
 
@@ -27,6 +31,4 @@ public class StageUI : MonoBehaviour
     {
         remainMonsterCountText.text = $"남은 적군\n{remainMonsterCount}";
     }
-
-
 }

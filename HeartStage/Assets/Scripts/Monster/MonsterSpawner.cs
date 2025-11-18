@@ -30,7 +30,7 @@ public class MonsterSpawner : MonoBehaviour
 
     [Header("Field")]
     [SerializeField] private int poolSize = 150; // wave pool size
-    [SerializeField] private int currentStageId = 601; // 현재 스테이지 ID
+    private int currentStageId; 
 
     // MonsterData SO 캐시 
     private Dictionary<int, MonsterData> monsterDataCache = new Dictionary<int, MonsterData>();
@@ -52,6 +52,7 @@ public class MonsterSpawner : MonoBehaviour
 
     private async void Start()
     {
+        currentStageId = PlayerPrefs.GetInt("SelectedStageID", 601); // 기본값은 601 (튜토리얼)
         await InitializeAsync();
     }
 
@@ -595,18 +596,12 @@ public class MonsterSpawner : MonoBehaviour
     // 스테이지 표시 정보 계산
     private (int stageNumber, int waveOrder) GetStageDisplayInfo(int stageId, int waveIndex)
     {
-        if (stageId == 601)
+        if (currentStageData != null)
         {
-            return (0, waveIndex);
-        }
-        else if (stageId >= 611 && stageId <= 619)
-        {
-            int stageNumber = stageId - 610;
-            return (stageNumber, waveIndex);
+            return (currentStageData.stage_step1, waveIndex);
         }
 
-        // 기본값
-        return (stageId % 100, waveIndex);
+        return (1, waveIndex); // 기본 1스테이지
     }
 
     // 몬스터 사망 처리
