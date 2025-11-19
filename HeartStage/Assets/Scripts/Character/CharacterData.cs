@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 
 [CreateAssetMenu(fileName = "CharacterData", menuName = "Scriptable Objects/CharacterData")]
 public class CharacterData : ScriptableObject
@@ -42,6 +44,13 @@ public class CharacterData : ScriptableObject
     {
         float total = atk_dmg + atk_speed + char_hp + crt_chance + crt_dmg + atk_addcount + atk_range;
         return Mathf.FloorToInt(total);
+    }
+
+    // 0이 아닌 스킬 아이디 얻기
+    public List<int> GetSkillIds()
+    {
+        var skills = new[] { skill_id1, skill_id2, skill_id3, skill_id4, skill_id5, skill_id6 };
+        return skills.Where(s => s != 0).ToList();
     }
 
     // CSV → ScriptableObject
