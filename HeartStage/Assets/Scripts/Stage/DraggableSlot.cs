@@ -23,12 +23,12 @@ public class DraggableSlot : MonoBehaviour,
     //드래그 슬롯 이벤트 추가
     public static System.Action OnAnySlotChanged;
     //부모추가
-    private SeletStageWindow _window;
+    private StageSetupWindow _window;
     public int slotIndex;
 
     private void Awake()
     {
-        _window = GetComponentInParent<SeletStageWindow>();
+        _window = GetComponentInParent<StageSetupWindow>();
     }
 
     private void NotifySlotChanged() => OnAnySlotChanged?.Invoke();
