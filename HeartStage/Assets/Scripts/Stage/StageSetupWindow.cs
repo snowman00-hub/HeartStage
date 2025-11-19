@@ -56,6 +56,8 @@ public class StageSetupWindow : MonoBehaviour
 
     [SerializeField] private Color previewColor = Color.cyan;       // 미리보기 색
 
+    [SerializeField] private SynergyPanel synergyPanel;
+
     private void OnEnable()
     {
         StageIndexs = new Dictionary<int, int>();
@@ -67,7 +69,6 @@ public class StageSetupWindow : MonoBehaviour
             _passiveTiles = new bool[len];
             _passiveStackCounts = new int[len];
 
-            // 각 슬롯에 자기 index 부여
             for (int i = 0; i < len; i++)
             {
                 if (DraggableSlots[i] != null)
@@ -77,14 +78,23 @@ public class StageSetupWindow : MonoBehaviour
 
         Time.timeScale = 0f;
         StartButton.onClick.AddListener(StartButtonClick);
+
+        // 🔹 패시브/시너지 초기 계산
         RebuildPassiveTiles();
 
-        DraggableSlot.OnAnySlotChanged += RebuildPassiveTiles;
+        if (synergyPanel != null)
+        {
+            synergyPanel.BuildAllButtons();
+            UpdateSynergyUI();
+        }
+
+        // 🔹 슬롯 변경 → 패시브 + 시너지 둘 다 갱신
+        DraggableSlot.OnAnySlotChanged += HandleSlotChanged;
     }
     private void OnDisable()
     {
         StartButton.onClick.RemoveListener(StartButtonClick);
-        DraggableSlot.OnAnySlotChanged -= RebuildPassiveTiles;
+        DraggableSlot.OnAnySlotChanged -= HandleSlotChanged;
     }
 
     private Dictionary<int, int> GetStagePos()
@@ -337,5 +347,21 @@ public class StageSetupWindow : MonoBehaviour
         DraggableSlots[3].characterData = ResourceManager.Instance.Get<CharacterData>("sera21");
         DraggableSlots[6].characterData = ResourceManager.Instance.Get<CharacterData>("lia21");
         StartButtonClick();
+    }
+
+    private void HandleSlotChanged()
+    {
+        // 1) 패시브 타일 다시 계산 + 색칠
+        RebuildPassiveTiles();
+
+        // 2) 시너지 UI 갱신
+        UpdateSynergyUI();
+    }
+
+    private void UpdateSynergyUI()
+    {
+        if (synergyPanel == null) return;
+        var actives = SynergyManager.Evaluate(DraggableSlots);
+        synergyPanel.UpdateActiveSynergies(actives);
     }
 }

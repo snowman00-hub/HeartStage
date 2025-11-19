@@ -63,6 +63,11 @@ public class SynergyTable : DataTable
         return result;
     }
 
+    public Dictionary<int, SynergyCSVData> GetAllCSV()
+    {
+        return table;
+    }
+
     public List<int> GetEffectIds(int id)
     {
         var list = new List<int>();

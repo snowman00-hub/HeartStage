@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public enum SynergyTarget
@@ -166,4 +167,6 @@ public static class SynergyManager
                 break;
         }
     }
+
+    //시너지 드래그 드롭시 효과 적용 확인
 }
