@@ -39,14 +39,6 @@ public class ItemManager : MonoBehaviour
     {
         var expGo = PoolManager.Instance.Get(expItemAssetName);
         var expItem = expGo.GetComponent<ExpItem>();
-        if (expItem == null)
-        {
-            Debug.Log("expItem NUll");
-        }
-        else
-        {
-            Debug.Log("expItem 있음");
-        }
         expItem.amount = amount;
         expGo.transform.position = spawnPos;
     }

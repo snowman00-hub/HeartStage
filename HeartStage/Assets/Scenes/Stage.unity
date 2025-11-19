@@ -29046,6 +29046,7 @@ GameObject:
   - component: {fileID: 1859982279}
   - component: {fileID: 1859982281}
   - component: {fileID: 1859982280}
+  - component: {fileID: 1859982282}
   m_Layer: 5
   m_Name: CharacterInfoWindow
   m_TagString: Untagged
@@ -29111,6 +29112,31 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1859982278}
   m_CullTransparentMesh: 1
+--- !u!114 &1859982282
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1859982278}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8de21231ec5fcb541b01af13820b3e41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  characterImage: {fileID: 1705653810}
+  characterName: {fileID: 1312355227}
+  attributeIcon: {fileID: 1244737418}
+  rankText: {fileID: 698250783}
+  passiveDescText: {fileID: 780664054}
+  activeDescText: {fileID: 1764581059}
+  vocal: {fileID: 1872252051}
+  lab: {fileID: 914668169}
+  dance: {fileID: 1554064910}
+  visual: {fileID: 1958155976}
+  sexy: {fileID: 851585370}
+  cuty: {fileID: 135155059}
+  charisma: {fileID: 780859211}
 --- !u!1 &1865797312
 GameObject:
   m_ObjectHideFlags: 0
