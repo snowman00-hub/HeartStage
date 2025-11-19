@@ -223,10 +223,9 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
     private Vector3 GetRandomSpawnPosition()
     {
         Vector3 bossPosition = transform.position;
-        
+
         // 보스 주위 소환 범위 
-        float sideDistance = Mathf.Min(skillData.skill_range * 0.5f, 3f); // 최대 3 유닛 반경
-        
+        float sideDistance = Random.Range(2f, 5f);
         float side = Random.Range(0, 2) == 0 ? -1f : 1f; // 왼쪽 또는 오른쪽
 
         float yOffset = Random.Range(-0.5f, -1f); // 약간 위쪽
