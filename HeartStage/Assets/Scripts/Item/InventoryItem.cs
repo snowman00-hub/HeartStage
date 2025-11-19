@@ -52,7 +52,7 @@ public class InventoryItem : MonoBehaviour
             {
                 transform.position = targetPos;
                 isFlying = false;
-                PoolManager.Instance.Release(ItemManager.expItemAssetName, gameObject);
+                PoolManager.Instance.Release(ItemManager.inventoryItemId, gameObject);
                 ItemManager.Instance.AddToInventory(itemId, amount);
                 return;
             }

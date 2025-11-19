@@ -37,10 +37,16 @@ public class ItemManager : MonoBehaviour
     // 경험치 아이템
     public void SpawnExp(Vector3 spawnPos, int amount)
     {
-        return; // 고치기
-
         var expGo = PoolManager.Instance.Get(expItemAssetName);
         var expItem = expGo.GetComponent<ExpItem>();
+        if (expItem == null)
+        {
+            Debug.Log("expItem NUll");
+        }
+        else
+        {
+            Debug.Log("expItem 있음");
+        }
         expItem.amount = amount;
         expGo.transform.position = spawnPos;
     }

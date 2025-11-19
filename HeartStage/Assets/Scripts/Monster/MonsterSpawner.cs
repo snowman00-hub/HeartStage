@@ -441,7 +441,7 @@ public class MonsterSpawner : MonoBehaviour
                     monsterDataCache[monsterId] = monsterDataSO;
                 }
             }
-            catch (System.Exception e)
+            catch
             {
             }
         }
@@ -507,7 +507,7 @@ public class MonsterSpawner : MonoBehaviour
 
                     monsterPools[monsterId].Add(monster);
                 }
-                catch (System.Exception e)
+                catch
                 {
                 }
             }
