@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class SeletStageWindow : MonoBehaviour
+public class StageSetupWindow : MonoBehaviour
 {
     //드래그 슬롯들
     public DraggableSlot[] DraggableSlots;
@@ -135,33 +135,37 @@ public class SeletStageWindow : MonoBehaviour
 
     private void StartButtonClick()
     {
-        // 1) 현재 슬롯 상태 기준으로 바닥 패시브 타일 계산 + 색칠
         RebuildPassiveTiles();
 
-        // 2) 스테이지 자리/패시브 효과 테이블 구성
         GetStagePos();
 
-        // 3) 실제 캐릭터 배치 + 패시브 적용
-        PlaceAll();
+        var allies = PlaceAll();
+
+        SynergyManager.ApplySynergies(DraggableSlots, allies);
 
         SoundManager.Instance.PlaySFX("Ui_click_01");
         Time.timeScale = 1f;
         gameObject.SetActive(false);
     }
 
-    private void PlaceAll()
+    private List<GameObject> PlaceAll()
     {
+        var allies = new List<GameObject>();
+
         foreach (var kvp in StageIndexs)
         {
             int slotIndex = kvp.Key;
             int characterId = kvp.Value;
 
             Vector3 spawnPosition = SpawnPos[slotIndex].transform.position;
-            PlaceCharacter(characterId, spawnPosition, slotIndex);
+            var obj = PlaceCharacter(characterId, spawnPosition, slotIndex);
+            allies.Add(obj);
         }
+
+        return allies;
     }
 
-    private void PlaceCharacter(int characterId, Vector3 worldPos, int slotIndex)
+    private GameObject PlaceCharacter(int characterId, Vector3 worldPos, int slotIndex)
     {
         GameObject obj = Instantiate(basePrefab, worldPos, Quaternion.identity);
         var attack = obj.GetComponent<CharacterAttack>();
@@ -170,8 +174,9 @@ public class SeletStageWindow : MonoBehaviour
 
         attack.id = characterId;
 
-        // 체력 적용 (네 방식 그대로 유지)
         CharacterFence.Instance.Init();
+
+        return obj;
     }
 
     private void AddPassiveEffects(GameObject obj, int slotIndex)
@@ -277,14 +282,6 @@ public class SeletStageWindow : MonoBehaviour
         }
     }
 
-    private bool IsPassiveTile(int slotIndex)
-    {
-        return _passiveStackCounts != null &&
-               slotIndex >= 0 &&
-               slotIndex < _passiveStackCounts.Length &&
-               _passiveStackCounts[slotIndex] > 0;
-    }
-
     public void ShowPassivePreview(int slotIndex, CharacterData cd)
     {
         if (cd == null) return;
@@ -341,5 +338,4 @@ public class SeletStageWindow : MonoBehaviour
         DraggableSlots[6].characterData = ResourceManager.Instance.Get<CharacterData>("lia21");
         StartButtonClick();
     }
-    //
 }

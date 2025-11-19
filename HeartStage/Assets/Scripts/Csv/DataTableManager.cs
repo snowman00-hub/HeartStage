@@ -68,6 +68,13 @@ public static class DataTableManager
             await table.LoadAsync(id);
             tables.Add(id, table);
         }
+
+        { 
+            var table = new SynergyTable();
+            var id = DataTableIds.Synergy;
+            await table.LoadAsync(id);
+            tables.Add(id, table);
+        }
     }
 
     public static ItemTable ItemTable
@@ -129,6 +136,14 @@ public static class DataTableManager
         get
         {
             return Get<SelectTable>(DataTableIds.Select);
+        }
+    }
+
+    public static SynergyTable SynergyTable
+    {
+        get
+        {
+            return Get<SynergyTable>(DataTableIds.Synergy);
         }
     }
 
