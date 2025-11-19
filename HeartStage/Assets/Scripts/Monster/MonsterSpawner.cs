@@ -1,6 +1,5 @@
 ﻿using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
@@ -136,7 +135,7 @@ public class MonsterSpawner : MonoBehaviour
 
         if (stageWaveIds.Count == 0)
         {
-            Debug.LogError("스테이지에 웨이브가 없습니다.");
+            Debug.Log("스테이지에 웨이브가 없습니다.");
             return;
         }
 
@@ -198,17 +197,6 @@ public class MonsterSpawner : MonoBehaviour
                 waveMonstersToSpawn.Add(new WaveMonsterInfo(enemyId, enemyCount));
             }
         }
-    }
-
-    // 웨이브 총 몬스터 수 계산
-    private int GetTotalWaveMonsterCount()
-    {
-        int total = 0;
-        foreach (var waveMonster in waveMonstersToSpawn)
-        {
-            total += waveMonster.count;
-        }
-        return total;
     }
 
     // 웨이브 남은 몬스터 수 계산
@@ -279,7 +267,7 @@ public class MonsterSpawner : MonoBehaviour
         }
         else
         {
-            Debug.LogError("StageManager.Instance가 null입니다!");
+            Debug.Log("StageManager.Instance가 null입니다!");
         }
     }
 
@@ -519,7 +507,7 @@ public class MonsterSpawner : MonoBehaviour
         return worldPos;
     }
 
-    // 리소스 정리 - monsterPools 사용
+    // 리소스 정리
     private void OnDestroy()
     {
         foreach (var pool in monsterPools.Values)
@@ -631,4 +619,6 @@ public class MonsterSpawner : MonoBehaviour
 
         UpdateStageUI();
     }
+
+    
 }

@@ -21,7 +21,6 @@ public class StageCsvData
     public int wave2_id { get; set; }
     public int wave3_id { get; set; }
     public int wave4_id { get; set; }
-    public int wave5_id { get; set; }
     public int fail_stamina { get; set; }
     public string prefab { get; set; }
 }
@@ -94,7 +93,6 @@ public class StageTable : DataTable
         if (stage.wave2_id > 0) waveIds.Add(stage.wave2_id);
         if (stage.wave3_id > 0) waveIds.Add(stage.wave3_id);
         if (stage.wave4_id > 0) waveIds.Add(stage.wave4_id);
-        if (stage.wave5_id > 0) waveIds.Add(stage.wave5_id);
 
         return waveIds;
     }
