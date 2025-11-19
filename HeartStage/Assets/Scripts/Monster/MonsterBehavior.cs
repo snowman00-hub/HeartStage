@@ -10,6 +10,10 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     private MonsterSpawner monsterSpawner;
     private HealthBar healthBar;
 
+    private readonly string attack = "Attack";
+    //private readonly string die = "Die";
+
+    private Animator animator;
     //혼란 전용 셀프 콜라이더
     private Collider2D selfCollider;
 
@@ -24,6 +28,7 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     private void Awake()
     {
         selfCollider = GetComponent<Collider2D>();
+        animator = GetComponentInChildren<Animator>();
     }
 
     // 몬스터 초기화 (SO 참조 설정, HP는 필요시에만 갱신)
@@ -36,10 +41,12 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         {
             maxHP = data.hp;
             currentHP = data.hp;
-        }
+        }       
 
         isBoss = IsBossMonster(data.id);
         InitHealthBar();
+
+        animator = GetComponentInChildren<Animator>();
     }
 
     // 체력바 초기화
@@ -119,7 +126,7 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         if (monsterSpawner != null && monsterData != null)
         {
             monsterSpawner.OnMonsterDied(monsterData.id);
-        }
+        }        
 
         gameObject.SetActive(false);
         // 경험치 생성
@@ -138,6 +145,16 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     private void MeleeAttack()
     {
         Collider2D hit = Physics2D.OverlapCircle(transform.position, monsterData.attackRange, LayerMask.GetMask(Tag.Wall));
+
+        if(animator != null)
+        {
+            animator.SetTrigger(attack);
+            Debug.Log($"애니메이션 트리거 실행: {attack}");
+        }
+        else
+        {
+            Debug.LogWarning("Animator가 null입니다!");
+        }
 
         if (hit != null)
         {
