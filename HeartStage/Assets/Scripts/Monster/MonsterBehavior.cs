@@ -188,7 +188,7 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
             if (hit == null)
                 continue;
 
-            // ✅ 자기 자신 콜라이더는 스킵
+            // 자기 자신 콜라이더는 스킵
             if (hit == selfCollider)
                 continue;
 

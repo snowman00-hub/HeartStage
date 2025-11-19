@@ -179,9 +179,6 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
             monsterBehavior.Init(cachedMonsterData);
         }
 
-        // 스프라이트 설정
-        MonsterSpawner.SetMonsterSprite(monster, cachedMonsterData);
-
         // 이동 컴포넌트 초기화
         var monsterMovement = monster.GetComponent<MonsterMovement>();
         if (monsterMovement != null)

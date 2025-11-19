@@ -350,27 +350,45 @@ public class MonsterSpawner : MonoBehaviour
         return false;
     }
 
-    // 몬스터 스프라이트 설정
-    public static void SetMonsterSprite(GameObject monster, MonsterData monsterData)
+    
+    private void AddVisualChild(GameObject monster, MonsterData monsterData)
     {
-        if (!string.IsNullOrEmpty(monsterData.image_AssetName))
+        if (string.IsNullOrEmpty(monsterData.prefab1))
         {
-            var spriteRenderer = monster.GetComponentInChildren<SpriteRenderer>();
-            if (spriteRenderer != null)
+            Debug.LogWarning($"Monster {monsterData.id}의 prefab1이 설정되지 않았습니다.");
+            return;
+        }
+
+        try
+        {
+            GameObject visualPrefab = ResourceManager.Instance.Get<GameObject>(monsterData.prefab1);
+            if(visualPrefab != null)
             {
-                var texture = ResourceManager.Instance.Get<Texture2D>(monsterData.image_AssetName);
-                if (texture != null)
-                {
-                    var sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
-                    spriteRenderer.sprite = sprite;
-                }
-                else
-                {
-                    Debug.Log($"몬스터 이미지 로드 실패: {monsterData.image_AssetName}");
-                }
+                var visualChild = Instantiate(visualPrefab, monster.transform);
+                visualChild.name = $"{monsterData.prefab1}";
+
+                // 로컬 포지션을 (0,0,0)으로 설정하여 부모와 같은 위치에
+                visualChild.transform.localPosition = Vector3.zero;
+                visualChild.transform.localRotation = Quaternion.identity;
+                visualChild.transform.localScale = Vector3.one;
+
+                Debug.Log($"Monster {monsterData.id}에 시각적 자식 오브젝트 추가 완료: {monsterData.prefab1}");
             }
+
+            else
+            {
+                Debug.LogError($"prefab1을 ResourceManager에서 찾을 수 없음: {monsterData.prefab1}");
+            }
+
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"Monster {monsterData.id}의 시각적 자식 오브젝트 추가 실패: {e.Message}");
         }
     }
+
+
+
 
     // 다음에 스폰할 몬스터 선택
     private WaveMonsterInfo? GetNextMonsterToSpawn()
@@ -473,6 +491,8 @@ public class MonsterSpawner : MonoBehaviour
 
                     monster.SetActive(false);
 
+                    AddVisualChild(monster, monsterDataSO);
+
                     // 몬스터 완전 초기화 (캐시된 데이터 사용)
                     var monsterBehavior = monster.GetComponent<MonsterBehavior>();
                     if (monsterBehavior != null)
@@ -493,8 +513,6 @@ public class MonsterSpawner : MonoBehaviour
                         Debug.LogWarning($"Monster {monsterId}에 HealthBar가 없습니다.");
                     }
 
-                    // 스프라이트 설정
-                    SetMonsterSprite(monster, monsterDataSO);
 
                     // 초기 상태 설정
                     monster.SetActive(false);

@@ -75,7 +75,7 @@ public class MonsterDataTools : EditorWindow
 
             foreach (var data in allData)
             {
-                string assetPath = $"{folderPath}/MonsterData_{data.id}.asset";
+                string assetPath = $"{folderPath}/MonsterData_{data.mon_id}.asset";
                 MonsterData existingSO = AssetDatabase.LoadAssetAtPath<MonsterData>(assetPath);
 
                 MonsterData so = existingSO ?? ScriptableObject.CreateInstance<MonsterData>();
@@ -84,13 +84,13 @@ public class MonsterDataTools : EditorWindow
                 if (existingSO == null)
                 {
                     AssetDatabase.CreateAsset(so, assetPath);
-                    RegisterToAddressables(assetPath, data.id); // 추가
-                    Debug.Log($"새 SO 생성: {data.mon_name} (ID: {data.id})");
+                    RegisterToAddressables(assetPath, data.mon_id); // 추가
+                    Debug.Log($"새 SO 생성: {data.mon_name} (ID: {data.mon_id})");
                 }
                 else
                 {
                     EditorUtility.SetDirty(so);
-                    Debug.Log($"기존 SO 업데이트: {data.mon_name} (ID: {data.id})");
+                    Debug.Log($"기존 SO 업데이트: {data.mon_name} (ID: {data.mon_id})");
                 }
 
                 createCount++;
@@ -211,9 +211,6 @@ public class MonsterDataTools : EditorWindow
         so.dropCount2 = data.drop_count2;
         so.prefab1 = data.prefab1;
         so.prefab2 = data.prefab2;
-
-        // 호환성을 위해 기존 필드도 설정
-        so.image_AssetName = data.prefab1;
     }
 
     private void RegisterToAddressables(string assetPath, int monsterId)
