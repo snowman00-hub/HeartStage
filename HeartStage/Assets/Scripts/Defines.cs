@@ -46,4 +46,5 @@ public enum WindowType
     Lobby = 0,
     StageSelect = 1,
     StageInfo = 2,
+    VictoryDefeat = 3,
 }

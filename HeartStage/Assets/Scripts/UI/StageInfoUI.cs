@@ -68,11 +68,39 @@ public class StageInfoUI : GenericWindow
     private void OnStageStartButtonClicked()
     {
         // 드림 에너지 소모
-        var allStages = stageTable.GetOrderedStages();
-        
 
+        if (currentStageData == null)
+        {
+            return;
+        }
+
+        // 스테이지 데이터를 저장
+        SaveSelectedStageData();
+
+        // 게임 씬으로 전환
+        StartStage();
     }
-
+    private void SaveSelectedStageData()
+    {
+        // 선택된 스테이지 정보를 저장
+        PlayerPrefs.SetInt("SelectedStageID", currentStageData.stage_ID);
+        PlayerPrefs.SetInt("SelectedStageStep1", currentStageData.stage_step1);
+        PlayerPrefs.SetInt("SelectedStageStep2", currentStageData.stage_step2);
+        PlayerPrefs.SetInt("StartingWave", 1); // 첫 번째 웨이브부터 시작
+        PlayerPrefs.Save();
+    }
+    private void StartStage()
+    {
+        // LoadSceneManager를 사용하여 게임 씬으로 전환
+        if (LoadSceneManager.Instance != null)
+        {
+            LoadSceneManager.Instance.GoStage();
+        }
+        else
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene("Stage");
+        }
+    }
     private StageCsvData GetNextStage()
     {
         if(currentStageData == null || stageTable == null)

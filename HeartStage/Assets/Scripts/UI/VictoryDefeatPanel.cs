@@ -1,9 +1,12 @@
-﻿using TMPro;
+﻿using Cysharp.Threading.Tasks;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class VictoryDefeatPanel : MonoBehaviour
+public class VictoryDefeatPanel : GenericWindow
 {
+    [SerializeField] private MonsterSpawner monsterSpawner;
+
     public TextMeshProUGUI clearOrFailText;
     public TextMeshProUGUI currentStageText;
     public TextMeshProUGUI clearWaveText;
@@ -18,6 +21,16 @@ public class VictoryDefeatPanel : MonoBehaviour
 
     public bool isClear = false;
 
+
+
+    public override void Open()
+    {
+        base.Open();
+    }
+    public override void Close()
+    {
+        base.Close();
+    }
     private void Start()
     {
         goStageChoiceButton.onClick.AddListener(StageManager.Instance.GoLobby); // 일단 로비로 가게 설정
@@ -36,13 +49,39 @@ public class VictoryDefeatPanel : MonoBehaviour
         {
             clearOrFailText.text = "Clear";
             rightButtonText.text = "다음\n스테이지";
-            //nextStageOrRetryButton.onClick.AddListener(); 다음 스테이지 시작하는 함수 만들기
+            nextStageOrRetryButton.onClick.AddListener(()=> OnNextStageButtonClicked()); 
         }
         else
         {
             clearOrFailText.text = "Fail";
             rightButtonText.text = "재도전";
-            nextStageOrRetryButton.onClick.AddListener(LoadSceneManager.Instance.GoStage);
+            nextStageOrRetryButton.onClick.AddListener(()=>OnLobbyButtonClicked());
+        }
+    }
+
+    private void OnLobbyButtonClicked()
+    {
+        LoadSceneManager.Instance.GoLobby();
+    }
+    private void OnNextStageButtonClicked()
+    {
+        if (monsterSpawner == null)
+            return;
+
+        var nextStage = monsterSpawner.GetNextStage();
+        if(nextStage != null)
+        {
+            // 다음 스테이지 ID를 저장
+
+            PlayerPrefs.SetInt("SelectedStageID", nextStage.stage_ID);
+            PlayerPrefs.Save();
+
+            // 스테이지 변경
+            monsterSpawner.ChangeStage(nextStage.stage_ID).Forget();
+
+            Time.timeScale = 1f; 
+
+            Close();
         }
     }
 }

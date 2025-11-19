@@ -40,7 +40,6 @@ public class MonsterSkillTester : MonoBehaviour
             Debug.Log($"{gameObject.name}에 SpeedBuffBossSkill 등록 완료");
         }
     }
-
     private void OnDestroy()
     {
         // 게임오브젝트 파괴 시 스킬 해제

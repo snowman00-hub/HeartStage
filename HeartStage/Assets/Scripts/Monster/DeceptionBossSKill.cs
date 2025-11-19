@@ -117,12 +117,10 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
                 PoolManager.Instance.CreatePool(poolId, monsterPrefabGO, poolSize, poolSize * 2);
                 isPoolInitialized = true;
             }
-            else
-            {
-            }
         }
         catch (System.Exception e)
         {
+            Debug.LogError($"풀 초기화 실패 - ID: {poolId}, Error: {e.Message}");
         }
     }
 

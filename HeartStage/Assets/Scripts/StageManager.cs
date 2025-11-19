@@ -5,6 +5,8 @@ public class StageManager : MonoBehaviour
 {
     public static StageManager Instance;
 
+    [SerializeField] private WindowManager windowManager;
+
     public StageUI StageUI;
     public LevelUpPanel LevelUpPanel;
     public Slider expSlider;
@@ -16,7 +18,7 @@ public class StageManager : MonoBehaviour
     // 스테이지 관련 추가 한 것
     [HideInInspector]
     public int stageNumber = 1;
-    [HideInInspector]   
+    [HideInInspector]
     public int waveOrder = 1;
 
     private int waveCount = 1;
@@ -26,7 +28,7 @@ public class StageManager : MonoBehaviour
         set
         {
             waveCount = value;
-            StageUI.SetWaveCount(waveCount);
+            StageUI.SetWaveCount(stageNumber, waveOrder); 
         }
     }
 
@@ -41,6 +43,30 @@ public class StageManager : MonoBehaviour
         }
     }
 
+    private void Start()
+    {
+        // 저장된 스테이지 데이터 로드
+        LoadSelectedStageData();
+    }
+
+    private void LoadSelectedStageData()
+    {
+        int stageID = PlayerPrefs.GetInt("SelectedStageID", -1);
+        if (stageID != -1)
+        {
+            // DataTableManager를 통해 스테이지 데이터 로드
+            var stageData = DataTableManager.StageTable.GetStage(stageID);
+            if (stageData != null)
+            {
+                SetCurrentStageData(stageData);
+
+                // 현재 웨이브 설정
+                int startingWave = PlayerPrefs.GetInt("StartingWave", 1);
+                SetWaveInfo(stageData.stage_step1, startingWave);
+            }
+        }
+    }
+
     private void Awake()
     {
         Instance = this;
@@ -49,6 +75,8 @@ public class StageManager : MonoBehaviour
     public void GoLobby()
     {
         LoadSceneManager.Instance.GoLobby();
+
+        SoundManager.Instance.PlaySFX("Ui_click_01"); // test
     }
 
     public void SetTimeScale(float timeScale)
@@ -69,7 +97,6 @@ public class StageManager : MonoBehaviour
         waveOrder = wave;
         waveCount = wave; // 기존 호환성을 위해 유지
 
-        // StageUI의 SetWaveCount 메서드가 두 개의 매개변수를 받는지 확인 필요
         if (StageUI != null)
         {
             StageUI.SetWaveCount(stageNumber, waveOrder);
@@ -79,12 +106,13 @@ public class StageManager : MonoBehaviour
     public void SetCurrentStageData(StageCsvData stageData)
     {
         currentStageData = stageData;
-        if(stageData != null)
+        if (stageData != null)
         {
             stageNumber = stageData.stage_step1;
             waveOrder = 1; // 스테이지 시작시 첫 번째 웨이브
         }
     }
+
     // 현재 스테이지 데이터 가져오기
     public StageCsvData GetCurrentStageData()
     {
@@ -95,7 +123,7 @@ public class StageManager : MonoBehaviour
     public void ExpGet(int value)
     {
         expSlider.value += value;
-        if(expSlider.maxValue == expSlider.value)
+        if (expSlider.maxValue == expSlider.value)
         {
             expSlider.value = 0f;
             LevelUp();
@@ -107,6 +135,8 @@ public class StageManager : MonoBehaviour
     {
         Time.timeScale = 0f;
         LevelUpPanel.gameObject.SetActive(true);
+
+        SoundManager.Instance.PlaySFX("Ui_reward_01"); // test
     }
 
     // 원래 타임스케일 복원
@@ -115,17 +145,40 @@ public class StageManager : MonoBehaviour
         Time.timeScale = currentTimeScale;
     }
 
+    public void CompleteStage()
+    {
+        Clear();
+        SoundManager.Instance.PlaySFX("stageClearReward");
+    }
+
     // 승리시 
     public void Clear()
     {
         VictoryDefeatPanel.isClear = true;
-        VictoryDefeatPanel.gameObject.SetActive(true);
+
+        if (windowManager != null)
+        {
+            windowManager.OpenOverlay(WindowType.VictoryDefeat);
+        }
+
+        Time.timeScale = 0f;
     }
 
     // 패배시
     public void Defeat()
     {
         VictoryDefeatPanel.isClear = false;
-        VictoryDefeatPanel.gameObject.SetActive(true);
+
+        if (windowManager != null)
+        {
+            windowManager.OpenOverlay(WindowType.VictoryDefeat);
+        }
+        else
+        {
+            if (VictoryDefeatPanel != null)
+            {
+                VictoryDefeatPanel.gameObject.SetActive(true);
+            }
+        }
     }
 }

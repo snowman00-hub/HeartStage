@@ -5,11 +5,6 @@ public class StageUI : MonoBehaviour
 {
     public TextMeshProUGUI waveCountText;
     public TextMeshProUGUI remainMonsterCountText;
-    
-    public void SetWaveCount(int waveCount)
-    {
-        waveCountText.text = $"Wave {waveCount}";
-    }
 
     public void SetWaveCount(int stageNumber, int waveOrder)
     {
@@ -19,7 +14,16 @@ public class StageUI : MonoBehaviour
         }
         else
         {
-            waveCountText.text = $"{stageNumber}스테이지\n{waveOrder}웨이브";
+            var currentStage = StageManager.Instance.GetCurrentStageData();
+            if (currentStage != null)
+            {
+                waveCountText.text = $"{currentStage.stage_step1}-{currentStage.stage_step2}스테이지\n{waveOrder}웨이브";
+            }
+            else
+            {
+                // currentStage가 null일 경우 stageNumber를 직접 사용
+                waveCountText.text = $"{stageNumber}-1스테이지\n{waveOrder}웨이브";
+            }
         }
     }
 
@@ -27,6 +31,4 @@ public class StageUI : MonoBehaviour
     {
         remainMonsterCountText.text = $"남은 적군\n{remainMonsterCount}";
     }
-
-
 }

@@ -29,9 +29,6 @@ public class BattleTabUI : GenericWindow
     private void Awake()
     {
         isOverlayWindow = true; // 오버레이 창으로 설정
-
-        //closeButton.onClick.AddListener(OnCloseButtonClicked);
-
     }
 
     // 자식 오브젝트 삭제
@@ -48,7 +45,6 @@ public class BattleTabUI : GenericWindow
     [ContextMenu("GenerateStages()")]
     public void GenerateStages()
     {
-        Debug.Log("GenerateStages 시작");
         DeleteChildren();
 
         if (stageTable == null)
@@ -105,14 +101,12 @@ public class BattleTabUI : GenericWindow
         Vector2 size = contentParent.sizeDelta;
         size.y = contentHeight;
         contentParent.sizeDelta = size;
-
-        Debug.Log($"Content 높이 설정: {contentHeight}");
-        Debug.Log("GenerateStages 완료");
     }
 
     private void OnCloseButtonClicked()
     {
         Close();
+        SoundManager.Instance.PlaySFX("Ui_click_01");
     }
 
     private void OnStageInfoButtonClicked(StageCsvData stageData)
@@ -123,6 +117,7 @@ public class BattleTabUI : GenericWindow
         }
 
         windowManager.OpenOverlay(WindowType.StageInfo);
+        SoundManager.Instance.PlaySFX("Ui_click_01");
     }
 
     public override void Open()
