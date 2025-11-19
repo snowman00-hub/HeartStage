@@ -41,7 +41,6 @@ public class ResourceManager : MonoBehaviour
         Debug.Log($"[ResourceManager] Label {label} 로드 완료 ({_assetCache.Count}개 캐싱됨)");
     }
 
-    // 해당 에셋 가져가기, ID는 에셋이름으로
     public T Get<T>(string assetName) where T : Object
     {
         if (_assetCache.TryGetValue(assetName, out var asset))

@@ -4,7 +4,6 @@ using UnityEngine.AddressableAssets;
 
 public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
 {  
-
     private string poolId;
     private bool isPoolInitialized = false;
     private bool isInitialized = false; // 중복 초기화 방지 플래그 추가
@@ -89,8 +88,8 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
     {
         return bossId switch
         {
-            22201 => 31001,
-            22214 => 31003,
+            22201 => 31001, // 보스 아이디 22201에 대한 스킬 아이디
+            22214 => 31003, // 보스 아이디 22214에 대한 스킬 아이디
             _ => 0
         };
     }
@@ -186,7 +185,39 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
             monsterMovement.Init(cachedMonsterData, Vector3.down);
         }
 
+        AddVisualChild(monster, cachedMonsterData);
+
         monster.SetActive(true);
+    }
+
+    private void AddVisualChild(GameObject monster, MonsterData monsterData)
+    {
+        try
+        {
+            if (!string.IsNullOrEmpty(monsterData.prefab1))
+            {
+                var prefabGO = ResourceManager.Instance.Get<GameObject>(monsterData.prefab1);
+                if (prefabGO != null)
+                {
+                    var visualChild = Instantiate(prefabGO, monster.transform);
+
+                    // 로컬 포지션을 (0,0,0)으로 설정하여 부모와 같은 위치에
+                    visualChild.transform.localPosition = Vector3.zero;
+                    visualChild.transform.localRotation = Quaternion.identity;
+                    visualChild.transform.localScale = Vector3.one;
+
+                    Debug.Log($"소환된 Monster {monsterData.id}에 시각적 자식 오브젝트 추가 완료: {monsterData.prefab1}");
+                }
+                else
+                {
+                    Debug.Log($"prefab1을 ResourceManager에서 찾을 수 없음: {monsterData.prefab1}");
+                }
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.Log($"소환된 Monster {monsterData.id}의 시각적 자식 오브젝트 추가 실패: {e.Message}");
+        }
     }
 
     private Vector3 GetRandomSpawnPosition()

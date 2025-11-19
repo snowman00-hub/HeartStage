@@ -15,7 +15,6 @@ public class BootStrap : MonoBehaviour
     {
         // 비동기로 미리 해야하는 작업들 있으면 가능한 부트 씬에서 하고 해당 씬에선 동기로 쓰기
         await ResourceManager.Instance.PreloadLabelAsync(AddressableLabel.Stage);
-
         await ResourceManager.Instance.PreloadLabelAsync("SFX"); // 사운드 추가 로드
         //await ResourceManager.Instance.PreloadLabelAsync("BGM");
 

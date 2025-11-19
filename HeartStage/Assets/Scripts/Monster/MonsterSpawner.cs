@@ -370,20 +370,17 @@ public class MonsterSpawner : MonoBehaviour
                 // 로컬 포지션을 (0,0,0)으로 설정하여 부모와 같은 위치에
                 visualChild.transform.localPosition = Vector3.zero;
                 visualChild.transform.localRotation = Quaternion.identity;
-                visualChild.transform.localScale = Vector3.one;
-
-                Debug.Log($"Monster {monsterData.id}에 시각적 자식 오브젝트 추가 완료: {monsterData.prefab1}");
             }
 
             else
             {
-                Debug.LogError($"prefab1을 ResourceManager에서 찾을 수 없음: {monsterData.prefab1}");
+                Debug.Log($"prefab1을 ResourceManager에서 찾을 수 없음: {monsterData.prefab1}");
             }
 
         }
         catch (System.Exception e)
         {
-            Debug.LogError($"Monster {monsterData.id}의 시각적 자식 오브젝트 추가 실패: {e.Message}");
+            Debug.Log($"Monster {monsterData.id}의 시각적 자식 오브젝트 추가 실패: {e.Message}");
         }
     }
 
