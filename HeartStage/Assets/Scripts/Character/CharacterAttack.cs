@@ -1,5 +1,4 @@
 ﻿using Cysharp.Threading.Tasks;
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -84,7 +83,7 @@ public class CharacterAttack : MonoBehaviour
         if (target != null)
         {
             // 추가 공격 체크 & bullet_count 만큼 발사
-            bool isPlusAttack = UnityEngine.Random.Range(0, 100) < StatCalc.GetFinalStat(gameObject, StatType.ExtraAttackChance, data.atk_addcount);
+            bool isPlusAttack = Random.Range(0, 100) < StatCalc.GetFinalStat(gameObject, StatType.ExtraAttackChance, data.atk_addcount);
             int bulletCountStat = Mathf.RoundToInt(StatCalc.GetFinalStat(gameObject, StatType.ProjectileCount, data.bullet_count));
 
             if (isPlusAttack)
@@ -131,7 +130,7 @@ public class CharacterAttack : MonoBehaviour
 
         // Critical Check
         float critChance = StatCalc.GetFinalStat(gameObject, StatType.CritChance, data.crt_chance);
-        bool isCritical = UnityEngine.Random.Range(0, 100) < critChance;
+        bool isCritical = Random.Range(0, 100) < critChance;
         if (isCritical)
         {
             float crtDmgStat = StatCalc.GetFinalStat(gameObject, StatType.CritDamage, data.crt_dmg);
