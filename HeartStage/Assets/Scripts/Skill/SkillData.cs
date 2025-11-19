@@ -30,6 +30,7 @@ public class SkillData : ScriptableObject
     public float skill_eff3_duration;
     public string info;
     public string icon_prefab;
+    public string particle_prefab;
 
     public void UpdateData(SkillCSVData csvData)
     {
@@ -60,7 +61,7 @@ public class SkillData : ScriptableObject
         skill_eff3_duration = csvData.skill_eff3_duration;
         info = csvData.info;
         icon_prefab = csvData.icon_prefab;
-
+        particle_prefab = csvData.particle_prefab;
     }
     public SkillCSVData ToCSVData()
     {
@@ -92,6 +93,7 @@ public class SkillData : ScriptableObject
         csvData.skill_eff3_duration = skill_eff3_duration;
         csvData.info = info;
         csvData.icon_prefab = icon_prefab;
+        csvData.particle_prefab = particle_prefab;
 
         return csvData;
     }
@@ -127,6 +129,7 @@ public class SkillCSVData
     public float skill_eff3_duration { get; set; }
     public string info { get; set; }
     public string icon_prefab { get; set; }
+    public string particle_prefab { get; set; }
 }
 
 public enum PassiveType

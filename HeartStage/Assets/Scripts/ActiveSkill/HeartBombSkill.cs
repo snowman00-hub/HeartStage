@@ -24,8 +24,9 @@ public class HeartBombSkill : MonoBehaviour, ISkillBehavior
         // 스킬 범위 적용
         var collider = prefabClone.GetComponent<CircleCollider2D>();
         collider.radius = skillData.skill_range;
-        var particle = prefabClone.GetComponentInChildren<ParticleSystem>();
-        particle.transform.localScale = particle.transform.localScale * skillData.skill_range;
+        // 파티클 적용
+        var particleGo = Instantiate(ResourceManager.Instance.Get<GameObject>(skillData.particle_prefab), prefabClone.transform);
+        particleGo.transform.localScale = particleGo.transform.localScale * skillData.skill_range;
         // 오브젝트 풀 생성
         PoolManager.Instance.CreatePool(heartBombAssetName, prefabClone, 10, 30);
         Destroy(prefabClone);

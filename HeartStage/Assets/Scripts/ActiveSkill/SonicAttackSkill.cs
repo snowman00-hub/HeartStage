@@ -22,10 +22,11 @@ public class SonicAttackSkill : MonoBehaviour, ISkillBehavior
         // 스킬 범위 적용
         var collider = prefabClone.GetComponent<BoxCollider2D>();
         collider.size = new Vector2(skillData.skill_range,collider.size.y);
-        var particle = prefabClone.GetComponentInChildren<ParticleSystem>();
-        var particleScale = particle.transform.localScale;
+        // 파티클 적용
+        var particleGo = Instantiate(ResourceManager.Instance.Get<GameObject>(skillData.particle_prefab), prefabClone.transform);
+        var particleScale = particleGo.transform.localScale;
         particleScale.x *= collider.size.x;
-        particle.transform.localScale = particleScale;
+        particleGo.transform.localScale = particleScale;
         // 오브젝트 풀 생성
         PoolManager.Instance.CreatePool(sonicAttackId, prefabClone, 10, 30);
         Destroy(prefabClone);
