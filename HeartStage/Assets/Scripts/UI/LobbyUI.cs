@@ -8,10 +8,12 @@ public class LobbyUI : GenericWindow
 
     [Header("Button")]
     [SerializeField] private Button stageUiButton;
+    [SerializeField] private Button gameStartButton;
 
     private void Awake()
     {
         stageUiButton.onClick.AddListener(OnStageUiButtonClicked);
+        gameStartButton.onClick.AddListener(() => OnGameStartButtonClicked());
     }
 
     public override void Open()
@@ -28,5 +30,14 @@ public class LobbyUI : GenericWindow
     {
         windowManager.OpenOverlay(WindowType.StageSelect);
         SoundManager.Instance.PlaySFX("Ui_click_01");
+    }
+
+    private void OnGameStartButtonClicked()
+    {
+        // 테스트용: 강제로 튜토리얼로 리셋
+        PlayerPrefs.SetInt("SelectedStageID", 601);
+        PlayerPrefs.Save();
+
+        LoadSceneManager.Instance.GoStage();
     }
 }

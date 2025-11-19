@@ -25,7 +25,6 @@ public class SpeedBuffBossSkill : MonoBehaviour, ISkillBehavior
 
         isInitialized = true;
         nextSkillTime = Time.time + coolTime;
-        Debug.Log($"SpeedBuffBossSkill 초기화: {coolTime}초마다 {buffDuration}초간 이동속도 {speedMultiplier}배 버프");
     }
 
     private void Update()
