@@ -18,14 +18,13 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
 
         if (monsterData == null)
         {
-            Debug.LogError("DeceptionBossSkill: MonsterData가 null입니다");
             return;
         }
 
         monsterBehavior = GetComponent<MonsterBehavior>();
+
         if (monsterBehavior == null)
         {
-            Debug.LogError("DeceptionBossSkill: MonsterBehavior를 찾을 수 없음");
             return;
         }
 
@@ -142,8 +141,7 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
 
     private async UniTaskVoid ExecuteSkill()
     {
-        // SkillTable 데이터에 따른 소환 개수 (15~18마리 → 2~3마리로 조정)
-        int spawnCount = Random.Range(2, 4); // 2~3마리 고정
+        int spawnCount = Random.Range(2, 4); // 2~3마리
 
         // 보스 주위에 소환
         for (int i = 0; i < spawnCount; i++)
@@ -198,29 +196,30 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
     {
         Vector3 bossPosition = transform.position;
         
-        // 보스 주위 소환 범위 (스킬 범위보다 작게)
-        float spawnRange = Mathf.Min(skillData.skill_range * 0.5f, 3f); // 최대 3 유닛 반경
+        // 보스 주위 소환 범위 
+        float sideDistance = Mathf.Min(skillData.skill_range * 0.5f, 3f); // 최대 3 유닛 반경
         
-        // 원형 패턴으로 보스 주위에 소환
-        float randomAngle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
-        float randomDistance = Random.Range(spawnRange * 0.5f, spawnRange); // 너무 가깝지 않게
-        
-        Vector3 spawnOffset = new Vector3(
-            Mathf.Cos(randomAngle) * randomDistance,
-            Mathf.Sin(randomAngle) * randomDistance,
-            0f
-        );
-        
+        float side = Random.Range(0, 2) == 0 ? -1f : 1f; // 왼쪽 또는 오른쪽
+
+        float yOffset = Random.Range(-0.5f, -1f); // 약간 위쪽
+
+        Vector3 spawnOffset = new Vector3
+            (
+                side * sideDistance,
+                yOffset,
+                0f
+            );
+
         Vector3 spawnPos = bossPosition + spawnOffset;
-        
+
         // 화면 경계 체크
         Vector3 screenMin = Camera.main.ScreenToWorldPoint(new Vector3(50f, 50f, 0f));
         Vector3 screenMax = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width - 50f, Screen.height - 50f, 0f));
-        
+
         spawnPos.x = Mathf.Clamp(spawnPos.x, screenMin.x, screenMax.x);
         spawnPos.y = Mathf.Clamp(spawnPos.y, screenMin.y, screenMax.y);
         spawnPos.z = 0f;
-        
+
         return spawnPos;
     }
 }

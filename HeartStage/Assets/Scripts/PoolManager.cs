@@ -8,6 +8,7 @@ public class PoolManager : MonoBehaviour
     public static PoolManager Instance { get; private set; }
 
     private Dictionary<string, IObjectPool<GameObject>> poolDict = new Dictionary<string, IObjectPool<GameObject>>();
+    private bool isDestroying = false; // 파괴중인지 여부 확인용 플래그
 
     private void Awake()
     {
@@ -54,6 +55,17 @@ public class PoolManager : MonoBehaviour
     // 가져가기
     public GameObject Get(string id)
     {
+        if(isDestroying)
+        {
+            return null;
+        }
+
+        if (string.IsNullOrEmpty(id)) 
+        {
+            Debug.LogError("[ObjectPool] ID가 null 또는 empty입니다");
+            return null;
+        }
+
         if (!poolDict.ContainsKey(id))
         {
             Debug.LogError($"[ObjectPool] 키 없음 {id}");
@@ -91,5 +103,15 @@ public class PoolManager : MonoBehaviour
 
         foreach (var obj in temp)
             pool.Release(obj);
+    }
+
+    public void CleanupForSceneTransition() // 이 메서드 추가
+    {
+        isDestroying = true;
+    }
+
+    private void OnDestroy()
+    {
+        isDestroying = true;
     }
 }

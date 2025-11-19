@@ -25,12 +25,24 @@ public class LoadSceneManager : MonoBehaviour
 
     public void GoStage()
     {
+        // 씬 전환 직전에 PoolManager 정리
+        if (PoolManager.Instance != null)
+        {
+            PoolManager.Instance.CleanupForSceneTransition();
+        }
+
         Addressables.LoadSceneAsync(StageAddress, UnityEngine.SceneManagement.LoadSceneMode.Single);
         Time.timeScale = 1.0f;
     }
 
     public void GoLobby()
     {
+        // 씬 전환 직전에 PoolManager 정리
+        if (PoolManager.Instance != null)
+        {
+            PoolManager.Instance.CleanupForSceneTransition();
+        }
+
         Addressables.LoadSceneAsync(LobbyAddress, UnityEngine.SceneManagement.LoadSceneMode.Single);
     }
 }

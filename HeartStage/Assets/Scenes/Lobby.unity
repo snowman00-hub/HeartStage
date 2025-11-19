@@ -494,6 +494,7 @@ MonoBehaviour:
   firstSelected: {fileID: 0}
   windowManager: {fileID: 1051528037}
   stageUiButton: {fileID: 975687862}
+  gameStartButton: {fileID: 1079029357}
 --- !u!1 &97954505
 GameObject:
   m_ObjectHideFlags: 0
@@ -11394,7 +11395,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2676713383123798950, guid: c16209731a893af4181624707448f724, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2676713383123798950, guid: c16209731a893af4181624707448f724, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
@@ -11518,6 +11519,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 4421774962004983411, guid: c16209731a893af4181624707448f724, type: 3}
   m_PrefabInstance: {fileID: 1079029355}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1079029357 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2676713383123798950, guid: c16209731a893af4181624707448f724, type: 3}
+  m_PrefabInstance: {fileID: 1079029355}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1084539289
 GameObject:
   m_ObjectHideFlags: 0
