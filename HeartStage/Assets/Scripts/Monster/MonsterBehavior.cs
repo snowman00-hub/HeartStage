@@ -123,7 +123,8 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 
         gameObject.SetActive(false);
         // 경험치 생성
-        ItemManager.Instance.SpawnExp(transform.position);
+        int rand = Random.Range(monsterData.minExp, monsterData.maxExp + 1);
+        ItemManager.Instance.SpawnExp(transform.position, rand);
         // 드랍아이템 생성
         if (monsterData == null) // 왜 없는 경우가 있는지 ?
             return;

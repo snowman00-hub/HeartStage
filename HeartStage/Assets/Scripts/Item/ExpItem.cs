@@ -13,6 +13,9 @@ public class ExpItem : MonoBehaviour
 
     private Vector3 startPos;
 
+    [HideInInspector]
+    public int amount = 1;
+
     private void OnEnable()
     {
         timer = 0f;
@@ -48,7 +51,7 @@ public class ExpItem : MonoBehaviour
                 transform.position = targetPos;
                 isFlying = false;
                 PoolManager.Instance.Release(ItemManager.expItemAssetName, gameObject);
-                StageManager.Instance.ExpGet(3); // 임시 값
+                StageManager.Instance.ExpGet(amount); 
                 return;
             }
 

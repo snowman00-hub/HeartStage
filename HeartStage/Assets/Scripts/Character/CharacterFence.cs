@@ -1,13 +1,24 @@
-﻿using TMPro;
+﻿using Cysharp.Threading.Tasks;
+using System.Threading;
+using TMPro;
 using UnityEngine;
+
 public class CharacterFence : MonoBehaviour, IDamageable
 {
     public static CharacterFence Instance;
 
     public TextMeshProUGUI currentHPText;
+    public Transform imageGo;
 
     private int maxHp = 0;
     private int hp = 0;
+
+    // 흔들기 효과
+    public float shakeDuration = 0.2f;
+    public float shakeMagnitude = 10f;
+    private CancellationTokenSource shakeCts;
+    private Vector3 originalPos;
+    private bool isShaking = false;
 
     private void Awake()
     {
@@ -57,6 +68,8 @@ public class CharacterFence : MonoBehaviour, IDamageable
     {
         hp -= damage;
         SetHpText();
+        StartShake();
+
         if (hp <= 0)
         {
             Die();
@@ -67,4 +80,48 @@ public class CharacterFence : MonoBehaviour, IDamageable
     {
 
     }
+
+    private void StartShake()
+    {
+        shakeCts?.Cancel();
+        shakeCts = new CancellationTokenSource();
+        ShakeAsync(shakeCts.Token).Forget();
+    }
+
+    // 흔들기
+    private async UniTask ShakeAsync(CancellationToken token)
+    {
+        if (!isShaking)
+        {
+            // 최초 흔들기 시작할 때만 원래 위치 저장
+            originalPos = imageGo.localPosition;
+            isShaking = true;
+        }
+
+        float timer = 0f;
+
+        try
+        {
+            while (timer < shakeDuration)
+            {
+                if (token.IsCancellationRequested)
+                    return;
+
+                float y = Mathf.Sin(timer * 50f) * shakeMagnitude;
+                imageGo.localPosition = new Vector3(originalPos.x, originalPos.y + y, originalPos.z);
+
+                timer += Time.deltaTime;
+                await UniTask.Yield(PlayerLoopTiming.Update, token);
+            }
+        }
+        finally
+        {
+            if (!token.IsCancellationRequested)
+            {
+                imageGo.localPosition = originalPos;
+                isShaking = false;
+            }
+        }
+    }
+
 }

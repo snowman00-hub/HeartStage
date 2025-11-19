@@ -48,10 +48,9 @@ public class CharacterAttack : MonoBehaviour
 
         // 범위 설정
         circleCollider.radius = StatCalc.GetFinalStat(gameObject, StatType.AttackRange, data.atk_range);
-        // 캐릭터 스프라이트 변경
-        spriteRenderer = GetComponentInChildren<SpriteRenderer>();
-        var texture = ResourceManager.Instance.Get<Texture2D>(data.image_AssetName);
-        spriteRenderer.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+        // 캐릭터 이미지 추가
+        var imageGo = ResourceManager.Instance.Get<GameObject>(data.image_PrefabName);
+        Instantiate(imageGo, gameObject.transform);
         // 액티브 스킬 등록
         var skillList = DataTableManager.CharacterTable.GetSkillIds(data.char_id);
         foreach (var skillId in skillList)

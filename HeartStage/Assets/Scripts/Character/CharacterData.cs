@@ -31,7 +31,7 @@ public class CharacterData : ScriptableObject
 
     public string Info;
 
-    public string image_AssetName;
+    public string image_PrefabName;
     public string data_AssetName;
     public string bullet_PrefabName;
     public string projectile_AssetName;
@@ -75,7 +75,7 @@ public class CharacterData : ScriptableObject
 
         Info = csv.Info;
 
-        image_AssetName = csv.image_AssetName;
+        image_PrefabName = csv.image_PrefabName;
         data_AssetName = csv.data_AssetName;
         bullet_PrefabName = csv.bullet_PrefabName;
         projectile_AssetName = csv.projectile_AssetName;
@@ -115,7 +115,7 @@ public class CharacterData : ScriptableObject
 
             Info = Info,
 
-            image_AssetName = image_AssetName,
+            image_PrefabName = image_PrefabName,
             data_AssetName = data_AssetName,
             bullet_PrefabName = bullet_PrefabName,
             projectile_AssetName = projectile_AssetName,
