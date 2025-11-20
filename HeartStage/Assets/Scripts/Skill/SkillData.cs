@@ -1,4 +1,7 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using System.Reflection;
+using System.Text.RegularExpressions;
+using UnityEngine;
 
 [CreateAssetMenu(fileName = "SkillData", menuName = "Scriptable Objects/SkillData")]
 public class SkillData : ScriptableObject
@@ -130,6 +133,38 @@ public class SkillCSVData
     public string info { get; set; }
     public string icon_prefab { get; set; }
     public string particle_prefab { get; set; }
+
+    // Info 포맷팅한 String 반환
+    public string GetFormattedInfo()
+    {
+        string desc = info; // info 안에 {skill_cool}, {skill_range} 등 필드명 기반 플레이스홀더
+
+        var matches = Regex.Matches(desc, @"\{([a-zA-Z0-9_]+)\}");
+        var seen = new HashSet<string>();
+        foreach (Match m in matches)
+        {
+            string key = m.Groups[1].Value;
+            if (!seen.Add(key))
+                continue;
+
+            // 프로퍼티 검색
+            PropertyInfo prop = typeof(SkillCSVData).GetProperty(key, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+            object value = null;
+            if (prop != null)
+                value = prop.GetValue(this);
+            else
+            {
+                // 필드 검색
+                FieldInfo field = typeof(SkillCSVData).GetField(key, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                if (field != null)
+                    value = field.GetValue(this);
+            }
+
+            desc = desc.Replace("{" + key + "}", value != null ? value.ToString() : "0");
+        }
+
+        return desc;
+    }
 }
 
 public enum PassiveType

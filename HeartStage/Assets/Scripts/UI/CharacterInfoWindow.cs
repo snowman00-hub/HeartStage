@@ -41,6 +41,10 @@ public class CharacterInfoWindow : GenericWindow
             var skillData = DataTableManager.SkillTable.Get(passiveSkills[0]);
             passiveDescText.text = skillData.info;
         }
+        else
+        {
+            passiveDescText.text = string.Empty;
+        }
         // 스탯 표시
         vocal.text = $"{data.atk_dmg}";
         lab.text = $"{Mathf.FloorToInt(data.atk_speed)}";
@@ -54,7 +58,11 @@ public class CharacterInfoWindow : GenericWindow
         if(activeSkills.Count > 0)
         {
             var skillData = DataTableManager.SkillTable.Get(activeSkills[0]);
-            activeDescText.text = skillData.info;
+            activeDescText.text = skillData.GetFormattedInfo();
+        }
+        else
+        {
+            activeDescText.text = string.Empty;
         }
     }
 }
