@@ -3,7 +3,7 @@
 // 인벤토리에 쌓이는 아이템
 public class InventoryItem : MonoBehaviour
 {
-    private Vector3 targetPos = new Vector3(-4.7f, 9.2f, 0);
+    private Vector3 targetPos = new Vector3(-4.84f, 8.19f, 0);
 
     private float delayTime = 0.5f;
     private float flyTime = 0.5f;

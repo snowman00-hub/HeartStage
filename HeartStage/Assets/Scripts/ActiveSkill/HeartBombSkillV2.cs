@@ -80,17 +80,26 @@ public class HeartBombSkillV2 : MonoBehaviour, ISkillBehavior
     // 몬스터 밀집된 곳 얻기
     public Vector3 GetCenterInMonsters()
     {
-        var objs = GameObject.FindGameObjectsWithTag(Tag.Monster); // SetActive True인 애들만 
+        var objs = GameObject.FindGameObjectsWithTag(Tag.Monster); // 활성화된 몬스터만
         if (objs.Length == 0)
             return Vector3.zero;
 
         Vector3 sum = Vector3.zero;
+        int count = 0;
+
         foreach (var obj in objs)
         {
-            sum += obj.transform.position; 
+            if (obj.transform.position.y <= 10f) // Y 10 이하 필터
+            {
+                sum += obj.transform.position;
+                count++;
+            }
         }
 
-        return sum / objs.Length;
+        if (count == 0)
+            return Vector3.zero;
+
+        return sum / count;
     }
 
     private void OnDisable()

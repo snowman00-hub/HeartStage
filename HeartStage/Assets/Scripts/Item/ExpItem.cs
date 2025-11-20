@@ -3,7 +3,7 @@
 // 함성 게이지 아이템
 public class ExpItem : MonoBehaviour
 {
-    private Vector3 targetPos = new Vector3(4.65f, 9.84f, 0);
+    private Vector3 targetPos = new Vector3(3.37f, 8.97f, 0);
 
     private float delayTime = 0.5f;
     private float flyTime = 0.5f;

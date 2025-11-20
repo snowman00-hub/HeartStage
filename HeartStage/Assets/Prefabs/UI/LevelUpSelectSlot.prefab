@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 7792829862116199099}
   - component: {fileID: 2401588002268310558}
   - component: {fileID: 2118161419916595795}
-  - component: {fileID: 4861641324431502187}
+  - component: {fileID: 257845310492176622}
   m_Layer: 5
   m_Name: ImagePanel
   m_TagString: Untagged
@@ -98,7 +98,7 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
---- !u!114 &4861641324431502187
+--- !u!114 &257845310492176622
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -107,23 +107,21 @@ MonoBehaviour:
   m_GameObject: {fileID: 2793168430233452536}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}
+  m_Script: {fileID: 11500000, guid: 8a8695521f0d02e499659fee002a26c2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_Padding:
-    m_Left: 50
-    m_Right: 50
+    m_Left: 0
+    m_Right: 0
     m_Top: 0
     m_Bottom: 0
-  m_ChildAlignment: 0
-  m_Spacing: 0
-  m_ChildForceExpandWidth: 1
-  m_ChildForceExpandHeight: 1
-  m_ChildControlWidth: 1
-  m_ChildControlHeight: 1
-  m_ChildScaleWidth: 0
-  m_ChildScaleHeight: 0
-  m_ReverseArrangement: 0
+  m_ChildAlignment: 4
+  m_StartCorner: 0
+  m_StartAxis: 0
+  m_CellSize: {x: 260, y: 260}
+  m_Spacing: {x: 0, y: 0}
+  m_Constraint: 0
+  m_ConstraintCount: 2
 --- !u!1 &4135895501730593766
 GameObject:
   m_ObjectHideFlags: 0
@@ -693,6 +691,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 7374004592000177824}
+        m_TargetAssemblyTypeName: LevelUpSelectSlot, Assembly-CSharp
+        m_MethodName: ChooseSlot
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &7374004592000177824
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -708,7 +718,6 @@ MonoBehaviour:
   selectName: {fileID: 4139302859236574451}
   selectImage: {fileID: 4596995273022027582}
   selectDesc: {fileID: 1745928878330830412}
-  selectId: 0
 --- !u!1 &8938619923757505774
 GameObject:
   m_ObjectHideFlags: 0

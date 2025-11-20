@@ -50,6 +50,11 @@ public class CharacterProjectile : MonoBehaviour
     private void Update()
     {
         transform.position += dir * moveSpeed * Time.deltaTime;
+
+        if (transform.position.y > 10f)
+        {
+            ReleaseToPool();
+        }
     }
 
     // 미사일 정보 세팅
