@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -13,6 +14,8 @@ public class DragMe : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
 
     // 이번 드래그가 “세로 드래그”였는지 여부 (DraggableSlot에서 사용)
     public bool IsVerticalDrag { get; private set; }
+    public bool WasDragging { get; private set; }      // 이번 드래그에서 움직임 있었는지
+    public bool DragJustEnded { get; private set; }    // "드래그 끝난 다음 프레임" 클릭 무효 처리용
 
     private readonly Dictionary<int, GameObject> m_DraggingIcons = new();
     private readonly Dictionary<int, RectTransform> m_DraggingPlanes = new();
@@ -58,6 +61,9 @@ public class DragMe : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     {
         int id = eventData.pointerId;
 
+        WasDragging = false;                // ← 추가
+        DragJustEnded = false;              // ← 안전하게 초기화
+
         IsVerticalDrag = false;                        // 새 드래그 시작마다 초기화
         m_StartPointerPos[id] = eventData.position;
         m_Directions[id] = DragDirection.Undecided;
@@ -78,7 +84,13 @@ public class DragMe : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
             var delta = eventData.position - startPos;
 
             if (delta.sqrMagnitude < directionThreshold * directionThreshold)
-                return; // 아직 너무 안 움직임
+            {
+                // ★ 조금이라도 움직였으면 드래그로 취급해서 클릭 방지
+                WasDragging = true;
+                return;
+            }
+
+            WasDragging = true;
 
             if (Mathf.Abs(delta.y) > Mathf.Abs(delta.x))
             {
@@ -204,6 +216,7 @@ public class DragMe : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         // IsVerticalDrag는 여기서 굳이 false로 안 돌림
         // → DraggableSlot.OnDrop에서 이 값 보고 세로 드래그인지 판단
         // → 다음 OnBeginDrag에서 다시 false로 초기화됨
+        SetDragJustEndedFlag().Forget();
     }
 
     // =============== UTIL ===============
@@ -222,5 +235,12 @@ public class DragMe : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         }
 
         return comp;
+    }
+
+    private async UniTaskVoid SetDragJustEndedFlag()
+    {
+        DragJustEnded = true;
+        await UniTask.Yield();     // 단 1프레임 동안만 true
+        DragJustEnded = false;
     }
 }

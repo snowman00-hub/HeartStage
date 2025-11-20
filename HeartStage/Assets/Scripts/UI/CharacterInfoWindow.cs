@@ -3,8 +3,10 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class CharacterInfoWindow : MonoBehaviour
+public class CharacterInfoWindow : GenericWindow
 {
+    public static CharacterInfoWindow Instance;
+
     public Image characterImage;
     public TextMeshProUGUI characterName;
     public Image attributeIcon;
@@ -19,6 +21,11 @@ public class CharacterInfoWindow : MonoBehaviour
     public TextMeshProUGUI sexy;
     public TextMeshProUGUI cuty;
     public TextMeshProUGUI charisma;
+
+    private void Awake()
+    {
+        Instance = this;
+    }
 
     public void Init(CharacterData data)
     {

@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
 public class GenericWindow : MonoBehaviour
 {
@@ -19,14 +18,15 @@ public class GenericWindow : MonoBehaviour
     {
         EventSystem.current.SetSelectedGameObject(firstSelected);
     }
+
     public virtual void Open()
     {
         gameObject.SetActive(true);
         OnFocus();
     }
+
     public virtual void Close()
     {
         gameObject.SetActive(false);
     }
-
 }

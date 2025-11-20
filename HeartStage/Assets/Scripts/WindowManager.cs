@@ -3,10 +3,17 @@ using System.Collections.Generic;
 
 public class WindowManager : MonoBehaviour
 {
+    public static WindowManager Instance;
+
     [Header("Reference")]
     [SerializeField] private List<GenericWindow> windows;
 
     public WindowType currentWindow { get; private set; }
+
+    private void Awake()
+    {
+        Instance = this;
+    }
 
     private void Start()
     {
