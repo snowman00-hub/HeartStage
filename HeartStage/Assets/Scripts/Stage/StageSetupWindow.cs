@@ -202,7 +202,6 @@ public class StageSetupWindow : MonoBehaviour
 
         foreach (var e in effects)
         {
-            Debug.Log($" -> effect id={e.effectId}, val={e.value}");
             EffectRegistry.Apply(obj, e.effectId, e.value, 99999f);
         }
     }

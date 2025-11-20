@@ -42,11 +42,6 @@ public class MonsterCSVData
     public string prefab1 { get; set; }
     public string prefab2 { get; set; }
 
-    // 호환성을 위한 프로퍼티들 (CSV 파싱에서 제외)
-    public int id => mon_id;
-    public string image_AssetName => prefab1;
-    public int skill_id => skill_id1;
-
     // stage_num은 CSV에 없으므로 기본값을 반환하는 프로퍼티로만 유지
     public int stage_num => 1; // 기본값 1 반환
 }

@@ -15,7 +15,6 @@ public class MonsterData : ScriptableObject
     public float moveSpeed;
     public int minExp;
     public int maxExp;
-    public string image_AssetName;
     
     // 새로 추가된 필드들
     public int skillId1;
@@ -55,14 +54,9 @@ public class MonsterData : ScriptableObject
         dropCount2 = csvData.drop_count2;
         prefab1 = csvData.prefab1;
         prefab2 = csvData.prefab2;
-        
-        // 호환성을 위해 기존 필드도 설정
-        image_AssetName = csvData.prefab1;
     }
     public void InitFromCSV(int monsterId)
     {
-        //if (isInitialized) return; // 이미 초기화됐으면 skip
-
         var monsterTable = DataTableManager.MonsterTable;
         if (monsterTable == null) return;
 
