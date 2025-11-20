@@ -23,7 +23,7 @@ public class BattleTabUI : GenericWindow
     public float verticalPadding = 100f;
 
     [Header("Field")]
-    private StageCsvData stageCsvData;
+    private StageCSVData stageCsvData;
     private StageTable stageTable;
 
     private void Awake()
@@ -109,7 +109,7 @@ public class BattleTabUI : GenericWindow
         SoundManager.Instance.PlaySFX("Ui_click_01");
     }
 
-    private void OnStageInfoButtonClicked(StageCsvData stageData)
+    private void OnStageInfoButtonClicked(StageCSVData stageData)
     {
         if (stageInfoUI != null)
         {

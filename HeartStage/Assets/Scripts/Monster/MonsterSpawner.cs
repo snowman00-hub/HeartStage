@@ -37,7 +37,7 @@ public class MonsterSpawner : MonoBehaviour
     // 몬스터 타입별 풀 관리 (주 사용)
     private Dictionary<int, List<GameObject>> monsterPools = new Dictionary<int, List<GameObject>>();
 
-    private StageCsvData currentStageData;
+    private StageCSVData currentStageData;
     private List<int> stageWaveIds = new List<int>();
     private int currentWaveIndex = 0;
     private StageWaveCSVData currentWaveData;
@@ -277,7 +277,7 @@ public class MonsterSpawner : MonoBehaviour
     }
 
     // 다음 스테이지 정보 가져오기
-    public StageCsvData GetNextStage()
+    public StageCSVData GetNextStage()
     {
         var orderedStages = DataTableManager.StageTable.GetOrderedStages();
         int currentIndex = orderedStages.FindIndex(s => s.stage_ID == currentStageId);

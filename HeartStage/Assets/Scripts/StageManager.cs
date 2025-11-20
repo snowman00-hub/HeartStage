@@ -12,7 +12,7 @@ public class StageManager : MonoBehaviour
     public LevelUpPanel LevelUpPanel;
     public Slider expSlider;
     public VictoryDefeatPanel VictoryDefeatPanel;
-    private StageCsvData currentStageData;
+    private StageCSVData currentStageData;
 
     private float currentTimeScale = 1f;
 
@@ -106,7 +106,7 @@ public class StageManager : MonoBehaviour
         }
     }
 
-    public void SetCurrentStageData(StageCsvData stageData)
+    public void SetCurrentStageData(StageCSVData stageData)
     {
         currentStageData = stageData;
         if (stageData != null)
@@ -117,7 +117,7 @@ public class StageManager : MonoBehaviour
     }
 
     // 현재 스테이지 데이터 가져오기
-    public StageCsvData GetCurrentStageData()
+    public StageCSVData GetCurrentStageData()
     {
         return currentStageData;
     }
@@ -185,7 +185,7 @@ public class StageManager : MonoBehaviour
         }
     }
 
-    private void SetBackgroundByStageData(StageCsvData stageData)
+    private void SetBackgroundByStageData(StageCSVData stageData)
     {
 
         if (stageData == null || string.IsNullOrEmpty(stageData.prefab) || stageData.prefab == "nan")
