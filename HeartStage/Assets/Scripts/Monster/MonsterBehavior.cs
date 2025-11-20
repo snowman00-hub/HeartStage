@@ -11,7 +11,7 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     private HealthBar healthBar;
 
     private readonly string attack = "Attack";
-    private readonly string isMoving = "IsMoving"; // 이동 상태 파라미터 추가
+    private readonly string run = "Run"; // 이동 상태 파라미터 추가
     //private readonly string die = "Die";
 
     private Animator animator;
@@ -105,7 +105,7 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         if (animator == null) return;
 
         bool isCurrentlyMoving = Vector3.Distance(transform.position, lastPosition) > 0.01f;
-        animator.SetBool(isMoving, isCurrentlyMoving);
+        animator.SetTrigger(run);
 
         lastPosition = transform.position;
     }
