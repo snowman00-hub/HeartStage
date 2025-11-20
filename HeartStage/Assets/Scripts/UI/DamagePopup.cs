@@ -34,16 +34,24 @@ public class DamagePopup : MonoBehaviour
     // 대미지 팝업 세팅
     public void Setup(int damage, Vector3 hitPoint, bool isCritical = false)
     {
-        if(isCritical)
+        // 월드 좌표 → 화면 좌표
+        Vector2 screenPos = Camera.main.WorldToScreenPoint(hitPoint);
+
+        // UI 위치로 설정
+        transform.position = screenPos;
+
+        // 크리티컬 여부에 따른 이동 좌우
+        if (isCritical)
         {
-            transform.position = hitPoint + Vector3.right;
+            transform.position += Vector3.right * 70f;  // UI니까 픽셀 단위로 살짝 이동
             text.fontSize = criticalSize;
         }
         else
         {
-            transform.position = hitPoint + Vector3.left;
+            transform.position += Vector3.left * 70f;
             text.fontSize = normalSize;
         }
+
         text.text = damage.ToString();
         alpha = 1f;
     }

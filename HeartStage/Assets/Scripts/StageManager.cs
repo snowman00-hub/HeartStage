@@ -6,7 +6,7 @@ public class StageManager : MonoBehaviour
     public static StageManager Instance;
 
     [SerializeField] private WindowManager windowManager;
-    [SerializeField] private Image backGroundImage;
+    [SerializeField] private SpriteRenderer backGroundSprite;
 
     public StageUI StageUI;
     public LevelUpPanel LevelUpPanel;
@@ -193,7 +193,7 @@ public class StageManager : MonoBehaviour
             return;
         }
 
-        if (backGroundImage == null)
+        if (backGroundSprite == null)
         {
             return;
         }
@@ -202,7 +202,7 @@ public class StageManager : MonoBehaviour
         var backgroundSprite = ResourceManager.Instance.Get<Sprite>(stageData.prefab);
         if (backgroundSprite != null)
         {
-            backGroundImage.sprite = backgroundSprite;
+            backGroundSprite.sprite = backgroundSprite;
             return;
         }
 
@@ -217,7 +217,7 @@ public class StageManager : MonoBehaviour
                 new Vector2(0.5f, 0.5f)
             );
 
-            backGroundImage.sprite = sprite;
+            backGroundSprite.sprite = sprite;
             return;
         }
     }

@@ -167,7 +167,7 @@ public class StageSetupWindow : MonoBehaviour
             int slotIndex = kvp.Key;
             int characterId = kvp.Value;
 
-            Vector3 spawnPosition = SpawnPos[slotIndex].transform.position - new Vector3(0, 0, 90f);
+            Vector3 spawnPosition = SpawnPos[slotIndex].transform.position;
             var obj = PlaceCharacter(characterId, spawnPosition, slotIndex);
             allies.Add(obj);
         }
