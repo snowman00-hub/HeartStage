@@ -41,7 +41,12 @@ public class PoolManager : MonoBehaviour
                return obj;
            },
            actionOnGet: obj => obj.SetActive(true),
-           actionOnRelease: obj => obj.SetActive(false),
+           actionOnRelease: obj =>
+           {
+               if (obj == null || obj.Equals(null)) 
+                   return;
+               obj.SetActive(false);
+           },
            actionOnDestroy: obj => Destroy(obj),
            collectionCheck: false,
            defaultCapacity: defaultCapacity,
@@ -78,15 +83,16 @@ public class PoolManager : MonoBehaviour
     // 해당 오브젝트를 풀로 복귀시키기
     public void Release(string id, GameObject obj)
     {
-        if (poolDict.ContainsKey(id))
+        if (obj == null || obj.Equals(null))
+            return;
+
+        if (!poolDict.ContainsKey(id))
         {
-            poolDict[id].Release(obj);
+            Destroy(obj);
+            return;
         }
-        else
-        {
-            Debug.Log("파괴됨");
-            Destroy(obj); // 혹시 모를 예외 대비
-        }
+
+        poolDict[id].Release(obj);
     }
 
     // 오브젝트 풀 사이즈 증가

@@ -8507,12 +8507,16 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1890603866457553676, guid: 3b1111f729f6c5c49bb6a4387d59044c, type: 3}
       propertyPath: windows.Array.size
-      value: 4
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 1890603866457553676, guid: 3b1111f729f6c5c49bb6a4387d59044c, type: 3}
       propertyPath: 'windows.Array.data[3]'
       value: 
       objectReference: {fileID: 1866029706}
+    - target: {fileID: 1890603866457553676, guid: 3b1111f729f6c5c49bb6a4387d59044c, type: 3}
+      propertyPath: 'windows.Array.data[4]'
+      value: 
+      objectReference: {fileID: 1859982282}
     - target: {fileID: 2345486004710282648, guid: 3b1111f729f6c5c49bb6a4387d59044c, type: 3}
       propertyPath: m_LocalPosition.x
       value: -7.4854846
@@ -29124,6 +29128,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8de21231ec5fcb541b01af13820b3e41, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  firstSelected: {fileID: 0}
   characterImage: {fileID: 1705653810}
   characterName: {fileID: 1312355227}
   attributeIcon: {fileID: 1244737418}

@@ -3,8 +3,10 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class CharacterInfoWindow : MonoBehaviour
+public class CharacterInfoWindow : GenericWindow
 {
+    public static CharacterInfoWindow Instance;
+
     public Image characterImage;
     public TextMeshProUGUI characterName;
     public Image attributeIcon;
@@ -20,6 +22,11 @@ public class CharacterInfoWindow : MonoBehaviour
     public TextMeshProUGUI cuty;
     public TextMeshProUGUI charisma;
 
+    private void Awake()
+    {
+        Instance = this;
+    }
+
     public void Init(CharacterData data)
     {
         // 캐릭터이미지 바꾸기 characterImage
@@ -34,6 +41,10 @@ public class CharacterInfoWindow : MonoBehaviour
             var skillData = DataTableManager.SkillTable.Get(passiveSkills[0]);
             passiveDescText.text = skillData.info;
         }
+        else
+        {
+            passiveDescText.text = string.Empty;
+        }
         // 스탯 표시
         vocal.text = $"{data.atk_dmg}";
         lab.text = $"{Mathf.FloorToInt(data.atk_speed)}";
@@ -47,7 +58,11 @@ public class CharacterInfoWindow : MonoBehaviour
         if(activeSkills.Count > 0)
         {
             var skillData = DataTableManager.SkillTable.Get(activeSkills[0]);
-            activeDescText.text = skillData.info;
+            activeDescText.text = skillData.GetFormattedInfo();
+        }
+        else
+        {
+            activeDescText.text = string.Empty;
         }
     }
 }
