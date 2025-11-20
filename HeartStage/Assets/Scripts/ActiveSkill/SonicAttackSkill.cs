@@ -23,7 +23,7 @@ public class SonicAttackSkill : MonoBehaviour, ISkillBehavior
         var collider = prefabClone.GetComponent<BoxCollider2D>();
         collider.size = new Vector2(skillData.skill_range,collider.size.y);
         // 파티클 적용
-        var particleGo = Instantiate(ResourceManager.Instance.Get<GameObject>(skillData.particle_prefab), prefabClone.transform);
+        var particleGo = Instantiate(ResourceManager.Instance.Get<GameObject>(skillData.skillprojectile_prefab), prefabClone.transform);
         var particleScale = particleGo.transform.localScale;
         particleScale.x *= collider.size.x;
         particleGo.transform.localScale = particleScale;

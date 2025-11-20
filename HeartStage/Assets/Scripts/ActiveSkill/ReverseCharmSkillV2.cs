@@ -24,7 +24,7 @@ public class ReverseCharmSkillV2 : MonoBehaviour, ISkillBehavior
         var collider = prefabClone.GetComponent<CircleCollider2D>();
         collider.radius = skillData.skill_range;
         // 파티클 적용
-        var particleGo = Instantiate(ResourceManager.Instance.Get<GameObject>(skillData.particle_prefab), prefabClone.transform);
+        var particleGo = Instantiate(ResourceManager.Instance.Get<GameObject>(skillData.skillprojectile_prefab), prefabClone.transform);
         particleGo.transform.localScale = particleGo.transform.localScale * skillData.skill_range;
         // 오브젝트 풀 생성
         PoolManager.Instance.CreatePool(poolId, prefabClone, 10, 30);
