@@ -86,6 +86,19 @@ public class CharacterTable : DataTable
         }
         return table[key];
     }
+    public Dictionary<int, CharacterData> GetAllCharacterData()
+    {
+        var result = new Dictionary<int, CharacterData>();
+        foreach (var kvp in table)
+        {
+            var csvData = kvp.Value;
+            var charData = ScriptableObject.CreateInstance<CharacterData>();
+            charData.UpdateData(csvData);
+            result.Add(kvp.Key, charData);
+        }
+
+        return result;
+    }
 
     public List<int> GetSkillIds(int id)
     {

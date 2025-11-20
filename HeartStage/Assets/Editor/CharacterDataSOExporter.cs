@@ -1,9 +1,10 @@
-﻿using UnityEditor;
-using UnityEngine;
-using System.IO;
-using System.Globalization;
-using CsvHelper;
+﻿using CsvHelper;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using UnityEditor;
+using UnityEngine;
 
 public class CharacterDataSOExporter : EditorWindow
 {
@@ -45,11 +46,13 @@ public class CharacterDataSOExporter : EditorWindow
                 dataList.Add(so.ToCSVData());
             }
         }
-        // 🔹 여기서 id 기준으로 정렬해주기
-        // CharacterCSVData에 있는 실제 필드명에 맞게 바꿔줘 (예: id, char_id 등)
-        dataList.Sort((a, b) => a.char_id.CompareTo(b.char_id));
-        // 만약 필드명이 char_id면:
-        // dataList.Sort((a, b) => a.char_id.CompareTo(b.char_id));
+
+        dataList = dataList
+                 .OrderBy(d => d.char_name)
+                 .ThenBy(d => d.char_id)
+                 .ThenBy(d => d.char_lv)
+                 .ToList();
+
         using (var writer = new StreamWriter(csvFilePath))
         using (var csv = new CsvWriter(writer, CultureInfo.InvariantCulture))
         {

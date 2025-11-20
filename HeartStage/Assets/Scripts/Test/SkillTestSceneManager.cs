@@ -121,17 +121,9 @@ public class SkillTestManager : MonoBehaviour
         ReleasePreview();
     }
 
-    // ==========================
-    // 유틸: 액티브 스킬 판별 (필요시 수정)
-    // ==========================
-
-    /// <summary>
-    /// 액티브 스킬인지 여부. 필요하면 규칙 바꿔도 됨.
-    /// </summary>
     private bool IsActiveSkill(SkillData data)
     {
-        // 예시: skill_auto == 0 이면 수동 발동 스킬
-        return data.skill_auto == 0;
+        return data.skill_type == 1 && data.passive_type == 0;
     }
 
     // ==========================
@@ -144,8 +136,8 @@ public class SkillTestManager : MonoBehaviour
 
         foreach (var s in skillList)
         {
-            // 원하면 여기서도 액티브만 필터링 가능
-            // if (!IsActiveSkill(s)) continue;
+            if (!IsActiveSkill(s))
+                continue;
 
             string label = $"{s.skill_id} - {s.skill_name}";
             options.Add(new TMP_Dropdown.OptionData(label));
