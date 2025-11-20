@@ -12,7 +12,6 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
     private MonsterData cachedMonsterData;
     private MonsterSpawner monsterSpawner; 
 
-    private readonly string run = "Run"; // 이동 상태 파라미터
 
     public async UniTask InitializeWithMonsterData(MonsterData monsterData)
     {

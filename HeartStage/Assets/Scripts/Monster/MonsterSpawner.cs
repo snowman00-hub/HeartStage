@@ -370,11 +370,6 @@ public class MonsterSpawner : MonoBehaviour
                 visualChild.transform.localRotation = Quaternion.identity;
             }
 
-            else
-            {
-                Debug.Log($"prefab1을 ResourceManager에서 찾을 수 없음: {monsterData.prefab1}");
-            }
-
         }
         catch (System.Exception e)
         {
