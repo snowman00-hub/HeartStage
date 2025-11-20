@@ -9,7 +9,10 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
     private bool isInitialized = false; // 중복 초기화 방지 플래그 추가
     private MonsterBehavior monsterBehavior;
     private SkillCSVData skillData;
-    private MonsterData cachedMonsterData;  
+    private MonsterData cachedMonsterData;
+    private MonsterSpawner monsterSpawner; 
+
+    private readonly string run = "Run"; // 이동 상태 파라미터
 
     public async UniTask InitializeWithMonsterData(MonsterData monsterData)
     {
@@ -25,6 +28,19 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
         if (monsterBehavior == null)
         {
             return;
+        }
+
+        if(monsterSpawner == null)
+        {
+            monsterSpawner = FindObjectOfType<MonsterSpawner>(); // FindObject 쓰면 안좋음 변경 하긴 해야함
+            if (monsterSpawner != null)
+            {
+                Debug.Log("보스 스킬에서 MonsterSpawner 찾음 및 캐싱 완료");
+            }
+            else
+            {
+                Debug.LogError("MonsterSpawner를 찾을 수 없습니다!");
+            }
         }
 
         await InitializeWithData(monsterData);
@@ -76,6 +92,8 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
             Debug.LogError($"MonsterData를 찾을 수 없음 - ID: {skillData.summon_type}");
             return;
         }
+
+
 
         await InitializePool();
 
@@ -176,6 +194,16 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
         if (monsterBehavior != null)
         {
             monsterBehavior.Init(cachedMonsterData);
+
+            if(monsterSpawner != null)
+            {
+                monsterBehavior.SetMonsterSpawner(monsterSpawner);
+                Debug.Log($"소환된 몬스터 {monster.name}에 MonsterSpawner 설정 완료");
+            }
+            else
+            {
+                Debug.LogError("MonsterSpawner가 Inspector에서 할당되지 않았습니다!");
+            }
         }
 
         // 이동 컴포넌트 초기화
@@ -187,7 +215,19 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
 
         AddVisualChild(monster, cachedMonsterData);
 
+        SetAnimator(monster);
+
         monster.SetActive(true);
+    }
+
+    private void SetAnimator(GameObject monster)
+    {
+        var animator = monster.GetComponentInChildren<Animator>();
+        if(animator != null)
+        {
+            animator.SetTrigger(run);
+            Debug.Log($"소환된 몬스터 {monster.name}의 애니메이터 초기화 완료");
+        }
     }
 
     private void AddVisualChild(GameObject monster, MonsterData monsterData)
@@ -227,7 +267,7 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
         float sideDistance = Random.Range(2f, 5f);
         float side = Random.Range(0, 2) == 0 ? -1f : 1f; // 왼쪽 또는 오른쪽
 
-        float yOffset = Random.Range(-0.5f, -1f); // 약간 위쪽
+        float yOffset = Random.Range(5f, 10f); // 약간 뒤쪽
 
         Vector3 spawnOffset = new Vector3
             (

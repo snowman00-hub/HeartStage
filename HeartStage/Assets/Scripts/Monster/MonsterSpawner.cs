@@ -79,7 +79,7 @@ public class MonsterSpawner : MonoBehaviour
         }
         catch (System.Exception e)
         {
-            Debug.LogError($"MonsterSpawner 초기화 실패: {e.Message}");
+            Debug.Log($"MonsterSpawner 초기화 실패: {e.Message}");
         }
     }
 

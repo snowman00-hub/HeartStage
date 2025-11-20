@@ -209,10 +209,6 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         {
             animator.SetTrigger(attack);
         }
-        else
-        {
-            Debug.LogWarning("Animator가 null입니다!");
-        }
 
         if (hit != null)
         {
