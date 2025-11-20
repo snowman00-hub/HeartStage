@@ -60,4 +60,17 @@ public class ResourceManager : MonoBehaviour
         _assetCache.Clear();
         Debug.Log("[ResourceManager] 모든 리소스 해제 완료");
     }
+
+
+
+    //에셋 목록 출력 
+    public void LogCachedAssets()
+    {
+        Debug.Log($"[ResourceManager] === 캐시된 에셋 목록 ({_assetCache.Count}개) ===");
+        foreach (var kvp in _assetCache)
+        {
+            Debug.Log($"[ResourceManager] - {kvp.Key} ({kvp.Value?.GetType().Name})");
+        }
+        Debug.Log("[ResourceManager] === 캐시 목록 끝 ===");
+    }
 }

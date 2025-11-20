@@ -99,15 +99,10 @@ public class MonsterMovement : MonoBehaviour
     // 화면 경계 초기화
     private void InitializeScreenBounds()
     {
-        if (Camera.main != null)
-        {
-            Vector3 leftScreen = Camera.main.ScreenToWorldPoint(new Vector3(0, 0, Camera.main.nearClipPlane));
-            Vector3 rightScreen = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width, 0, Camera.main.nearClipPlane));
-
-            leftBound = leftScreen.x + screenMargin;
-            rightBound = rightScreen.x - screenMargin;
-            boundsInitialized = true;
-        }
+        // MonsterSpawner의 스폰 범위와 일치하도록 고정 값 사용
+        leftBound = -3.5f + screenMargin;
+        rightBound = 3.5f - screenMargin;
+        boundsInitialized = true;
     }
 
     // 벽 근접 확인 (SO의 최신 attackRange 사용)

@@ -6,6 +6,7 @@ public class StageManager : MonoBehaviour
     public static StageManager Instance;
 
     [SerializeField] private WindowManager windowManager;
+    [SerializeField] private Image backGroundImage;
 
     public StageUI StageUI;
     public LevelUpPanel LevelUpPanel;
@@ -59,6 +60,8 @@ public class StageManager : MonoBehaviour
             if (stageData != null)
             {
                 SetCurrentStageData(stageData);
+
+                SetBackgroundByStageData(stageData);
 
                 // 현재 웨이브 설정
                 int startingWave = PlayerPrefs.GetInt("StartingWave", 1);
@@ -179,6 +182,43 @@ public class StageManager : MonoBehaviour
             {
                 VictoryDefeatPanel.gameObject.SetActive(true);
             }
+        }
+    }
+
+    private void SetBackgroundByStageData(StageCsvData stageData)
+    {
+
+        if (stageData == null || string.IsNullOrEmpty(stageData.prefab) || stageData.prefab == "nan")
+        {
+            return;
+        }
+
+        if (backGroundImage == null)
+        {
+            return;
+        }
+
+        // 먼저 Sprite로 시도
+        var backgroundSprite = ResourceManager.Instance.Get<Sprite>(stageData.prefab);
+        if (backgroundSprite != null)
+        {
+            backGroundImage.sprite = backgroundSprite;
+            return;
+        }
+
+        // Sprite가 없으면 Texture2D로 시도하고 Sprite로 변환
+        var backgroundTexture = ResourceManager.Instance.Get<Texture2D>(stageData.prefab);
+        if (backgroundTexture != null)
+        {
+            // Texture2D를 Sprite로 변환
+            var sprite = Sprite.Create(
+                backgroundTexture,
+                new Rect(0, 0, backgroundTexture.width, backgroundTexture.height),
+                new Vector2(0.5f, 0.5f)
+            );
+
+            backGroundImage.sprite = sprite;
+            return;
         }
     }
 }

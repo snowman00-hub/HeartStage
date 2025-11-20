@@ -370,11 +370,6 @@ public class MonsterSpawner : MonoBehaviour
                 visualChild.transform.localRotation = Quaternion.identity;
             }
 
-            else
-            {
-                Debug.Log($"prefab1을 ResourceManager에서 찾을 수 없음: {monsterData.prefab1}");
-            }
-
         }
         catch (System.Exception e)
         {
@@ -530,14 +525,22 @@ public class MonsterSpawner : MonoBehaviour
     }
 
     // 랜덤 스폰 위치 계산
+    //private Vector3 GetRandomSpawnPosition()
+    //{
+    //    int randomRange = Random.Range(0, Screen.width);
+    //    int height = Random.Range(Screen.height + 100, Screen.height + 500);
+
+    //    Vector3 screenPosition = new Vector3(randomRange, height, 0);
+    //    Vector3 spawnPos = Camera.main.ScreenToWorldPoint(screenPosition);
+    //    spawnPos.z = 0f;
+
+    //    return spawnPos;
+    //}
     private Vector3 GetRandomSpawnPosition()
     {
-        int randomRange = Random.Range(0, Screen.width);
-        int height = Random.Range(Screen.height + 100, Screen.height + 500);
-
-        Vector3 screenPosition = new Vector3(randomRange, height, 0);
-        Vector3 spawnPos = Camera.main.ScreenToWorldPoint(screenPosition);
-        spawnPos.z = 0f;
+        float randomX = Random.Range(-3.5f, 3.5f);
+        float randomY = Random.Range(12f, 17f);
+        var spawnPos = new Vector3(randomX, randomY, 0);
 
         return spawnPos;
     }
@@ -545,11 +548,7 @@ public class MonsterSpawner : MonoBehaviour
     // 보스 스폰 위치 계산
     private Vector3 GetBossSpawnPosition()
     {
-        Vector3 screenCenter = new Vector3(Screen.width / 2f, Screen.height + 200, 0f);
-        Vector3 worldPos = Camera.main.ScreenToWorldPoint(screenCenter);
-        worldPos.z = 0f;
-
-        return worldPos;
+        return new Vector3(0f, 15f, 0f); // 화면 중앙 x=0, 위쪽에서 스폰
     }
 
     // 리소스 정리
