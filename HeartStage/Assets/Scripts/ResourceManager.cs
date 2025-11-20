@@ -61,8 +61,6 @@ public class ResourceManager : MonoBehaviour
         Debug.Log("[ResourceManager] 모든 리소스 해제 완료");
     }
 
-
-
     //에셋 목록 출력 
     public void LogCachedAssets()
     {

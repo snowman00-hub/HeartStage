@@ -13,6 +13,8 @@ public class BootStrap : MonoBehaviour
     // Scene Addressable 주소 바꾸지 말기, 그냥 체크만 하기
     private async UniTask Start()
     {
+        // Addressables 초기화
+        await Addressables.InitializeAsync();
         // 비동기로 미리 해야하는 작업들 있으면 가능한 부트 씬에서 하고 해당 씬에선 동기로 쓰기
         await ResourceManager.Instance.PreloadLabelAsync(AddressableLabel.Stage);
         await ResourceManager.Instance.PreloadLabelAsync("SFX"); // 사운드 추가 로드
