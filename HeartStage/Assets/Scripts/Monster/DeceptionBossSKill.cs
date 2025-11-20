@@ -33,14 +33,6 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
         if(monsterSpawner == null)
         {
             monsterSpawner = FindObjectOfType<MonsterSpawner>(); // FindObject 쓰면 안좋음 변경 하긴 해야함
-            if (monsterSpawner != null)
-            {
-                Debug.Log("보스 스킬에서 MonsterSpawner 찾음 및 캐싱 완료");
-            }
-            else
-            {
-                Debug.LogError("MonsterSpawner를 찾을 수 없습니다!");
-            }
         }
 
         await InitializeWithData(monsterData);
@@ -189,20 +181,18 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
         monster.transform.position = spawnPos;
         monster.transform.rotation = Quaternion.identity;
 
-        // 몬스터 초기화
+        // ⭐ 순서 변경: 시각적 자식을 먼저 추가
+        AddVisualChild(monster, cachedMonsterData);
+
+        // 그 다음 몬스터 초기화
         var monsterBehavior = monster.GetComponent<MonsterBehavior>();
         if (monsterBehavior != null)
         {
             monsterBehavior.Init(cachedMonsterData);
 
-            if(monsterSpawner != null)
+            if (monsterSpawner != null)
             {
                 monsterBehavior.SetMonsterSpawner(monsterSpawner);
-                Debug.Log($"소환된 몬스터 {monster.name}에 MonsterSpawner 설정 완료");
-            }
-            else
-            {
-                Debug.LogError("MonsterSpawner가 Inspector에서 할당되지 않았습니다!");
             }
         }
 
@@ -213,22 +203,10 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
             monsterMovement.Init(cachedMonsterData, Vector3.down);
         }
 
-        AddVisualChild(monster, cachedMonsterData);
-
-        SetAnimator(monster);
-
         monster.SetActive(true);
     }
 
-    private void SetAnimator(GameObject monster)
-    {
-        var animator = monster.GetComponentInChildren<Animator>();
-        if(animator != null)
-        {
-            animator.SetTrigger(run);
-            Debug.Log($"소환된 몬스터 {monster.name}의 애니메이터 초기화 완료");
-        }
-    }
+
 
     private void AddVisualChild(GameObject monster, MonsterData monsterData)
     {
@@ -244,8 +222,6 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
                     // 로컬 포지션을 (0,0,0)으로 설정하여 부모와 같은 위치에
                     visualChild.transform.localPosition = Vector3.zero;
                     visualChild.transform.localRotation = Quaternion.identity;
-
-                    Debug.Log($"소환된 Monster {monsterData.id}에 시각적 자식 오브젝트 추가 완료: {monsterData.prefab1}");
                 }
                 else
                 {

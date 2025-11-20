@@ -12,6 +12,8 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 
     private readonly string attack = "Attack";
     private readonly string run = "Run"; // 이동 상태 파라미터 추가
+    private bool wasMoving = false; // 클래스 상단에 추가
+
     //private readonly string die = "Die";
 
     private Animator animator;
@@ -33,7 +35,6 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     private void Awake()
     {
         selfCollider = GetComponent<Collider2D>();
-        animator = GetComponentInChildren<Animator>();
         monsterMovement = GetComponent<MonsterMovement>();
         lastPosition = transform.position;
     }
@@ -53,7 +54,20 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         isBoss = IsBossMonster(data.id);
         InitHealthBar();
 
-        animator = GetComponentInChildren<Animator>();
+        if (animator == null)
+        {
+            animator = GetComponentInChildren<Animator>();
+        }
+
+        //if (animator != null)
+        //{
+        //    if (animator.runtimeAnimatorController != null)
+        //    {
+        //        animator.SetTrigger(run); // 초기 상태를 달리기로 설정
+        //    }
+        //}
+
+        lastPosition = transform.position;
     }
 
     // 체력바 초기화
@@ -102,11 +116,16 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     // 이동 상태에 따른 애니메이션 업데이트
     private void UpdateMovementAnimation()
     {
-        if (animator == null) return;
+        if (animator == null || animator.runtimeAnimatorController == null) return;
 
         bool isCurrentlyMoving = Vector3.Distance(transform.position, lastPosition) > 0.01f;
-        animator.SetTrigger(run);
 
+        if (isCurrentlyMoving && !wasMoving)
+        {
+            animator.SetTrigger(run);
+        }
+
+        wasMoving = isCurrentlyMoving;
         lastPosition = transform.position;
     }
 
@@ -205,7 +224,7 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         // 이미 Update에서 타겟이 있다고 확인했으므로, 바로 공격 실행
         Collider2D hit = Physics2D.OverlapCircle(transform.position, monsterData.attackRange, LayerMask.GetMask(Tag.Wall));
 
-        if (animator != null)
+        if (animator != null && animator.runtimeAnimatorController != null)
         {
             animator.SetTrigger(attack);
         }
@@ -222,13 +241,9 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 
     private void RangedAttack()
     {
-        if (animator != null)
+        if (animator != null && animator.runtimeAnimatorController != null)
         {
             animator.SetTrigger(attack);
-        }
-        else
-        {
-            Debug.LogWarning("Animator가 null입니다!");
         }
 
         Vector3 direction = Vector3.down;
