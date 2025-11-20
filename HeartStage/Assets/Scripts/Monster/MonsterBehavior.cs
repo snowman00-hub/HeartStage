@@ -11,11 +11,16 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     private HealthBar healthBar;
 
     private readonly string attack = "Attack";
+    private readonly string isMoving = "IsMoving"; // 이동 상태 파라미터 추가
     //private readonly string die = "Die";
 
     private Animator animator;
     //혼란 전용 셀프 콜라이더
     private Collider2D selfCollider;
+
+    // 이동 상태 추적용
+    private MonsterMovement monsterMovement;
+    private Vector3 lastPosition;
 
 
     private int currentHP;
@@ -29,6 +34,8 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     {
         selfCollider = GetComponent<Collider2D>();
         animator = GetComponentInChildren<Animator>();
+        monsterMovement = GetComponent<MonsterMovement>();
+        lastPosition = transform.position;
     }
 
     // 몬스터 초기화 (SO 참조 설정, HP는 필요시에만 갱신)
@@ -41,7 +48,7 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         {
             maxHP = data.hp;
             currentHP = data.hp;
-        }       
+        }
 
         isBoss = IsBossMonster(data.id);
         InitHealthBar();
@@ -70,23 +77,73 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         if (monsterData == null || EffectBase.Has<StunEffect>(gameObject))
             return;
 
+        // 이동 상태 체크 및 애니메이션 업데이트
+        UpdateMovementAnimation();
+
         // SO의 최신 공격속도 값을 직접 사용 (런타임 변경사항 즉시 반영)
         attackCooldown -= Time.deltaTime;
         if (attackCooldown <= 0f)
         {
-            if (EffectBase.Has<ConfuseEffect>(gameObject))
+            if (IsTargetInRange())
             {
-                ConfuseAttack();
+                if (EffectBase.Has<ConfuseEffect>(gameObject))
+                {
+                    ConfuseAttack();
+                }
+                else
+                {
+                    Attack();
+                }
+                attackCooldown = monsterData.attackSpeed; // SO에서 직접 가져옴
             }
-            else
-            {
-                Attack();
-            }
-            attackCooldown = monsterData.attackSpeed; // SO에서 직접 가져옴
         }
     }
 
-  
+    // 이동 상태에 따른 애니메이션 업데이트
+    private void UpdateMovementAnimation()
+    {
+        if (animator == null) return;
+
+        bool isCurrentlyMoving = Vector3.Distance(transform.position, lastPosition) > 0.01f;
+        animator.SetBool(isMoving, isCurrentlyMoving);
+
+        lastPosition = transform.position;
+    }
+
+    // 공격 범위 내에 타겟이 있는지 확인
+    private bool IsTargetInRange()
+    {
+        if (EffectBase.Has<ConfuseEffect>(gameObject))
+        {
+            // 혼란 상태일 때는 다른 몬스터 탐지
+            Collider2D[] hits = Physics2D.OverlapCircleAll(
+                transform.position,
+                monsterData.attackRange,
+                LayerMask.GetMask(Tag.Monster)
+            );
+
+            foreach (var hit in hits)
+            {
+                if (hit != null && hit != selfCollider)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        else
+        {
+            // 일반 상태일 때는 벽 탐지
+            Collider2D hit = Physics2D.OverlapCircle(
+                transform.position,
+                monsterData.attackRange,
+                LayerMask.GetMask(Tag.Wall)
+            );
+            return hit != null;
+        }
+    }
+
+
     public void Attack()
     {
         switch (monsterData.attType)
@@ -105,11 +162,11 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         if (monsterData != null)
         {
             currentHP -= damage;
-            SoundManager.Instance.PlayMonsterHitSound();            
+            SoundManager.Instance.PlayMonsterHitSound();
             //Debug.Log($"{monsterData.monsterName}이(가) {damage}의 피해를 입었습니다. 남은 HP: {currentHP}");
 
             var ondamageEvents = GetComponents<IDamaged>();
-            foreach(var ondamageEvent in ondamageEvents)
+            foreach (var ondamageEvent in ondamageEvents)
             {
                 ondamageEvent.OnDamaged(damage, gameObject, isCritical);
             }
@@ -126,7 +183,7 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         if (monsterSpawner != null && monsterData != null)
         {
             monsterSpawner.OnMonsterDied(monsterData.id);
-        }        
+        }
 
         gameObject.SetActive(false);
         // 경험치 생성
@@ -137,7 +194,7 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
             return;
 
         var dropList = DataTableManager.MonsterTable.GetDropItemInfo(monsterData.id);
-        foreach(var dropItem in dropList)
+        foreach (var dropItem in dropList)
         {
             ItemManager.Instance.SpawnItem(dropItem.Key, dropItem.Value, transform.position);
         }
@@ -145,9 +202,10 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 
     private void MeleeAttack()
     {
+        // 이미 Update에서 타겟이 있다고 확인했으므로, 바로 공격 실행
         Collider2D hit = Physics2D.OverlapCircle(transform.position, monsterData.attackRange, LayerMask.GetMask(Tag.Wall));
 
-        if(animator != null)
+        if (animator != null)
         {
             animator.SetTrigger(attack);
         }
@@ -161,33 +219,37 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
             var target = hit.GetComponent<IDamageable>();
             if (target != null)
             {
-                target.OnDamage(monsterData.att); 
+                target.OnDamage(monsterData.att);
             }
         }
     }
 
     private void RangedAttack()
     {
-        Collider2D hit = Physics2D.OverlapCircle(transform.position, monsterData.attackRange, LayerMask.GetMask(Tag.Wall));
-
-        if (hit != null)
+        if (animator != null)
         {
-            Vector3 direction = Vector3.down;
+            animator.SetTrigger(attack);
+        }
+        else
+        {
+            Debug.LogWarning("Animator가 null입니다!");
+        }
 
-            var projectileObj = PoolManager.Instance.Get(MonsterProjectilePoolId);
-            if (projectileObj != null)
+        Vector3 direction = Vector3.down;
+
+        var projectileObj = PoolManager.Instance.Get(MonsterProjectilePoolId);
+        if (projectileObj != null)
+        {
+            projectileObj.transform.position = transform.position;
+            projectileObj.transform.rotation = Quaternion.identity;
+
+            var projectile = projectileObj.GetComponent<MonsterProjectile>();
+            if (projectile != null)
             {
-                projectileObj.transform.position = transform.position;
-                projectileObj.transform.rotation = Quaternion.identity;
-
-                var projectile = projectileObj.GetComponent<MonsterProjectile>();
-                if (projectile != null)
-                {
-                    projectile.Init(direction, monsterData.bulletSpeed, monsterData.att);
-                }
-
-                projectileObj.SetActive(true);
+                projectile.Init(direction, monsterData.bulletSpeed, monsterData.att);
             }
+
+            projectileObj.SetActive(true);
         }
     }
 
@@ -213,8 +275,13 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
             break; // 일단 하나만 때릴 거면 첫 번째만 선택
         }
 
-        if(targetCollider != null)
+        if (targetCollider != null)
         {
+            if (animator != null)
+            {
+                animator.SetTrigger(attack);
+            }
+
             var target = targetCollider.GetComponent<IDamageable>();
             if (target != null)
             {
@@ -231,7 +298,7 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
             var monsterData = DataTableManager.MonsterTable.Get(id);
             if (monsterData != null)
             {
-                return monsterData.mon_type == 2; 
+                return monsterData.mon_type == 2;
             }
         }
 

@@ -4,7 +4,7 @@ using UnityEngine;
 public class MonsterMovement : MonoBehaviour
 {
     [Header("Movement Settings")]
-    private MonsterData monsterData; 
+    private MonsterData monsterData;
     private bool isInitialized = false;
 
     [Header("Anti-Overlap Settings")]
@@ -15,7 +15,7 @@ public class MonsterMovement : MonoBehaviour
 
     [Header("Screen Bounds")]
     [SerializeField] private float screenMargin = 0.5f;
-    
+
     // 벽 감지 관련
     private bool isNearWall = false;
     private bool isFrontBlocked = false; // 앞줄 막힘 상태
@@ -30,9 +30,25 @@ public class MonsterMovement : MonoBehaviour
     private Collider2D selfCollider;  //혼란 전용 셀프 콜라이더
     [SerializeField] private float confuseSearchRadius = 5f; // 혼란 상태에서 타겟 탐색 반경
 
+    // 애니메이션 상태 관리 - 개선된 버전
+    private Animator animator;
+    private readonly string isMoving = "IsMoving";
+
+    // 이동 상태 스무싱을 위한 변수들
+    [Header("Animation Settings")]
+    [SerializeField] private float movementThreshold = 0.05f; // 이동 감지 임계값
+    [SerializeField] private float animationSmoothTime = 0.1f; // 애니메이션 상태 변경 딜레이
+
+    private Vector3 lastPosition;
+    private bool currentMovingState = false;
+    private float lastStateChangeTime = 0f;
+    private float movementAccumulator = 0f; // 이동량 누적
+
     public void Awake()
     {
         selfCollider = GetComponent<Collider2D>();
+        animator = GetComponentInChildren<Animator>();
+        lastPosition = transform.position;
     }
 
     private void OnEnable()
@@ -50,24 +66,27 @@ public class MonsterMovement : MonoBehaviour
 
     private void Update()
     {
-        if(EffectBase.Has<KnockbackEffect>(gameObject))
+        if (EffectBase.Has<KnockbackEffect>(gameObject))
         {
             return;
         }
 
-        if(EffectBase.Has<ConfuseEffect>(gameObject))
+        if (EffectBase.Has<ConfuseEffect>(gameObject))
         {
             ConfuseMove();
+            UpdateMovementAnimation(); // 혼란 상태에서도 애니메이션 업데이트
             return;
         }
 
         if (!isInitialized ||
-            monsterData == null || 
-            EffectBase.Has<StunEffect>(gameObject) || 
-            EffectBase.Has<ParalyzeEffect>(gameObject)) 
+            monsterData == null ||
+            EffectBase.Has<StunEffect>(gameObject) ||
+            EffectBase.Has<ParalyzeEffect>(gameObject))
+        {
+            // 정지 상태일 때는 강제로 Idle 애니메이션
+            SetMovingState(false, true);
             return;
-
-
+        }
 
         if (!boundsInitialized)
         {
@@ -88,12 +107,59 @@ public class MonsterMovement : MonoBehaviour
             // 앞이 막혀있으면 좌우 분리만 적용
             ApplyOnlyHorizontalSeparation();
         }
+
+        // 이동 상태에 따른 애니메이션 업데이트
+        UpdateMovementAnimation();
+    }
+
+    // 개선된 이동 상태 애니메이션 업데이트
+    private void UpdateMovementAnimation()
+    {
+        if (animator == null) return;
+
+        // 현재 프레임의 이동량 계산
+        float currentMovement = Vector3.Distance(transform.position, lastPosition);
+
+        // 이동량을 누적하여 스무싱 효과 생성
+        movementAccumulator = Mathf.Lerp(movementAccumulator, currentMovement, Time.deltaTime * 10f);
+
+        // 이동 상태 판단 (임계값과 시간 딜레이 적용)
+        bool shouldBeMoving = movementAccumulator > movementThreshold;
+
+        // 상태 변경에 딜레이 적용 (너무 자주 변경되는 것 방지)
+        if (shouldBeMoving != currentMovingState &&
+            Time.time - lastStateChangeTime > animationSmoothTime)
+        {
+            SetMovingState(shouldBeMoving);
+        }
+
+        lastPosition = transform.position;
+    }
+
+    // 애니메이션 상태 설정 (스무싱 적용)
+    private void SetMovingState(bool moving, bool force = false)
+    {
+        if (animator == null) return;
+
+        if (currentMovingState != moving || force)
+        {
+            currentMovingState = moving;
+            animator.SetBool(isMoving, moving);
+            lastStateChangeTime = Time.time;
+
+            // 디버그용 (필요시 주석 해제)
+            // Debug.Log($"Animation State Changed: {(moving ? "Running" : "Idle")}");
+        }
     }
 
     public void Init(MonsterData data, Vector3 direction)
     {
         monsterData = data;
         isInitialized = true;
+        lastPosition = transform.position; // 초기 위치 설정
+
+        // 초기 애니메이션 상태 설정
+        SetMovingState(false, true);
     }
 
     // 화면 경계 초기화
@@ -152,7 +218,6 @@ public class MonsterMovement : MonoBehaviour
         }
     }
 
-  
     private void MoveDown()
     {
         // 1. 기본 아래쪽 이동 (SO의 최신 moveSpeed 직접 사용)
@@ -329,5 +394,4 @@ public class MonsterMovement : MonoBehaviour
             return;
         }
     }
-
 }

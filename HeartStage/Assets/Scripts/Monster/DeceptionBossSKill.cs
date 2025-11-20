@@ -204,7 +204,6 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
                     // 로컬 포지션을 (0,0,0)으로 설정하여 부모와 같은 위치에
                     visualChild.transform.localPosition = Vector3.zero;
                     visualChild.transform.localRotation = Quaternion.identity;
-                    visualChild.transform.localScale = Vector3.one;
 
                     Debug.Log($"소환된 Monster {monsterData.id}에 시각적 자식 오브젝트 추가 완료: {monsterData.prefab1}");
                 }
