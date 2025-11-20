@@ -9,7 +9,6 @@ public class HeartBombSkillV2 : MonoBehaviour, ISkillBehavior
     private GameObject heartBombPrefab;
     private string heartBombAssetName = "HeartBomb";
     private string skillDataAssetName = "폭룡적인 섹시 다이너마이트";
-    private string hitEffectAssetName = "StoneHit";
     private string poolId = "HeartBombSkillV2";
 
     // 디버프 모음(몬스터에게 장착시킬) (ID, 수치, 지속시간)
@@ -31,9 +30,9 @@ public class HeartBombSkillV2 : MonoBehaviour, ISkillBehavior
         // 오브젝트 풀 생성
         PoolManager.Instance.CreatePool(poolId, prefabClone, 10, 30);
         Destroy(prefabClone);
-        // 히트 이펙트 오브젝트 풀 생성
-        var hitEffectGo = ResourceManager.Instance.Get<GameObject>(hitEffectAssetName);
-        PoolManager.Instance.CreatePool(hitEffectAssetName, hitEffectGo);
+        // 히트 이펙트 오브젝트 풀 생성        
+        var hitEffectGo = ResourceManager.Instance.Get<GameObject>(skillData.skillhit_prefab);
+        PoolManager.Instance.CreatePool(skillData.skillhit_prefab, hitEffectGo);
         // 스킬매니저에 등록
         ActiveSkillManager.Instance.RegisterSkillBehavior(gameObject, skillData.skill_id, this);
         ActiveSkillManager.Instance.RegisterSkill(gameObject, skillData.skill_id);
@@ -67,7 +66,7 @@ public class HeartBombSkillV2 : MonoBehaviour, ISkillBehavior
             return;
         }
 
-        proj.SetMissile(poolId, hitEffectAssetName, startPos, dir, 0, skillData.skill_dmg,
+        proj.SetMissile(poolId, skillData.skillhit_prefab, startPos, dir, 0, skillData.skill_dmg,
             PenetrationType.Penetrate, false, debuffList);
         ReleaseAsync(projectileGo, skillData.skill_duration).Forget();
     }

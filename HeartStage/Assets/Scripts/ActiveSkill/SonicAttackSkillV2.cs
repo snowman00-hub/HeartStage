@@ -31,6 +31,9 @@ public class SonicAttackSkillV2 : MonoBehaviour, ISkillBehavior
         // 오브젝트 풀 생성
         PoolManager.Instance.CreatePool(poolId, prefabClone, 10, 30);
         Destroy(prefabClone);
+        // 히트 이펙트 오브젝트 풀 생성        
+        var hitEffectGo = ResourceManager.Instance.Get<GameObject>(skillData.skillhit_prefab);
+        PoolManager.Instance.CreatePool(skillData.skillhit_prefab, hitEffectGo);
         // 스킬매니저에 등록
         ActiveSkillManager.Instance.RegisterSkillBehavior(gameObject, skillData.skill_id, this);
         ActiveSkillManager.Instance.RegisterSkill(gameObject, skillData.skill_id);
@@ -67,7 +70,7 @@ public class SonicAttackSkillV2 : MonoBehaviour, ISkillBehavior
         float speed = skillData.skill_speed;
         int damage = skillData.skill_dmg;
 
-        proj.SetMissile(poolId, string.Empty, startPos, dir, speed, damage, 
+        proj.SetMissile(poolId, skillData.skillhit_prefab, startPos, dir, speed, damage, 
             PenetrationType.Penetrate, false, debuffList);
     }
 

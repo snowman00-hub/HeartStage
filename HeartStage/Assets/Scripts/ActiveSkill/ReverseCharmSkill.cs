@@ -28,6 +28,9 @@ public class ReverseCharmSkill : MonoBehaviour, ISkillBehavior
         // 오브젝트 풀 생성
         PoolManager.Instance.CreatePool(reverseCharmAssetName, prefabClone, 10, 30);
         Destroy(prefabClone);
+        // 히트 이펙트 오브젝트 풀 생성        
+        var hitEffectGo = ResourceManager.Instance.Get<GameObject>(skillData.skillhit_prefab);
+        PoolManager.Instance.CreatePool(skillData.skillhit_prefab, hitEffectGo);
         // 스킬매니저에 등록
         ActiveSkillManager.Instance.RegisterSkillBehavior(gameObject, skillData.skill_id, this);
         ActiveSkillManager.Instance.RegisterSkill(gameObject, skillData.skill_id);
@@ -64,7 +67,7 @@ public class ReverseCharmSkill : MonoBehaviour, ISkillBehavior
         float speed = skillData.skill_speed;
         int damage = skillData.skill_dmg;
 
-        proj.SetMissile(reverseCharmAssetName, string.Empty, startPos, dir, speed, damage,
+        proj.SetMissile(reverseCharmAssetName, skillData.skillhit_prefab, startPos, dir, speed, damage,
             PenetrationType.NonPenetrate, false, debuffList);
     }
 
