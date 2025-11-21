@@ -20,6 +20,22 @@ public struct WaveMonsterInfo
     }
 }
 
+[System.Serializable]
+public struct SpawnRequest // 재시도 요청용 구조체
+{
+    public int monsterId;
+    public float requestTime;
+    public int retryCount;
+
+    public SpawnRequest(int id)
+    {
+        monsterId = id;
+        requestTime = Time.time;
+        retryCount = 0;
+    }
+}
+
+
 public class MonsterSpawner : MonoBehaviour
 {
     [Header("Reference")]
@@ -28,8 +44,17 @@ public class MonsterSpawner : MonoBehaviour
     [SerializeField] private GameObject monsterProjectilePrefab;
 
     [Header("Field")]
-    [SerializeField] private int poolSize = 150; // wave pool size
-    private int currentStageId; 
+    [SerializeField] private int poolSize = 150; // wave pool size    
+    private int currentStageId;
+
+    [Header("SpawnMonster")]
+    [SerializeField] private int maxSpawnRetries = 10;
+    [SerializeField] private float spawnRadius = 1.5f; // 스폰 위치 충돌 검사 반경
+    [SerializeField] private float spawnTime = 0.5f; // 대기열 처리 간격 
+
+    private Queue<SpawnRequest> spawnQueue = new Queue<SpawnRequest>(); // 대기열
+    private bool isProcessingQueue = false; // 대기열 처리 상태
+    private UniTaskCompletionSource queueProcessCTS; // 대기열 완료 CTS
 
     // MonsterData SO 캐시 
     private Dictionary<int, MonsterData> monsterDataCache = new Dictionary<int, MonsterData>();
@@ -62,10 +87,9 @@ public class MonsterSpawner : MonoBehaviour
     // 전체 초기화 프로세스 관리
     private async UniTask InitializeAsync()
     {
-
         try
         {
-            if(this == null || gameObject == null)
+            if (this == null || gameObject == null)
             {
                 return;
             }
@@ -190,6 +214,10 @@ public class MonsterSpawner : MonoBehaviour
 
         SetUpWaveMonster();
         UpdateStageUI();
+
+        // 새 웨이브 시작 시 대기열 초기화 
+        ClearSpawnQueue();
+
     }
 
     // 웨이브에 등장할 몬스터 정보 설정
@@ -323,39 +351,84 @@ public class MonsterSpawner : MonoBehaviour
             {
                 // 위치 설정
                 bool isBoss = MonsterBehavior.IsBossMonster(monsterId);
-                Vector3 spawnPos = isBoss ? GetBossSpawnPosition() : GetRandomSpawnPosition();
-                monster.transform.position = spawnPos;
+                Vector3? safePos = FindSafeSpawnPosition(isBoss);
 
-                if (monsterDataCache.TryGetValue(monsterId, out var monsterData))
+                if(safePos.HasValue)
                 {
-                    var monsterBehavior = monster.GetComponent<MonsterBehavior>();
-                    if (monsterBehavior != null)
+                    // 안전한 위치면 스폰
+                    monster.transform.position = safePos.Value;
+
+                    if (monsterDataCache.TryGetValue(monsterId, out var monsterData))
                     {
-                        // MonsterBehavior 초기화만 수행 (HealthBar는 Init 내부에서 처리됨)
-                        monsterBehavior.Init(monsterData);
+                        var monsterBehavior = monster.GetComponent<MonsterBehavior>();
+                        if (monsterBehavior != null)
+                        {
+                            monsterBehavior.Init(monsterData);
+                        }
                     }
+                    else
+                    {
+                        return false;
+                    }
+
+                    // 렌더러 활성화 및 오브젝트 활성화
+                    var renderers = monster.GetComponentsInChildren<Renderer>();
+                    foreach (var renderer in renderers)
+                    {
+                        renderer.enabled = true;
+                    }
+
+                    monster.SetActive(true);
+                    return true;
                 }
+
                 else
                 {
+                    AddToSpawnQueue(monsterId);
                     return false;
                 }
-
-                // 렌더러 활성화 및 오브젝트 활성화
-                var renderers = monster.GetComponentsInChildren<Renderer>();
-                foreach (var renderer in renderers)
-                {
-                    renderer.enabled = true;
-                }
-
-                monster.SetActive(true);
-                return true;
             }
         }
-
         return false;
     }
 
-    
+
+
+    // 테스트용 몬스터 소환 메서드 (10마리 일괄 소환)
+    public async UniTask SpawnTestMonsters(int monsterId, int count)
+    {
+        if (!isInitialized)
+        {
+            Debug.LogError("MonsterSpawner가 아직 초기화되지 않았습니다!");
+            return;
+        }
+
+        if (!monsterPools.ContainsKey(monsterId))
+        {
+            Debug.LogError($"몬스터 ID {monsterId}에 대한 풀이 없습니다. 현재 스테이지에서 사용 가능한 몬스터가 아닙니다!");
+            return;
+        }
+
+        Debug.Log($"테스트 소환 시작: 몬스터 ID {monsterId}를 {count}마리 소환");
+
+        // 모든 몬스터를 대기열에 추가
+        for (int i = 0; i < count; i++)
+        {
+            AddToSpawnQueue(monsterId);
+
+            // 짧은 딜레이로 순차적 추가 (대기열 오버플로우 방지)
+            await UniTask.Delay(50);
+        }
+
+        Debug.Log($"테스트 소환 요청 완료: {count}마리가 대기열에 추가되었습니다. 순차적으로 스폰됩니다.");
+    }
+
+
+
+
+
+
+
     private void AddVisualChild(GameObject monster, MonsterData monsterData)
     {
         if (string.IsNullOrEmpty(monsterData.prefab1))
@@ -367,7 +440,7 @@ public class MonsterSpawner : MonoBehaviour
         try
         {
             GameObject visualPrefab = ResourceManager.Instance.Get<GameObject>(monsterData.prefab1);
-            if(visualPrefab != null)
+            if (visualPrefab != null)
             {
                 var visualChild = Instantiate(visualPrefab, monster.transform);
                 visualChild.name = $"{monsterData.prefab1}";
@@ -383,9 +456,6 @@ public class MonsterSpawner : MonoBehaviour
             Debug.Log($"Monster {monsterData.id}의 시각적 자식 오브젝트 추가 실패: {e.Message}");
         }
     }
-
-
-
 
     // 다음에 스폰할 몬스터 선택
     private WaveMonsterInfo? GetNextMonsterToSpawn()
@@ -549,6 +619,8 @@ public class MonsterSpawner : MonoBehaviour
     // 리소스 정리
     private void OnDestroy()
     {
+        ClearSpawnQueue();
+
         foreach (var pool in monsterPools.Values)
         {
             foreach (var monster in pool)
@@ -659,5 +731,168 @@ public class MonsterSpawner : MonoBehaviour
         UpdateStageUI();
     }
 
-    
+    // 스폰 위치 유효성 검사
+    private bool IsSpawnPositionValid(Vector3 position)
+    {
+        Collider2D[] overlapping = Physics2D.OverlapCircleAll(position, spawnRadius, LayerMask.GetMask(Tag.Monster));
+
+        foreach (var collider in overlapping)
+        {
+            if (collider.gameObject.activeInHierarchy)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    // 충돌 회피를 위한 안전한 스폰 위치 찾기
+    private Vector3? FindSafeSpawnPosition(bool isBoss) 
+    {
+        for (int i = 0; i < maxSpawnRetries; i++)
+        {
+            Vector3 candidatePos = isBoss ? GetBossSpawnPosition() : GetRandomSpawnPosition();
+
+            if (IsSpawnPositionValid(candidatePos))
+            {
+                return candidatePos;
+            }
+        }
+        return null;
+    }
+
+    // 스폰 자리 차있으면 스폰 대기열에 추가
+    private void AddToSpawnQueue(int monsterId)
+    {
+        var spawnRequest = new SpawnRequest(monsterId); // 스폰 요청 초기화 
+        spawnQueue.Enqueue(spawnRequest);
+
+        Debug.Log($"몬스터 {monsterId}를 스폰 대기열에 추가. 대기열 크기: {spawnQueue.Count}");
+
+        // 대기열 처리기가 실행 중이 아니면 시작
+        if (!isProcessingQueue)
+        {
+            StartQueueProcessor().Forget();
+        }
+    }
+
+    // 스폰 대기열 처리기
+    private async UniTask StartQueueProcessor()
+    {
+        if (isProcessingQueue) return;
+
+        isProcessingQueue = true;
+        queueProcessCTS = new UniTaskCompletionSource();
+
+        try
+        {
+            while (spawnQueue.Count > 0 && isWaveActive)
+            {
+                ProcessSpawnQueue();
+                await UniTask.Delay((int)(spawnTime * 1000));
+            }
+        }
+        
+        finally
+        {
+            isProcessingQueue = false;
+            queueProcessCTS?.TrySetResult();
+        }
+    }
+
+    private void ProcessSpawnQueue()
+    {
+        if (spawnQueue.Count == 0) return;
+
+        var request = spawnQueue.Dequeue();
+
+        bool spawnSuccess = TrySpawnFromQueue(request.monsterId);
+
+        if (!spawnSuccess)
+        {            
+            var retryRequest = new SpawnRequest(request.monsterId)
+            {
+                requestTime = request.requestTime, // 원래 요청 시간 유지
+                retryCount = request.retryCount + 1 // 재시도 횟수 증가
+            };
+
+            if (retryRequest.retryCount < maxSpawnRetries)
+            {
+                spawnQueue.Enqueue(retryRequest);
+                Debug.Log($"몬스터 {request.monsterId} 스폰 재시도 요청. 재시도 횟수: {retryRequest.retryCount}");
+            }
+            else
+            {
+                var newRequest = new SpawnRequest(request.monsterId);
+                spawnQueue.Enqueue(newRequest);
+                Debug.Log($"몬스터 {request.monsterId} 재시도 횟수 리셋하여 계속 시도");
+            }
+        }
+        else
+        {
+            UpdateSpawnCount(request.monsterId);
+            totalMonstersSpawned++;
+            Debug.Log($"대기열에서 몬스터 {request.monsterId} 스폰 성공");
+        }
+    }
+
+    // 대기열에서의 스폰 시도 (기존 SpawnMonster와 유사하지만 대기열용)
+    private bool TrySpawnFromQueue(int monsterId)
+    {
+        if (!monsterPools.TryGetValue(monsterId, out var pool))
+        {
+            return false;
+        }
+
+        foreach (var monster in pool)
+        {
+            if (monster != null && !monster.activeInHierarchy)
+            {
+                bool isBoss = MonsterBehavior.IsBossMonster(monsterId);
+                Vector3? safePos = FindSafeSpawnPosition(isBoss);
+
+                if (safePos.HasValue)
+                {
+                    monster.transform.position = safePos.Value;
+
+                    if (monsterDataCache.TryGetValue(monsterId, out var monsterData))
+                    {
+                        var monsterBehavior = monster.GetComponent<MonsterBehavior>();
+                        if (monsterBehavior != null)
+                        {
+                            monsterBehavior.Init(monsterData);
+                        }
+                    }
+                    else
+                    {
+                        return false;
+                    }
+
+                    var renderers = monster.GetComponentsInChildren<Renderer>();
+                    foreach (var renderer in renderers)
+                    {
+                        renderer.enabled = true;
+                    }
+
+                    monster.SetActive(true);
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    // 스폰 대기열 정리
+    private void ClearSpawnQueue()
+    {
+        spawnQueue.Clear();
+
+        if (isProcessingQueue)
+        {
+            isProcessingQueue = false;
+            queueProcessCTS?.TrySetResult();
+        }
+    }
 }

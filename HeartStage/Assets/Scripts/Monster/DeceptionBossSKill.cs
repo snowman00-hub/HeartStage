@@ -182,7 +182,7 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
 
         monster.tag = Tag.Monster;
 
-        // ⭐ 순서 변경: 시각적 자식을 먼저 추가
+        // 순서 변경: 시각적 자식을 먼저 추가
         AddVisualChild(monster, cachedMonsterData);
 
         // 그 다음 몬스터 초기화
