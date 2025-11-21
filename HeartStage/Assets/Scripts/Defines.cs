@@ -27,7 +27,6 @@ public static class IBuffIds
     public static string AttackPowerBuff => BuffIds[0];
 }
 
-
 public class Tag
 {
     public static readonly string Player = "Player";
@@ -49,4 +48,9 @@ public enum WindowType
     StageInfo = 2,
     VictoryDefeat = 3,
     CharacterInfo = 4,
+}
+
+public class ItemID
+{
+    public static readonly int Exp = 7103;
 }
