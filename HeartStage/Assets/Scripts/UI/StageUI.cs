@@ -83,12 +83,16 @@ public class StageUI : MonoBehaviour
     }
     private void ExecuteSummonTest()
     {
+        // MonsterSpawner 참조 확인
         if (monsterSpawner == null)
         {
             return;
         }
 
+        // 테스트 소환 실행 (UniTask 사용)
         monsterSpawner.SpawnTestMonsters(testMonsterId, spawnCount).Forget();
+
+        Debug.Log($"테스트 소환 실행: 몬스터 ID {testMonsterId} x {spawnCount}마리");
     }
 
     /// 스피드 버프 스킬 직접 실행 (31201)
