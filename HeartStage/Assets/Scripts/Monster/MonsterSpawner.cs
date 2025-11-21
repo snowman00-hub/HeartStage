@@ -21,7 +21,7 @@ public struct WaveMonsterInfo
 }
 
 [System.Serializable]
-public struct SpawnRequest // 재시도 요청용 구조체
+public struct SpawnRequest 
 {
     public int monsterId;
     public float requestTime;
@@ -35,7 +35,6 @@ public struct SpawnRequest // 재시도 요청용 구조체
     }
 }
 
-
 public class MonsterSpawner : MonoBehaviour
 {
     [Header("Reference")]
@@ -44,7 +43,7 @@ public class MonsterSpawner : MonoBehaviour
     [SerializeField] private GameObject monsterProjectilePrefab;
 
     [Header("Field")]
-    [SerializeField] private int poolSize = 150; // wave pool size    
+    [SerializeField] private int poolSize = 300; // wave pool size    
     private int currentStageId;
 
     [Header("SpawnMonster")]
@@ -76,11 +75,6 @@ public class MonsterSpawner : MonoBehaviour
 
     private async void Start()
     {
-        // 테스트용: 강제로 튜토리얼로 리셋
-        //PlayerPrefs.SetInt("SelectedStageID", 601);
-        //PlayerPrefs.Save();
-
-        currentStageId = PlayerPrefs.GetInt("SelectedStageID", 601); // 기본값은 601 (튜토리얼)
         await InitializeAsync();
     }
 
@@ -90,6 +84,12 @@ public class MonsterSpawner : MonoBehaviour
         try
         {
             if (this == null || gameObject == null)
+            {
+                return;
+            }
+
+            currentStageId = PlayerPrefs.GetInt("SelectedStageID");
+            if (currentStageId <= 0)
             {
                 return;
             }
@@ -392,20 +392,16 @@ public class MonsterSpawner : MonoBehaviour
         return false;
     }
 
-
-
     // 테스트용 몬스터 소환 메서드 (10마리 일괄 소환)
     public async UniTask SpawnTestMonsters(int monsterId, int count)
     {
         if (!isInitialized)
         {
-            Debug.LogError("MonsterSpawner가 아직 초기화되지 않았습니다!");
             return;
         }
 
         if (!monsterPools.ContainsKey(monsterId))
         {
-            Debug.LogError($"몬스터 ID {monsterId}에 대한 풀이 없습니다. 현재 스테이지에서 사용 가능한 몬스터가 아닙니다!");
             return;
         }
 
@@ -416,17 +412,12 @@ public class MonsterSpawner : MonoBehaviour
         {
             AddToSpawnQueue(monsterId);
 
-            // 짧은 딜레이로 순차적 추가 (대기열 오버플로우 방지)
+            // 짧은 딜레이로 순차적 추가
             await UniTask.Delay(50);
         }
 
         Debug.Log($"테스트 소환 요청 완료: {count}마리가 대기열에 추가되었습니다. 순차적으로 스폰됩니다.");
     }
-
-
-
-
-
 
 
     private void AddVisualChild(GameObject monster, MonsterData monsterData)
@@ -603,7 +594,7 @@ public class MonsterSpawner : MonoBehaviour
 
     private Vector3 GetRandomSpawnPosition()
     {
-        float randomX = Random.Range(-3.5f, 3.5f);
+        float randomX = Random.Range(-4f, 4f);
         float randomY = Random.Range(12f, 17f);
         var spawnPos = new Vector3(randomX, randomY, 0);
 
@@ -613,7 +604,7 @@ public class MonsterSpawner : MonoBehaviour
     // 보스 스폰 위치 계산
     private Vector3 GetBossSpawnPosition()
     {
-        return new Vector3(0f, 15f, 0f); // 화면 중앙 위쪽에서 스폰
+        return new Vector3(0f, 13f, 0f); // 화면 중앙 위쪽에서 스폰
     }
 
     // 리소스 정리
