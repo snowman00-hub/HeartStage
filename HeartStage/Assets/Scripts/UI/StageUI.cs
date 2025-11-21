@@ -2,7 +2,6 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-
 public class StageUI : MonoBehaviour
 {
     public TextMeshProUGUI waveCountText;
@@ -84,7 +83,7 @@ public class StageUI : MonoBehaviour
     private void ExecuteSummonSkill()
     {
         // 임시 게임오브젝트 생성해서 소환 스킬 실행
-        GameObject tempSkillCaster = new GameObject("TempSummonSkill");
+        GameObject tempSkillCaster = new GameObject("TempSummonSkill");        
 
         float spawnX = Random.Range(-2f, 2f);
         var spownPos = new Vector3(spawnX, Screen.height - 100f, 0f);
@@ -93,7 +92,7 @@ public class StageUI : MonoBehaviour
 
         // MonsterBehavior 컴포넌트도 추가 (DeceptionBossSkill이 필요로 함)
         var monsterBehavior = tempSkillCaster.AddComponent<MonsterBehavior>();
-
+        
         // BossAddScript 컴포넌트도 추가 (DeceptionBossSkill.Execute()가 필요로 함)
         var bossAddScript = tempSkillCaster.AddComponent<BossAddScript>();
 
@@ -115,7 +114,7 @@ public class StageUI : MonoBehaviour
 
         Debug.Log("소환 스킬 실행!");
 
-        // 10초 후 임시 오브젝트 삭제 (디버깅을 위해 시간 연장)
+        // 10초 후 임시 오브젝트 삭제
         Destroy(tempSkillCaster, 10f);
     }
 

@@ -180,6 +180,8 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
         monster.transform.position = spawnPos;
         monster.transform.rotation = Quaternion.identity;
 
+        monster.tag = Tag.Monster;
+
         // ⭐ 순서 변경: 시각적 자식을 먼저 추가
         AddVisualChild(monster, cachedMonsterData);
 

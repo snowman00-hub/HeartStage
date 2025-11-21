@@ -155,7 +155,7 @@ public class StageManager : MonoBehaviour
     }
 
     // 승리시 
-    public void Clear()
+    public void Clear() 
     {
         VictoryDefeatPanel.isClear = true;
 
@@ -185,16 +185,18 @@ public class StageManager : MonoBehaviour
         }
     }
 
-    private void SetBackgroundByStageData(StageCsvData stageData)
+    public void SetBackgroundByStageData(StageCsvData stageData)
     {
 
         if (stageData == null || string.IsNullOrEmpty(stageData.prefab) || stageData.prefab == "nan")
         {
+            Debug.Log("맵 변경 스킵");
             return;
         }
 
         if (backGroundSprite == null)
         {
+            Debug.LogWarning("배경 스프라이트 렌더러가 할당되지 않음");
             return;
         }
 
@@ -202,6 +204,7 @@ public class StageManager : MonoBehaviour
         var backgroundSprite = ResourceManager.Instance.Get<Sprite>(stageData.prefab);
         if (backgroundSprite != null)
         {
+            Debug.Log("스프라이트로 배경 설정");
             backGroundSprite.sprite = backgroundSprite;
             return;
         }
@@ -216,7 +219,7 @@ public class StageManager : MonoBehaviour
                 new Rect(0, 0, backgroundTexture.width, backgroundTexture.height),
                 new Vector2(0.5f, 0.5f)
             );
-
+            Debug.Log("텍스처로 배경 설정");
             backGroundSprite.sprite = sprite;
             return;
         }

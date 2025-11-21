@@ -98,6 +98,13 @@ public class MonsterSpawner : MonoBehaviour
             return;
         }
 
+        if (StageManager.Instance != null)
+        {
+            StageManager.Instance.SetCurrentStageData(currentStageData);
+            StageManager.Instance.SetBackgroundByStageData(currentStageData);
+        }
+
+
         // 스테이지의 웨이브 ID 목록 가져오기
         stageWaveIds = DataTableManager.StageTable.GetWaveIds(currentStageId);
         currentWaveIndex = 0;
@@ -222,7 +229,7 @@ public class MonsterSpawner : MonoBehaviour
     {
         if (currentWaveData == null || waveMonstersToSpawn.Count == 0)
         {
-            Debug.LogError("웨이브 몬스터 정보가 없습니다.");
+            Debug.Log("웨이브 몬스터 정보가 없습니다.");
             return;
         }
 
@@ -524,18 +531,6 @@ public class MonsterSpawner : MonoBehaviour
         CreateAllPools();
     }
 
-    // 랜덤 스폰 위치 계산
-    //private Vector3 GetRandomSpawnPosition()
-    //{
-    //    int randomRange = Random.Range(0, Screen.width);
-    //    int height = Random.Range(Screen.height + 100, Screen.height + 500);
-
-    //    Vector3 screenPosition = new Vector3(randomRange, height, 0);
-    //    Vector3 spawnPos = Camera.main.ScreenToWorldPoint(screenPosition);
-    //    spawnPos.z = 0f;
-
-    //    return spawnPos;
-    //}
     private Vector3 GetRandomSpawnPosition()
     {
         float randomX = Random.Range(-3.5f, 3.5f);
@@ -548,7 +543,7 @@ public class MonsterSpawner : MonoBehaviour
     // 보스 스폰 위치 계산
     private Vector3 GetBossSpawnPosition()
     {
-        return new Vector3(0f, 15f, 0f); // 화면 중앙 x=0, 위쪽에서 스폰
+        return new Vector3(0f, 15f, 0f); // 화면 중앙 위쪽에서 스폰
     }
 
     // 리소스 정리
