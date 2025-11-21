@@ -20,7 +20,7 @@ public class StageInfoUI : GenericWindow
 
     [Header("Field")]
     private StageTable stageTable;
-    private StageCsvData currentStageData; // 현재 선택된 스테이지 데이터
+    private StageCSVData currentStageData; // 현재 선택된 스테이지 데이터
 
     private void Awake()
     {
@@ -44,7 +44,7 @@ public class StageInfoUI : GenericWindow
         Close();
     }
 
-    public void SetStageData(StageCsvData stageData)
+    public void SetStageData(StageCSVData stageData)
     {
         currentStageData = stageData;
         if(gameObject.activeInHierarchy)
@@ -101,7 +101,7 @@ public class StageInfoUI : GenericWindow
             UnityEngine.SceneManagement.SceneManager.LoadScene("Stage");
         }
     }
-    private StageCsvData GetNextStage()
+    private StageCSVData GetNextStage()
     {
         if(currentStageData == null || stageTable == null)
             return null;
@@ -131,7 +131,7 @@ public class StageInfoUI : GenericWindow
         }
         return null;
     }
-    private StageCsvData GetPreviousStage()
+    private StageCSVData GetPreviousStage()
     {
         if (currentStageData == null || stageTable == null) return null;
 

@@ -5,7 +5,7 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
 
-public class StageCsvData
+public class StageCSVData
 {
     public int stage_ID { get; set; }
     public string stage_name { get; set; }
@@ -28,8 +28,8 @@ public class StageCsvData
 
 public class StageTable : DataTable
 {       
-    private readonly Dictionary<int, StageCsvData> stagecsvTable = new Dictionary<int, StageCsvData>();
-    private readonly List<StageCsvData> orderedStages = new List<StageCsvData>();
+    private readonly Dictionary<int, StageCSVData> stagecsvTable = new Dictionary<int, StageCSVData>();
+    private readonly List<StageCSVData> orderedStages = new List<StageCSVData>();
 
     public override async UniTask LoadAsync(string filename)
     {
@@ -45,7 +45,7 @@ public class StageTable : DataTable
             return;
         }
 
-        var list = LoadCSV<StageCsvData>(ta.text);
+        var list = LoadCSV<StageCSVData>(ta.text);
 
         foreach (var item in list)
         {
@@ -63,7 +63,7 @@ public class StageTable : DataTable
         Addressables.Release(handle);
     }
 
-    public StageCsvData GetStage(int stageId)
+    public StageCSVData GetStage(int stageId)
     {
         if (!stagecsvTable.ContainsKey(stageId))
         {
@@ -73,14 +73,14 @@ public class StageTable : DataTable
         return stagecsvTable[stageId];
     }
 
-    public Dictionary<int, StageCsvData> GetAllStages()
+    public Dictionary<int, StageCSVData> GetAllStages()
     {
-        return new Dictionary<int, StageCsvData>(stagecsvTable);
+        return new Dictionary<int, StageCSVData>(stagecsvTable);
     }
 
-    public List<StageCsvData> GetOrderedStages()
+    public List<StageCSVData> GetOrderedStages()
     {
-        return new List<StageCsvData>(orderedStages);
+        return new List<StageCSVData>(orderedStages);
     }
 
     public List<int> GetWaveIds(int stageId)
