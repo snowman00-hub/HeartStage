@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UnityEditor.PackageManager.UI;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -36,10 +37,10 @@ public class DraggableSlot : MonoBehaviour,
     public void OnBeginDrag(PointerEventData eventData)
     {
         var canvas = FindInParents<Canvas>(gameObject);
-        if (canvas == null) 
+        if (canvas == null)
             return;
         // 캐릭터 올려놓지 않으면 드래그 불가
-        if (characterData == null) 
+        if (characterData == null)
             return;
 
         var icon = new GameObject("icon");
@@ -72,7 +73,7 @@ public class DraggableSlot : MonoBehaviour,
         {
             SetDraggedPosition(eventData);
         }
-            
+
     }
 
     private void SetDraggedPosition(PointerEventData eventData)
@@ -129,8 +130,15 @@ public class DraggableSlot : MonoBehaviour,
         if (!TryGetDropPayload(data, out var dropSprite, out var droppedCD))
             return;
 
-        // (1) DragMe -> Slot 케이스
+
+        // DragMe(로비 목록)에서 새로 끌어오는 경우에만 제한 걸기
+        bool targetEmpty = (characterData == null);
+
         bool fromDragMe = data.pointerDrag != null && data.pointerDrag.GetComponent<DragMe>() != null;
+        if (fromDragMe && targetEmpty && _window != null && _window.IsDeployLimitReached())
+            return;
+
+        // (1) DragMe -> Slot 케이스
         if (fromDragMe)
         {
             // 드랍 들어오기 전에, 슬롯에 이미 들어있던 캐릭터를 잠시 저장
