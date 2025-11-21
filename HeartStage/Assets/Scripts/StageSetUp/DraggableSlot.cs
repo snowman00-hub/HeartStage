@@ -13,7 +13,7 @@ public class DraggableSlot : MonoBehaviour,
     private readonly Dictionary<int, RectTransform> m_DraggingPlanes = new Dictionary<int, RectTransform>();
 
     // drop
-    //public Image containerImage;
+    public Image containerImage;
     public Image receivingImage;
     //private Color normalColor;
     //public Color highlightColor = Color.yellow;
@@ -36,9 +36,11 @@ public class DraggableSlot : MonoBehaviour,
     public void OnBeginDrag(PointerEventData eventData)
     {
         var canvas = FindInParents<Canvas>(gameObject);
-        if (canvas == null) return;
+        if (canvas == null) 
+            return;
         // 캐릭터 올려놓지 않으면 드래그 불가
-        if (characterData == null) return;
+        if (characterData == null) 
+            return;
 
         var icon = new GameObject("icon");
         m_DraggingIcons[eventData.pointerId] = icon;
@@ -124,16 +126,17 @@ public class DraggableSlot : MonoBehaviour,
     public void OnDrop(PointerEventData data)
     {
         //if (containerImage != null) containerImage.color = normalColor;
-        if (!TryGetDropPayload(data, out var dropSprite, out var droppedCD)) return;
+        if (!TryGetDropPayload(data, out var dropSprite, out var droppedCD))
+            return;
 
         // (1) DragMe -> Slot 케이스
         bool fromDragMe = data.pointerDrag != null && data.pointerDrag.GetComponent<DragMe>() != null;
         if (fromDragMe)
         {
-            // 🔹 드랍 들어오기 전에, 슬롯에 이미 들어있던 캐릭터를 잠시 저장
+            // 드랍 들어오기 전에, 슬롯에 이미 들어있던 캐릭터를 잠시 저장
             var prevCD = characterData;
 
-            // 🔹 이전 캐릭터가 있고, 그것과 다른 캐릭터를 올리는 경우 → 먼저 풀어준다
+            // 이전 캐릭터가 있고, 그것과 다른 캐릭터를 올리는 경우 → 먼저 풀어준다
             if (prevCD != null && prevCD != droppedCD)
             {
                 // prevCD의 DragMe 아이콘 다시 사용 가능하게 + 이 슬롯에서 제거
