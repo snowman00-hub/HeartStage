@@ -44,12 +44,13 @@ public class MonsterSpawner : MonoBehaviour
     [SerializeField] private GameObject monsterProjectilePrefab;
 
     [Header("Field")]
-    [SerializeField] private int poolSize = 150; // wave pool size    
+    private int poolSize = 250; // wave pool size    
     private int currentStageId;
+    private int spawnedMonsterCount = 3;
 
     [Header("SpawnMonster")]
     [SerializeField] private int maxSpawnRetries = 10;
-    [SerializeField] private float spawnRadius = 1.5f; // 스폰 위치 충돌 검사 반경
+    private float spawnRadius = 1f; // 스폰 위치 충돌 검사 반경
     [SerializeField] private float spawnTime = 0.5f; // 대기열 처리 간격 
 
     private Queue<SpawnRequest> spawnQueue = new Queue<SpawnRequest>(); // 대기열
@@ -267,7 +268,7 @@ public class MonsterSpawner : MonoBehaviour
 
         while (isWaveActive && !IsWaveSpawnCompleted())
         {
-            for (int i = 0; i < 2; i++)
+            for (int i = 0; i < spawnedMonsterCount; i++)
             {
                 var nextMonster = GetNextMonsterToSpawn();
                 if (nextMonster.HasValue)
@@ -399,13 +400,11 @@ public class MonsterSpawner : MonoBehaviour
     {
         if (!isInitialized)
         {
-            Debug.LogError("MonsterSpawner가 아직 초기화되지 않았습니다!");
             return;
         }
 
         if (!monsterPools.ContainsKey(monsterId))
         {
-            Debug.LogError($"몬스터 ID {monsterId}에 대한 풀이 없습니다. 현재 스테이지에서 사용 가능한 몬스터가 아닙니다!");
             return;
         }
 
@@ -420,14 +419,8 @@ public class MonsterSpawner : MonoBehaviour
             await UniTask.Delay(50);
         }
 
-        Debug.Log($"테스트 소환 요청 완료: {count}마리가 대기열에 추가되었습니다. 순차적으로 스폰됩니다.");
+        //Debug.Log($"테스트 소환 요청 완료: {count}마리가 대기열에 추가되었습니다. 순차적으로 스폰됩니다.");
     }
-
-
-
-
-
-
 
     private void AddVisualChild(GameObject monster, MonsterData monsterData)
     {
@@ -837,7 +830,7 @@ public class MonsterSpawner : MonoBehaviour
         }
     }
 
-    // 대기열에서의 스폰 시도 (기존 SpawnMonster와 유사하지만 대기열용)
+    // 대기열에서의 스폰 시도 (대기열용)
     private bool TrySpawnFromQueue(int monsterId)
     {
         if (!monsterPools.TryGetValue(monsterId, out var pool))
