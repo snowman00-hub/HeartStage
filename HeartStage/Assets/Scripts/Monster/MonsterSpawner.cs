@@ -820,20 +820,20 @@ public class MonsterSpawner : MonoBehaviour
             if (retryRequest.retryCount < maxSpawnRetries)
             {
                 spawnQueue.Enqueue(retryRequest);
-                Debug.Log($"몬스터 {request.monsterId} 스폰 재시도 요청. 재시도 횟수: {retryRequest.retryCount}");
+                //Debug.Log($"몬스터 {request.monsterId} 스폰 재시도 요청. 재시도 횟수: {retryRequest.retryCount}");
             }
             else
             {
                 var newRequest = new SpawnRequest(request.monsterId);
                 spawnQueue.Enqueue(newRequest);
-                Debug.Log($"몬스터 {request.monsterId} 재시도 횟수 리셋하여 계속 시도");
+               //Debug.Log($"몬스터 {request.monsterId} 재시도 횟수 리셋하여 계속 시도");
             }
         }
         else
         {
             UpdateSpawnCount(request.monsterId);
             totalMonstersSpawned++;
-            Debug.Log($"대기열에서 몬스터 {request.monsterId} 스폰 성공");
+            //Debug.Log($"대기열에서 몬스터 {request.monsterId} 스폰 성공");
         }
     }
 
