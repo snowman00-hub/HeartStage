@@ -25,9 +25,7 @@ public class FaceGeniusSkillV2 : MonoBehaviour, ISkillBehavior
         collider.radius = skillData.skill_range;
         // 파티클 적용
         var particleGo = Instantiate(ResourceManager.Instance.Get<GameObject>(skillData.skillprojectile_prefab), prefabClone.transform);
-        var particleScale = particleGo.transform.localScale;
-        particleScale.x *= collider.radius;
-        particleGo.transform.localScale = particleScale;
+        particleGo.transform.localScale = particleGo.transform.localScale * skillData.skill_range;
         // 오브젝트 풀 생성
         PoolManager.Instance.CreatePool(poolId, prefabClone, 10, 30);
         Destroy(prefabClone);

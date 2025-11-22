@@ -1,32 +1,31 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-public class LobbyUI : GenericWindow
+// 얘는 항상 Open 이니 GenericWindow X
+public class LobbyUI : MonoBehaviour
 {
     [Header("Reference")]
     [SerializeField] private WindowManager windowManager;
 
     [Header("Button")]
     [SerializeField] private Button stageUiButton;
+    [SerializeField] private Button homeUiButton;
 
     private void Awake()
     {
         stageUiButton.onClick.AddListener(OnStageUiButtonClicked);
-    }
-
-    public override void Open()
-    {
-        base.Open();
-    }
-
-    public override void Close()
-    {
-        base.Close();
+        homeUiButton.onClick.AddListener(OnLobbyHomeUiButtonClicked);
     }
 
     private void OnStageUiButtonClicked()
     {
-        windowManager.OpenOverlay(WindowType.StageSelect);
+        windowManager.Open(WindowType.StageSelect);
+        SoundManager.Instance.PlaySFX("Ui_click_01");
+    }
+
+    private void OnLobbyHomeUiButtonClicked()
+    {
+        windowManager.Open(WindowType.LobbyHome);
         SoundManager.Instance.PlaySFX("Ui_click_01");
     }
 }
