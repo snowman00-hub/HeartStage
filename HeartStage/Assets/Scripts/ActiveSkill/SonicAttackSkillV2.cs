@@ -9,6 +9,7 @@ public class SonicAttackSkillV2 : MonoBehaviour, ISkillBehavior
     private string sonicAttackPrefabName = "SonicAttack";
     private string poolId = "SonicAttackSkillV2";
     private string skillDataAssetName = "다재다능한 만능 엔터테이너";
+    private PenetrationType penetrationType = PenetrationType.NonPenetrate;
 
     // 디버프 모음(몬스터에게 장착시킬) (ID, 수치, 지속시간)
     private List<(int id, float value, float duration)> debuffList = new List<(int, float, float)>();
@@ -23,6 +24,11 @@ public class SonicAttackSkillV2 : MonoBehaviour, ISkillBehavior
         // 스킬 범위 적용
         var collider = prefabClone.GetComponent<BoxCollider2D>();
         collider.size = new Vector2(skillData.skill_range, collider.size.y);
+        // 관통 여부 세팅
+        if (skillData.skill_pierce)
+        {
+            penetrationType = PenetrationType.Penetrate;
+        }
         // 파티클 적용
         var particleGo = Instantiate(ResourceManager.Instance.Get<GameObject>(skillData.skillprojectile_prefab), prefabClone.transform);
         var particleScale = particleGo.transform.localScale;
@@ -70,8 +76,8 @@ public class SonicAttackSkillV2 : MonoBehaviour, ISkillBehavior
         float speed = skillData.skill_speed;
         int damage = skillData.skill_dmg;
 
-        proj.SetMissile(poolId, skillData.skillhit_prefab, startPos, dir, speed, damage, 
-            PenetrationType.Penetrate, false, debuffList);
+        proj.SetMissile(poolId, skillData.skillhit_prefab, startPos, dir, speed, damage,
+            penetrationType, false, debuffList);
     }
 
     private void OnDisable()

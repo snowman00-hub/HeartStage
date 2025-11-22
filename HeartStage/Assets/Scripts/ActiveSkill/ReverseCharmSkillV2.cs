@@ -9,6 +9,7 @@ public class ReverseCharmSkillV2 : MonoBehaviour, ISkillBehavior
     private string reverseCharmAssetName = "ReverseCharm";
     private string poolId = "ReverseCharmSkillV2";
     private string skillDataAssetName = "넘치는 반전매력";
+    private PenetrationType penetrationType = PenetrationType.NonPenetrate;
 
     // 디버프 모음(몬스터에게 장착시킬) (ID, 수치, 지속시간)
     private List<(int id, float value, float duration)> debuffList = new List<(int, float, float)>();
@@ -23,6 +24,11 @@ public class ReverseCharmSkillV2 : MonoBehaviour, ISkillBehavior
         // 스킬 범위 적용
         var collider = prefabClone.GetComponent<CircleCollider2D>();
         collider.radius = skillData.skill_range;
+        // 관통 여부 세팅
+        if (skillData.skill_pierce)
+        {
+            penetrationType = PenetrationType.Penetrate;
+        }
         // 파티클 적용
         var particleGo = Instantiate(ResourceManager.Instance.Get<GameObject>(skillData.skillprojectile_prefab), prefabClone.transform);
         particleGo.transform.localScale = particleGo.transform.localScale * skillData.skill_range;
@@ -68,8 +74,8 @@ public class ReverseCharmSkillV2 : MonoBehaviour, ISkillBehavior
         float speed = skillData.skill_speed;
         int damage = skillData.skill_dmg;
 
-        proj.SetMissile(poolId, skillData.skillhit_prefab, startPos, dir, speed, damage, 
-            PenetrationType.Penetrate, false, debuffList);
+        proj.SetMissile(poolId, skillData.skillhit_prefab, startPos, dir, speed, damage,
+            penetrationType, false, debuffList);
     }
 
     private void OnDisable()
