@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
-
 public class StageCSVData
 {
     public int stage_ID { get; set; }
@@ -21,10 +20,10 @@ public class StageCSVData
     public int wave2_id { get; set; }
     public int wave3_id { get; set; }
     public int wave4_id { get; set; }
+    public int dispatch_reward { get; set; }
     public int fail_stamina { get; set; }
     public string prefab { get; set; }
 }
-
 
 public class StageTable : DataTable
 {       
