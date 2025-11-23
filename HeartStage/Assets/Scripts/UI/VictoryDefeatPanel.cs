@@ -81,10 +81,10 @@ public class VictoryDefeatPanel : GenericWindow
             PlayerPrefs.Save();
 
             // 스테이지 변경
-            monsterSpawner.ChangeStage(nextStage.stage_ID).Forget();
+            LoadSceneManager.Instance.GoStage();
+            //monsterSpawner.ChangeStage(nextStage.stage_ID).Forget();
 
             Time.timeScale = 1f; 
-
             Close();
         }
     }

@@ -40,9 +40,17 @@ public class StageSetupWindow : MonoBehaviour
             value = v;
         }
     }
-    // 🔹 타일 인덱스 → 그 타일에 쌓인 모든 패시브 효과 리스트
+    // 타일 인덱스 → 그 타일에 쌓인 모든 패시브 효과 리스트
     private Dictionary<int, List<PassiveEffectData>> PassiveIndexs;
 
+    // 스테이지 데이터 적용
+    private bool[] _enabledMask;
+
+    //최대 배치 유닛 수
+    private int _maxDeployUnits;
+    [SerializeField] private TMPro.TextMeshProUGUI deployCountText; // 있으면 연결
+    [SerializeField] private Color deployOkColor = Color.white;
+    [SerializeField] private Color deployFullColor = Color.red;
 
     [Header("Passive Tile Colors")]
     [SerializeField] private Color passiveTileColor = new Color(1f, 165f / 255f, 0f); // 주황 느낌
@@ -79,13 +87,16 @@ public class StageSetupWindow : MonoBehaviour
         Time.timeScale = 0f;
         StartButton.onClick.AddListener(StartButtonClick);
 
-        // 🔹 패시브/시너지 초기 계산
-        RebuildPassiveTiles();
+
+        int stageId = PlayerPrefs.GetInt("SelectedStageID", -1);
+        var stageCsv = DataTableManager.StageTable.GetStage(stageId);
+        ApplyStage(stageCsv);
+        //RebuildPassiveTiles();
 
         if (synergyPanel != null)
         {
             synergyPanel.BuildAllButtons();
-            UpdateSynergyUI();
+            //UpdateSynergyUI();
         }
 
         // 🔹 슬롯 변경 → 패시브 + 시너지 둘 다 갱신
@@ -106,6 +117,9 @@ public class StageSetupWindow : MonoBehaviour
 
         for (int i = 0; i < slotCount; i++)
         {
+            if (_enabledMask != null && !_enabledMask[i])
+                continue;
+
             var slot = DraggableSlots[i];
             if (slot == null || slot.characterData == null)
                 continue;
@@ -122,6 +136,8 @@ public class StageSetupWindow : MonoBehaviour
             // 🔹 이 캐릭터가 영향을 미치는 모든 타일에 대해
             foreach (int tileIndex in PassivePatternUtil.GetPatternTiles(i, passiveType, slotCount))
             {
+                if (_enabledMask != null && !_enabledMask[tileIndex])
+                    continue;
                 if (!PassiveIndexs.TryGetValue(tileIndex, out var list))
                 {
                     list = new List<PassiveEffectData>();
@@ -145,6 +161,19 @@ public class StageSetupWindow : MonoBehaviour
 
     private void StartButtonClick()
     {
+        if (_maxDeployUnits > 0 && GetCurrentDeployCount() > _maxDeployUnits)
+        {
+            Debug.LogWarning($"[StageSetupWindow] Deploy limit exceeded! cur={GetCurrentDeployCount()} max={_maxDeployUnits}");
+            //SoundManager.Instance.PlaySFX("Ui_error");
+            return;
+        }
+        if(GetCurrentDeployCount() == 0)
+        {
+            Debug.LogWarning("[StageSetupWindow] No units deployed!");
+            //SoundManager.Instance.PlaySFX("Ui_error");
+            return;
+        }
+
         RebuildPassiveTiles();
 
         GetStagePos();
@@ -237,6 +266,9 @@ public class StageSetupWindow : MonoBehaviour
         // 0~14 슬롯 돌면서
         for (int i = 0; i < slotCount; i++)
         {
+            if (_enabledMask != null && !_enabledMask[i])
+                continue;
+
             var slot = DraggableSlots[i];
             if (slot == null || slot.characterData == null)
                 continue;
@@ -252,6 +284,8 @@ public class StageSetupWindow : MonoBehaviour
             // 기준칸 = i, 패턴 오프셋 적용
             foreach (int idx in PassivePatternUtil.GetPatternTiles(i, passiveType, slotCount))
             {
+                if (_enabledMask != null && !_enabledMask[idx])
+                    continue;
                 _passiveTiles[idx] = true;
                 _passiveStackCounts[idx]++;   // 🔹 중첩 개수 누적
             }
@@ -310,6 +344,8 @@ public class StageSetupWindow : MonoBehaviour
 
         foreach (int idx in PassivePatternUtil.GetPatternTiles(slotIndex, type, slotCount))
         {
+            if (_enabledMask != null && !_enabledMask[idx])
+                continue;
             if (idx >= 0 && idx < _previewPassiveTiles.Length)
                 _previewPassiveTiles[idx] = true;
         }
@@ -338,7 +374,7 @@ public class StageSetupWindow : MonoBehaviour
         ApplyTileColors();
     }
 
-    // 테스트 함수 (바로 시작 버튼)
+    // 테스트 함수 (바로 시작 버튼) 고치기
     public void TestStart()
     {
         DraggableSlots[1].characterData = ResourceManager.Instance.Get<CharacterData>("hina21");
@@ -355,6 +391,9 @@ public class StageSetupWindow : MonoBehaviour
 
         // 2) 시너지 UI 갱신
         UpdateSynergyUI();
+
+        // 3) 배치 수 UI 갱신
+        UpdateDeployCountUI();
     }
 
     private void UpdateSynergyUI()
@@ -362,5 +401,111 @@ public class StageSetupWindow : MonoBehaviour
         if (synergyPanel == null) return;
         var actives = SynergyManager.Evaluate(DraggableSlots);
         synergyPanel.UpdateActiveSynergies(actives);
+    }
+
+
+    // 스테이지 타일 관련
+    public void ApplyStage(StageData stage)
+    {
+        // 1) stage_type -> mask
+        _enabledMask = StageLayoutUtil.BuildMask(stage.stage_type);
+
+        // 2) max deploy units (dispatch_member 우선)
+        _maxDeployUnits = stage.dispatch_member > 0 ? stage.dispatch_member : stage.member_count;
+
+        // 3) 슬롯/바닥 UI 비활성화
+        for (int i = 0; i < DraggableSlots.Length; i++)
+        {
+            bool enabled = _enabledMask[i];
+            var slot = DraggableSlots[i];
+            if (slot == null) continue;
+
+            // 비활성 타일은 데이터 제거(숨은 버프 소스 방지)
+            if (!enabled)
+                slot.characterData = null;
+
+            // 슬롯 자체를 꺼서 드롭/클릭 막기
+            slot.gameObject.SetActive(enabled);
+
+            // 바닥 이미지도 동일
+            if (PassiveImages != null && i < PassiveImages.Length && PassiveImages[i] != null)
+                PassiveImages[i].gameObject.SetActive(enabled);
+        }
+
+        // 4) 마스크 반영 후 패시브/시너지 계산
+        RebuildPassiveTiles();
+        UpdateSynergyUI();
+    }
+
+    public void ApplyStage(StageCSVData stage)
+    {
+        if (stage == null)
+        {
+            Debug.LogWarning("[StageSetupWindow] ApplyStage called with null StageCSVData");
+            return;
+        }
+
+        // stage_type -> mask
+        _enabledMask = StageLayoutUtil.BuildMask(stage.stage_type);
+
+        // 배치 가능 명수 (dispatch_member 우선)
+        _maxDeployUnits = stage.dispatch_member > 0
+            ? stage.dispatch_member
+            : stage.member_count;
+
+        // 비활성 타일 처리(SetActive false 방식)
+        for (int i = 0; i < DraggableSlots.Length; i++)
+        {
+            bool enabled = _enabledMask[i];
+            var slot = DraggableSlots[i];
+            if (slot == null) continue;
+
+            if (!enabled)
+                slot.characterData = null; // 숨은 소스 방지
+
+            slot.gameObject.SetActive(enabled);
+
+            if (PassiveImages != null && i < PassiveImages.Length && PassiveImages[i] != null)
+                PassiveImages[i].gameObject.SetActive(enabled);
+        }
+
+        RebuildPassiveTiles();
+        UpdateSynergyUI();
+        UpdateDeployCountUI();
+    }
+
+    public int GetCurrentDeployCount()
+    {
+        if (DraggableSlots == null) return 0;
+
+        int count = 0;
+        for (int i = 0; i < DraggableSlots.Length; i++)
+        {
+            if (_enabledMask != null && !_enabledMask[i]) continue;
+
+            var slot = DraggableSlots[i];
+            if (slot != null && slot.characterData != null)
+                count++;
+        }
+        return count;
+    }
+
+    public bool IsDeployLimitReached()
+    {
+        if (_maxDeployUnits <= 0) 
+            return false; // 0이면 제한 없음으로 처리
+
+        return GetCurrentDeployCount() >= _maxDeployUnits;
+    }
+
+    private void UpdateDeployCountUI()
+    {
+        if (deployCountText == null) return;
+
+        int cur = GetCurrentDeployCount();
+        int max = _maxDeployUnits;
+
+        deployCountText.text = $"{cur} / {max}";
+        deployCountText.color = (max > 0 && cur >= max) ? deployFullColor : deployOkColor;
     }
 }

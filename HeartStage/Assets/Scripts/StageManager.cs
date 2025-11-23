@@ -12,7 +12,8 @@ public class StageManager : MonoBehaviour
     public LevelUpPanel LevelUpPanel;
     public Slider expSlider;
     public VictoryDefeatPanel VictoryDefeatPanel;
-    private StageCSVData currentStageData;
+    [SerializeField] public StageCSVData currentStageCSVData;
+    [SerializeField] public StageData currentStageData;
 
     private float currentTimeScale = 1f;
 
@@ -108,7 +109,7 @@ public class StageManager : MonoBehaviour
 
     public void SetCurrentStageData(StageCSVData stageData)
     {
-        currentStageData = stageData;
+        currentStageCSVData = stageData;
         if (stageData != null)
         {
             stageNumber = stageData.stage_step1;
@@ -119,7 +120,7 @@ public class StageManager : MonoBehaviour
     // 현재 스테이지 데이터 가져오기
     public StageCSVData GetCurrentStageData()
     {
-        return currentStageData;
+        return currentStageCSVData;
     }
 
     // 경험치 얻기

@@ -65,3 +65,10 @@ public class StageData : ScriptableObject
         return csvData;
     }
 }
+
+public enum StageType
+{
+    Full = 0,      // 15칸 전체
+    Stage1 = 1,    // Stage1 1,2,3 / 6,7,8 / 11,12,13
+    Stage2 = 2,    // Stage2
+}
