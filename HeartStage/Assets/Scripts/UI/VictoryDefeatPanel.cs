@@ -48,11 +48,13 @@ public class VictoryDefeatPanel : GenericWindow
     {
         nextStageOrRetryButton.onClick.RemoveAllListeners();
         int stageID = PlayerPrefs.GetInt("SelectedStageID", -1);
-        // UI 갱신 스테이지 매니저 수정후 고치기
-        // 보상 저장해 뒀다가 UI 적용하기
-        //currentStageText.text = $"스테이지 {1}-{StageManager.Instance.stageNumber}"; //
-        //clearWaveText.text = $"{StageManager.Instance.WaveCount}";//
-        //addFansText.text = 
+
+        if(StageManager.Instance != null && StageManager.Instance.GetCurrentStageData() != null)
+        {
+            var currentStage = StageManager.Instance.GetCurrentStageData();
+            currentStageText.text = $"스테이지 {currentStage.stage_step1}-{currentStage.stage_step2}";
+            clearWaveText.text = $"{StageManager.Instance.WaveCount}";
+        }
 
         if (isClear)
         {
