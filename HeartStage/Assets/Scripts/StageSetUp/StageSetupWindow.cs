@@ -66,6 +66,9 @@ public class StageSetupWindow : MonoBehaviour
 
     [SerializeField] private SynergyPanel synergyPanel;
 
+    //스폰 캐릭터 리스트 
+    private readonly List<GameObject> _spawnedAllies = new();
+
     private void OnEnable()
     {
         StageIndexs = new Dictionary<int, int>();
@@ -188,6 +191,8 @@ public class StageSetupWindow : MonoBehaviour
 
     private List<GameObject> PlaceAll()
     {
+        DespawnAllAllies();
+
         var allies = new List<GameObject>();
 
         foreach (var kvp in StageIndexs)
@@ -207,6 +212,8 @@ public class StageSetupWindow : MonoBehaviour
     {
         GameObject obj = Instantiate(basePrefab, worldPos, Quaternion.identity);
         var attack = obj.GetComponent<CharacterAttack>();
+
+        _spawnedAllies.Add(obj);   // 스폰 리스트에 등록
 
         AddPassiveEffects(obj, slotIndex);
 
@@ -506,5 +513,18 @@ public class StageSetupWindow : MonoBehaviour
 
         deployCountText.text = $"{cur} / {max}";
         deployCountText.color = (max > 0 && cur >= max) ? deployFullColor : deployOkColor;
+    }
+
+    public void DespawnAllAllies()
+    {
+        for (int i = _spawnedAllies.Count - 1; i >= 0; i--)
+        {
+            var go = _spawnedAllies[i];
+
+            if (go != null && !go.Equals(null))
+                Destroy(go);
+
+            _spawnedAllies.RemoveAt(i);
+        }
     }
 }

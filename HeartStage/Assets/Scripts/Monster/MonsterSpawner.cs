@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using System.Threading;
 
 [System.Serializable]
 public struct WaveMonsterInfo
@@ -75,6 +76,10 @@ public class MonsterSpawner : MonoBehaviour
     private const string MonsterProjectilePoolId = "MonsterProjectile";
     public static string GetMonsterProjectilePoolId() => MonsterProjectilePoolId;
 
+
+    //웨이브 정지용 CTS
+    private CancellationTokenSource stageCTS;
+
     private async void Start()
     {
         // 테스트용: 강제로 튜토리얼로 리셋
@@ -90,17 +95,19 @@ public class MonsterSpawner : MonoBehaviour
     {
         try
         {
-            if (this == null || gameObject == null)
-            {
-                return;
-            }
+            if (this == null || gameObject == null) return;
 
             await InitializePool();
             await LoadStageData();
 
             isInitialized = true;
 
-            await StartStageProgression();
+            // 이전 루프 있으면 끊고 새로 시작
+            stageCTS?.Cancel();
+            stageCTS?.Dispose();
+            stageCTS = new CancellationTokenSource();
+
+            await StartStageProgression(stageCTS.Token);
         }
         catch (System.Exception e)
         {
@@ -167,39 +174,29 @@ public class MonsterSpawner : MonoBehaviour
     }
 
     // 스테이지 내 모든 웨이브 진행 관리
-    private async UniTask StartStageProgression()
+    private async UniTask StartStageProgression(CancellationToken token)
     {
-        if (!isInitialized)
-            return;
+        if (!isInitialized) return;
+        if (stageWaveIds.Count == 0) return;
 
-        if (stageWaveIds.Count == 0)
-        {
-            Debug.Log("스테이지에 웨이브가 없습니다.");
-            return;
-        }
-
-        // 스테이지의 모든 웨이브 진행
         for (currentWaveIndex = 0; currentWaveIndex < stageWaveIds.Count; currentWaveIndex++)
         {
+            token.ThrowIfCancellationRequested();
+
             LoadCurrentWave();
             if (currentWaveData != null)
             {
-                await StartWaveSpawning();
-                await WaitForWaveCompletion();
+                await StartWaveSpawning(token);
+                await WaitForWaveCompletion(token);
 
-                Debug.Log($"웨이브 {currentWaveData.wave_name} 완료!");
-
-                // 마지막 웨이브가 아니면 잠시 대기
                 if (currentWaveIndex < stageWaveIds.Count - 1)
-                {
-                    await UniTask.Delay(2000);
-                }
+                    await UniTask.Delay(2000, cancellationToken: token);
             }
         }
 
-        Debug.Log($"스테이지 {currentStageData.stage_name} 완료!");
         ProgressToNextStage();
     }
+
 
     // 현재 웨이브 데이터 로드 및 UI 업데이트
     private void LoadCurrentWave()
@@ -254,13 +251,9 @@ public class MonsterSpawner : MonoBehaviour
     }
 
     // 웨이브 몬스터 스폰 프로세스 관리
-    private async UniTask StartWaveSpawning()
+    private async UniTask StartWaveSpawning(CancellationToken token)
     {
-        if (currentWaveData == null || waveMonstersToSpawn.Count == 0)
-        {
-            Debug.Log("웨이브 몬스터 정보가 없습니다.");
-            return;
-        }
+        if (currentWaveData == null || waveMonstersToSpawn.Count == 0) return;
 
         isWaveActive = true;
         totalMonstersSpawned = 0;
@@ -268,24 +261,30 @@ public class MonsterSpawner : MonoBehaviour
 
         while (isWaveActive && !IsWaveSpawnCompleted())
         {
+            token.ThrowIfCancellationRequested();
+
             for (int i = 0; i < spawnedMonsterCount; i++)
             {
                 var nextMonster = GetNextMonsterToSpawn();
-                if (nextMonster.HasValue)
+                if (!nextMonster.HasValue) break;
+
+                if (SpawnMonster(nextMonster.Value.monsterId))
                 {
-                    bool spawnSuccess = SpawnMonster(nextMonster.Value.monsterId);
-                    if (spawnSuccess)
-                    {
-                        UpdateSpawnCount(nextMonster.Value.monsterId);
-                        totalMonstersSpawned++;
-                    }
-                }
-                else
-                {
-                    break;
+                    UpdateSpawnCount(nextMonster.Value.monsterId);
+                    totalMonstersSpawned++;
                 }
             }
-            await UniTask.Delay((int)(spawnInterval * 1000));
+
+            await UniTask.Delay((int)(spawnInterval * 1000), cancellationToken: token);
+        }
+    }
+
+    private async UniTask WaitForWaveCompletion(CancellationToken token)
+    {
+        while (GetRemainingMonsterCount() > 0)
+        {
+            token.ThrowIfCancellationRequested();
+            await UniTask.Delay(100, cancellationToken: token);
         }
     }
 
@@ -632,37 +631,53 @@ public class MonsterSpawner : MonoBehaviour
     // 스테이지 변경
     public async UniTask ChangeStage(int newStageId)
     {
+        if (!isInitialized) return;
+
+        //  0) 이전 스테이지 진행 루프 완전 종료
+        stageCTS?.Cancel();
+        stageCTS?.Dispose();
+        stageCTS = new CancellationTokenSource();
+
+        //  1) 현재 진행/대기열 정리
         isWaveActive = false;
+        ClearSpawnQueue();
+        await UniTask.Yield(); // 큐 프로세서가 isWaveActive=false를 먹고 빠져나가게 한 프레임
+
         currentStageId = newStageId;
 
-        // 모든 활성 몬스터 비활성화
+        // 2) 몬스터 비활성화
         DeactivateAllMonsters();
 
-        // 기존 풀과 캐시 정리
+        // 3) 기존 풀/캐시 해제
         foreach (var pool in monsterPools.Values)
         {
             foreach (var monster in pool)
             {
-                if (monster != null && monster.gameObject != null)
-                {
+                if (monster != null)
                     Addressables.ReleaseInstance(monster);
-                }
             }
         }
         monsterPools.Clear();
         monsterDataCache.Clear();
 
-        // 새 스테이지 초기화
+        // 4) 새 스테이지 초기화
         await InitializePool();
         await LoadStageData();
 
+        // 5) StageManager 동기화
         if (StageManager.Instance != null && currentStageData != null)
         {
-            StageManager.Instance.SetCurrentStageData(currentStageData);
+            var stageCsv = DataTableManager.StageTable.GetStage(newStageId);
+            StageManager.Instance.SetCurrentStageData(stageCsv);
+            StageManager.Instance.SetWaveInfo(stageCsv.stage_step1, 1);
         }
 
-        await StartStageProgression();
+        currentWaveIndex = 0;
+
+        // 6) 새 CTS로 새 루프 시작
+        await StartStageProgression(stageCTS.Token);
     }
+
 
     // 모든 활성 몬스터 비활성화 - monsterPools 사용
     private void DeactivateAllMonsters()
@@ -886,4 +901,38 @@ public class MonsterSpawner : MonoBehaviour
             queueProcessCTS?.TrySetResult();
         }
     }
+
+    // 리셋/테스트용 : 현재 씬에 살아있는 몬스터 전부 비활성화
+    public void DespawnAllMonsters()
+    {
+        // 1) 웨이브/큐 진행 멈춤
+        isWaveActive = false;
+        ClearSpawnQueue(); // private이지만 같은 클래스라 호출 가능 :contentReference[oaicite:1]{index=1}
+
+        // 2) 현재 활성 몬스터만 싹 끄기 (Destroy X, 풀 유지)
+        foreach (var pool in monsterPools.Values)
+        {
+            foreach (var monster in pool)
+            {
+                if (monster == null || monster.Equals(null)) continue;
+
+                if (monster.activeInHierarchy)
+                {
+                    // 렌더러도 꺼서 초기 풀 상태로
+                    var renderers = monster.GetComponentsInChildren<Renderer>();
+                    foreach (var r in renderers)
+                        if (r != null) r.enabled = false;
+
+                    monster.SetActive(false);
+                }
+            }
+        }
+
+        // 3) 남은 몬스터 수/웨이브 카운터도 “현재 웨이브 기준” 초기화
+        waveMonstersToSpawn.Clear();
+        totalMonstersSpawned = 0;
+
+        UpdateStageUI();
+    }
+
 }

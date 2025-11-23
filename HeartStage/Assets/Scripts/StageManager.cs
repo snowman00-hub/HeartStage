@@ -48,7 +48,7 @@ public class StageManager : MonoBehaviour
     private void Start()
     {
         // 저장된 스테이지 데이터 로드
-        LoadSelectedStageData();
+        //LoadSelectedStageData();
     }
 
     private void LoadSelectedStageData()
@@ -114,6 +114,10 @@ public class StageManager : MonoBehaviour
         {
             stageNumber = stageData.stage_step1;
             waveOrder = 1; // 스테이지 시작시 첫 번째 웨이브
+            waveCount = 1;
+
+            if (StageUI != null)
+                StageUI.SetWaveCount(stageNumber, waveOrder);
         }
     }
 
