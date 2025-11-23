@@ -32,29 +32,31 @@ public class MonsterSpawner : MonoBehaviour
     private int currentStageId;
     [SerializeField] private int spawnedMonsterCount = 3;
 
+    // 스테이지 & 웨이브 관리
+    private StageWaveCSVData currentWaveData;      // 현재 진행 중인 웨이브 데이터
+    private StageCSVData currentStageData;         // 현재 스테이지 데이터
+    private List<int> stageWaveIds = new List<int>();  // 현재 스테이지의 모든 웨이브 ID 목록
+    private int currentWaveIndex = 0;              
+
+    // 웨이브 몬스터 추적
+    private List<WaveMonsterInfo> waveMonstersToSpawn = new List<WaveMonsterInfo>(); // 현재 웨이브에서 스폰할 몬스터들의 정보
+
+    private bool isWaveActive = false;
+    public bool isInitialized = false;
+
     [Header("SpawnMonster")]
     [SerializeField] private int maxSpawnRetries = 10;
     private float spawnRadius = 1f;
     [SerializeField] private float spawnTime = 0.5f;
 
-    //스폰 대기열
-    private Queue<int> spawnQueue = new Queue<int>();
-    private bool isProcessingQueue = false;
+    // 스폰 대기열 시스템
+    private Queue<int> spawnQueue = new Queue<int>();  // 스폰 대기 중인 몬스터 ID들의 큐
+    private bool isProcessingQueue = false;            // 대기열 처리 중인지 여부
 
-    // MonsterData SO 캐시 
-    private Dictionary<int, MonsterData> monsterDataCache = new Dictionary<int, MonsterData>();
+    // 몬스터 데이터 & 오브젝트 풀
+    private Dictionary<int, MonsterData> monsterDataCache = new Dictionary<int, MonsterData>();     // 몬스터 ID별 ScriptableObject 캐시
+    private Dictionary<int, List<GameObject>> monsterPools = new Dictionary<int, List<GameObject>>(); // 몬스터 ID별 오브젝트 풀 (재사용용)
 
-    // 몬스터 타입별 풀 관리
-    private Dictionary<int, List<GameObject>> monsterPools = new Dictionary<int, List<GameObject>>();
-
-    private StageCSVData currentStageData;
-    private List<int> stageWaveIds = new List<int>();
-    private int currentWaveIndex = 0;
-    private StageWaveCSVData currentWaveData;
-
-    private List<WaveMonsterInfo> waveMonstersToSpawn = new List<WaveMonsterInfo>();
-    private bool isWaveActive = false;
-    public bool isInitialized = false;
     private const string MonsterProjectilePoolId = "MonsterProjectile";
     public static string GetMonsterProjectilePoolId() => MonsterProjectilePoolId;
 
@@ -212,8 +214,6 @@ public class MonsterSpawner : MonoBehaviour
             {
                 await StartWaveSpawning();
                 await WaitForWaveCompletion();
-
-                Debug.Log($"웨이브 {currentWaveData.wave_name} 완료!");
 
                 // 마지막 웨이브가 아니면 잠시 대기
                 if (currentWaveIndex < stageWaveIds.Count - 1)
@@ -496,7 +496,7 @@ public class MonsterSpawner : MonoBehaviour
     // 보스 스폰 위치 계산
     private Vector3 GetBossSpawnPosition()
     {
-        return new Vector3(0f, 15f, 0f); // 화면 중앙 위쪽에서 스폰
+        return new Vector3(0f, 12f, 0f); // 화면 중앙 위쪽에서 스폰
     }
 
     // 리소스 정리
@@ -539,12 +539,7 @@ public class MonsterSpawner : MonoBehaviour
     // 스테이지 표시 정보 계산
     private (int stageNumber, int waveOrder) GetStageDisplayInfo(int stageId, int waveIndex)
     {
-        if (currentStageData != null)
-        {
-            return (currentStageData.stage_step1, waveIndex);
-        }
-
-        return (1, waveIndex); // 기본 1스테이지
+        return (currentStageData?.stage_step1 ?? 1, waveIndex); 
     }
 
     // 몬스터 사망 처리
@@ -616,7 +611,7 @@ public class MonsterSpawner : MonoBehaviour
             while (spawnQueue.Count > 0 && isWaveActive && !IsWaveSpawnCompleted()) // && isWaveActive && !IsWaveSpawnCompleted()
             {
                 var monsterId = spawnQueue.Dequeue();
-                bool spawnSuccess = TrySpawnFromQueue(monsterId);
+                bool spawnSuccess = SpawnFromQueue(monsterId);
 
                 if (!spawnSuccess)
                 {
@@ -637,8 +632,8 @@ public class MonsterSpawner : MonoBehaviour
         }
     }
 
-    // 대기열에서의 스폰 시도
-    private bool TrySpawnFromQueue(int monsterId)
+    // 대기열에서의 스폰
+    private bool SpawnFromQueue(int monsterId)
     {
         //해당 몬스터 타입의 스폰 완료 여부 체크
         bool canSpawn = false;
