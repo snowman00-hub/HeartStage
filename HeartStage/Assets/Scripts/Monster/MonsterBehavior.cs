@@ -9,6 +9,7 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     private bool isBoss = false;
     private MonsterSpawner monsterSpawner;
     private HealthBar healthBar;
+    private bool isDead = false;
 
     private readonly string attack = "Attack";
     private readonly string run = "Run"; // 이동 상태 파라미터 추가
@@ -43,6 +44,7 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     public void Init(MonsterData data)
     {
         monsterData = data;
+        isDead = false;
 
         // 최초 스폰 시 또는 최대 HP가 변경된 경우에만 HP 설정
         if (currentHP <= 0 || maxHP != data.hp)
@@ -58,14 +60,6 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         {
             animator = GetComponentInChildren<Animator>();
         }
-
-        //if (animator != null)
-        //{
-        //    if (animator.runtimeAnimatorController != null)
-        //    {
-        //        animator.SetTrigger(run); // 초기 상태를 달리기로 설정
-        //    }
-        //}
 
         lastPosition = transform.position;
     }
@@ -181,8 +175,8 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         if (monsterData != null)
         {
             currentHP -= damage;
-            SoundManager.Instance.PlayMonsterHitSound();
-            //Debug.Log($"{monsterData.monsterName}이(가) {damage}의 피해를 입었습니다. 남은 HP: {currentHP}");
+
+            //SoundManager.Instance.PlayMonsterHitSound();
 
             var ondamageEvents = GetComponents<IDamaged>();
             foreach (var ondamageEvent in ondamageEvents)
@@ -199,6 +193,11 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 
     public void Die()
     {
+        if (isDead)
+            return;
+
+        isDead = true;
+
         if (monsterSpawner != null && monsterData != null)
         {
             monsterSpawner.OnMonsterDied(monsterData.id);

@@ -11,15 +11,12 @@ public class StageInfoWindow : GenericWindow
     [Header("Button")]
     [SerializeField] private Button closeButton;
     [SerializeField] private Button stageStartButton;
-    //[SerializeField] private Button nextButton;
-    //[SerializeField] private Button backButton;
 
     [Header("UI")]
     [SerializeField] private TextMeshProUGUI stageStepText;
     [SerializeField] private TextMeshProUGUI stageNameText;
 
     [Header("Field")]
-    private StageTable stageTable;
     private StageCSVData currentStageData; // 현재 선택된 스테이지 데이터
 
     private void Awake()
@@ -64,7 +61,6 @@ public class StageInfoWindow : GenericWindow
         stageNameText.text = sb.ToString();
     }
 
-
     private void OnStageStartButtonClicked()
     {
         // 드림 에너지 소모
@@ -91,84 +87,9 @@ public class StageInfoWindow : GenericWindow
     }
     private void StartStage()
     {
-        // LoadSceneManager를 사용하여 게임 씬으로 전환
         if (LoadSceneManager.Instance != null)
         {
             LoadSceneManager.Instance.GoStage();
-        }
-        else
-        {
-            UnityEngine.SceneManagement.SceneManager.LoadScene("Stage");
-        }
-    }
-    private StageCSVData GetNextStage()
-    {
-        if(currentStageData == null || stageTable == null)
-            return null;
-
-        var allStages = stageTable.GetOrderedStages();
-
-        // 1. 현재 스테이지와 같은 챕터의 다음 스테이지를 먼저 찾기
-        for (int i = 0; i < allStages.Count; i++)
-        {
-            var stage = allStages[i];   
-            if (stage.stage_step1 == currentStageData.stage_step1 &&
-                stage.stage_step2 == currentStageData.stage_step2 + 1)
-            {
-                return stage;
-            }
-        }
-
-        // 2. 같은 챕터에 다음 스테이지가 없으면 다음 챕터의 첫 번째 스테이지 찾기
-        for (int i = 0; i < allStages.Count; i++)
-        {
-            var stage = allStages[i];   
-            if (stage.stage_step1 == currentStageData.stage_step1 + 1 &&
-                stage.stage_step2 == 1)
-            {
-                return stage;
-            }
-        }
-        return null;
-    }
-    private StageCSVData GetPreviousStage()
-    {
-        if (currentStageData == null || stageTable == null) return null;
-
-        var allStages = stageTable.GetOrderedStages();
-
-        // 1. 현재 스테이지와 같은 챕터의 이전 스테이지를 먼저 찾기
-        if (currentStageData.stage_step2 > 1)
-        {
-            for (int i = 0; i < allStages.Count; i++)
-            {
-                var stage = allStages[i];
-                if (stage.stage_step1 == currentStageData.stage_step1 &&
-                    stage.stage_step2 == currentStageData.stage_step2 - 1)
-                {
-                    return stage;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private void OnNextButtonClicked()
-    {
-        var nextStage = GetNextStage();
-        if (nextStage != null)
-        {
-            SetStageData(nextStage);
-        }
-    }
-
-    private void OnBackButtonClicked()
-    {
-        var previousStage = GetPreviousStage();
-        if (previousStage != null)
-        {
-            SetStageData(previousStage);
         }
     }
 }

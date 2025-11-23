@@ -84,7 +84,6 @@ public class VictoryDefeatPanel : GenericWindow
 
             // 스테이지 변경
             LoadSceneManager.Instance.GoStage();
-            //monsterSpawner.ChangeStage(nextStage.stage_ID).Forget();
 
             Time.timeScale = 1f; 
             Close();

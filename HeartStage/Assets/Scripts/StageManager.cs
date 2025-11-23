@@ -12,8 +12,7 @@ public class StageManager : MonoBehaviour
     public LevelUpPanel LevelUpPanel;
     public Slider expSlider;
     public VictoryDefeatPanel VictoryDefeatPanel;
-    [SerializeField] public StageCSVData currentStageCSVData;
-    [SerializeField] public StageData currentStageData;
+    private StageCSVData currentStageCSVData;
 
     private float currentTimeScale = 1f;
 
