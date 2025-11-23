@@ -893,6 +893,13 @@ public class MonsterSpawner : MonoBehaviour
     private void GiveWaveReward(StageWaveCSVData waveData)
     {
         var rewardData = DataTableManager.RewardTable.Get(waveData.wave_reward);
+        // 최초 보상 체크
+        var clearWaveList = SaveLoadManager.Data.clearWaveList;
+        if(!clearWaveList.Contains(rewardData.reward_id))
+        {
+            clearWaveList.Add(rewardData.reward_id);
+            ItemManager.Instance.AcquireItem(rewardData.first_clear, rewardData.first_clear_a);
+        }
         // 팬 보상
         StageManager.Instance.fanReward += rewardData.user_fan_amount;
         // 아이템 보상 주기

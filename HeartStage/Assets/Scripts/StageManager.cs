@@ -200,7 +200,6 @@ public class StageManager : MonoBehaviour
     // 보상 저장하기
     private void GetReward()
     {
-        SaveLoadManager.Load();
         var saveItemList = SaveLoadManager.Data.itemList;
         // 아이템 저장
         foreach(var kvp in ItemManager.Instance.acquireItemList)

@@ -32,6 +32,9 @@ public class BootStrap : MonoBehaviour
         Application.targetFrameRate = 60;
 #endif
 
+        // 세이브 데이터 로드
+        SaveLoadManager.Load();
+
         await Addressables.LoadSceneAsync(targetScene);
     }
 }
