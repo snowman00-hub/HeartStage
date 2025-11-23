@@ -155,7 +155,7 @@ public class StageManager : MonoBehaviour
     }
 
     // 승리시 
-    public void Clear()
+    public void Clear() 
     {
         VictoryDefeatPanel.isClear = true;
 
@@ -187,7 +187,7 @@ public class StageManager : MonoBehaviour
         Time.timeScale = 0f;
     }
 
-    private void SetBackgroundByStageData(StageCSVData stageData)
+    public void SetBackgroundByStageData(StageCSVData stageData)
     {
 
         if (stageData == null || string.IsNullOrEmpty(stageData.prefab) || stageData.prefab == "nan")
@@ -218,7 +218,6 @@ public class StageManager : MonoBehaviour
                 new Rect(0, 0, backgroundTexture.width, backgroundTexture.height),
                 new Vector2(0.5f, 0.5f)
             );
-
             backGroundSprite.sprite = sprite;
             return;
         }

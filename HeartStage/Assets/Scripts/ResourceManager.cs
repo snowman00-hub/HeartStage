@@ -46,7 +46,6 @@ public class ResourceManager : MonoBehaviour
         if (_assetCache.TryGetValue(assetName, out var asset))
             return asset as T;
 
-        Debug.LogWarning($"[ResourceManager] {assetName} 로드실패");
         return null;
     }
 
@@ -58,17 +57,14 @@ public class ResourceManager : MonoBehaviour
 
         _handles.Clear();
         _assetCache.Clear();
-        Debug.Log("[ResourceManager] 모든 리소스 해제 완료");
     }
 
     //에셋 목록 출력 
-    public void LogCachedAssets()
+    public void LogCachedAssets() 
     {
-        Debug.Log($"[ResourceManager] === 캐시된 에셋 목록 ({_assetCache.Count}개) ===");
         foreach (var kvp in _assetCache)
         {
             Debug.Log($"[ResourceManager] - {kvp.Key} ({kvp.Value?.GetType().Name})");
         }
-        Debug.Log("[ResourceManager] === 캐시 목록 끝 ===");
     }
 }

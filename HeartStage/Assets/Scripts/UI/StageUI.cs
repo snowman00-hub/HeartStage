@@ -2,7 +2,6 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-
 public class StageUI : MonoBehaviour
 {
     public TextMeshProUGUI waveCountText;
@@ -14,6 +13,9 @@ public class StageUI : MonoBehaviour
     [SerializeField] private Button BossSkill1Button2;
     [SerializeField] private Button BossSkill1Button3;
 
+    [SerializeField] private MonsterSpawner monsterSpawner;
+    [SerializeField] private int testMonsterId = 21101; // 기본 몬스터 ID (필요시 변경 가능)
+    [SerializeField] private int spawnCount = 10; // 소환할 몬스터 수
     private void Start()
     {
         // 버튼 이벤트 연결
@@ -71,7 +73,7 @@ public class StageUI : MonoBehaviour
 
     private void OnBossSkillButton1Clicked()
     {
-        ExecuteSummonSkill(); // 소환 스킬 (31001)
+        ExecuteSummonTest(); // 여러마리 소환 테스트
     }
 
     private void OnBossSkillButton2Clicked()
@@ -83,44 +85,18 @@ public class StageUI : MonoBehaviour
     {
         ExecuteBooingSkill(); // 야유 스킬 (31101)
     }
-
-    /// 소환 스킬 직접 실행 (31001)
-    private void ExecuteSummonSkill()
+    private void ExecuteSummonTest()
     {
-        // 임시 게임오브젝트 생성해서 소환 스킬 실행
-        GameObject tempSkillCaster = new GameObject("TempSummonSkill");
-
-        float spawnX = Random.Range(-2f, 2f);
-        var spownPos = new Vector3(spawnX, Screen.height - 100f, 0f);
-
-        tempSkillCaster.transform.position = spownPos;
-
-        // MonsterBehavior 컴포넌트도 추가 (DeceptionBossSkill이 필요로 함)
-        var monsterBehavior = tempSkillCaster.AddComponent<MonsterBehavior>();
-
-        // BossAddScript 컴포넌트도 추가 (DeceptionBossSkill.Execute()가 필요로 함)
-        var bossAddScript = tempSkillCaster.AddComponent<BossAddScript>();
-
-        // DeceptionBossSkill 컴포넌트 추가
-        var summonSkill = tempSkillCaster.AddComponent<DeceptionBossSkill>();
-
-        // 더미 몬스터 데이터 생성 (소환 스킬에 필요)
-        var dummyMonsterData = ScriptableObject.CreateInstance<MonsterData>();
-        dummyMonsterData.id = 22201; 
-
-        // MonsterBehavior 초기화
-        monsterBehavior.Init(dummyMonsterData);
-
-        // 스킬 초기화 및 실행
-        summonSkill.InitializeWithMonsterData(dummyMonsterData).ContinueWith(() =>
+        // MonsterSpawner 참조 확인
+        if (monsterSpawner == null)
         {
-            summonSkill.Execute();
-        });
+            return;
+        }
 
-        Debug.Log("소환 스킬 실행!");
+        // 테스트 소환 실행 (UniTask 사용)
+        monsterSpawner.SpawnTestMonsters(testMonsterId, spawnCount).Forget();
 
-        // 10초 후 임시 오브젝트 삭제 (디버깅을 위해 시간 연장)
-        Destroy(tempSkillCaster, 10f);
+        Debug.Log($"테스트 소환 실행: 몬스터 ID {testMonsterId} x {spawnCount}마리");
     }
 
     /// 스피드 버프 스킬 직접 실행 (31201)

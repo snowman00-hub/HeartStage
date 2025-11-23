@@ -91,6 +91,9 @@ public class CharacterFence : MonoBehaviour, IDamageable
     // 흔들기
     private async UniTask ShakeAsync(CancellationToken token)
     {
+        if (this == null || transform == null) 
+            return;
+
         if (!isShaking)
         {
             // 최초 흔들기 시작할 때만 원래 위치 저장
@@ -104,6 +107,9 @@ public class CharacterFence : MonoBehaviour, IDamageable
         {
             while (timer < shakeDuration)
             {
+                if (this == null || transform == null) 
+                    return;
+
                 if (token.IsCancellationRequested)
                     return;
 

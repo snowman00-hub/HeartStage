@@ -64,13 +64,8 @@ public class VictoryDefeatPanel : GenericWindow
         {
             clearOrFailText.text = "Fail";
             rightButtonText.text = "재도전";
-            nextStageOrRetryButton.onClick.AddListener(() => OnLobbyButtonClicked());
+            nextStageOrRetryButton.onClick.AddListener(LoadSceneManager.Instance.GoStage);
         }
-    }
-
-    private void OnLobbyButtonClicked()
-    {
-        LoadSceneManager.Instance.GoLobby();
     }
 
     private void OnNextStageButtonClicked()

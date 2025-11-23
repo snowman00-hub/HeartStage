@@ -99,9 +99,8 @@ public class MonsterMovement : MonoBehaviour
     // 화면 경계 초기화
     private void InitializeScreenBounds()
     {
-        // MonsterSpawner의 스폰 범위와 일치하도록 고정 값 사용
-        leftBound = -3.5f + screenMargin;
-        rightBound = 3.5f - screenMargin;
+        leftBound = -4f + screenMargin;
+        rightBound = 4f - screenMargin;
         boundsInitialized = true;
     }
 
@@ -190,29 +189,35 @@ public class MonsterMovement : MonoBehaviour
 
             float distance = Vector3.Distance(transform.position, otherMonster.transform.position);
 
-            // 분리 반경 내에 있으면 좌우로만 밀어내기
             if (distance < separationRadius && distance > 0.01f)
             {
                 Vector3 directionAway = transform.position - otherMonster.transform.position;
-                directionAway.y = 0f; // y축 제거 - 좌우로만 밀어내기
+                directionAway.y = 0f;
 
                 if (directionAway.magnitude > 0.01f)
                 {
                     float normalizedDistance = distance / separationRadius;
                     float strength = separationForce * (1f - normalizedDistance) * Time.deltaTime;
 
-                    // 너무 가까우면 더 강한 힘
                     if (distance < minDistance)
                     {
                         strength *= 1.5f;
                     }
 
-                    separationForceVector += directionAway.normalized * strength;
+                    Vector3 force = directionAway.normalized * strength;
+
+                    // 경계에 붙었을 때 바깥 방향 힘 무시
+                    if ((transform.position.x <= leftBound && force.x < 0) ||
+                        (transform.position.x >= rightBound && force.x > 0))
+                    {
+                        force.x = 0;
+                    }
+
+                    separationForceVector += force;
                 }
             }
         }
 
-        // 분리 힘 제한 (좌우로만) - SO의 최신 moveSpeed 직접 사용
         float maxSeparationSpeed = monsterData.moveSpeed * 0.5f;
         if (separationForceVector.magnitude > maxSeparationSpeed)
         {
@@ -227,7 +232,12 @@ public class MonsterMovement : MonoBehaviour
     {
         if (!boundsInitialized) return position;
 
-        position.x = Mathf.Clamp(position.x, leftBound, rightBound);
+        // x 경계 체크
+        if (position.x < leftBound)
+            position.x = leftBound + 0.01f; // 살짝 안쪽으로
+        else if (position.x > rightBound)
+            position.x = rightBound - 0.01f;
+
         return position;
     }
 
@@ -244,40 +254,6 @@ public class MonsterMovement : MonoBehaviour
     private static void CleanupMonsterList()
     {
         allActiveMonsters.RemoveAll(monster => monster == null || !monster.gameObject.activeInHierarchy);
-    }
-
-    // 디버그용 시각화
-    private void OnDrawGizmosSelected()
-    {
-        // 분리 반경 표시
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, separationRadius);
-
-        // 최소 거리 표시
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, minDistance);
-
-        // 앞줄 체크 영역 표시
-        Gizmos.color = isFrontBlocked ? Color.red : Color.blue;
-        Vector3 frontCheckPos = transform.position + Vector3.down * frontCheckDistance;
-        Gizmos.DrawWireCube(frontCheckPos, new Vector3(minDistance * 2, frontCheckDistance * 0.5f, 0));
-
-        // 벽 감지 범위 표시 (SO의 최신 값 사용)
-        if (monsterData != null)
-        {
-            Gizmos.color = isNearWall ? Color.red : Color.green;
-            Gizmos.DrawWireSphere(transform.position, monsterData.attackRange);
-        }
-
-        // 화면 경계 표시
-        if (boundsInitialized)
-        {
-            Gizmos.color = Color.cyan;
-            Gizmos.DrawLine(new Vector3(leftBound, transform.position.y - 2f, 0),
-                          new Vector3(leftBound, transform.position.y + 2f, 0));
-            Gizmos.DrawLine(new Vector3(rightBound, transform.position.y - 2f, 0),
-                          new Vector3(rightBound, transform.position.y + 2f, 0));
-        }
     }
 
     private void ConfuseMove()
