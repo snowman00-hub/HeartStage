@@ -297,6 +297,8 @@ public class MonsterSpawner : MonoBehaviour
         {
             await UniTask.Delay(100);
         }
+
+        ClearSpawnQueue();
     }
 
     // 다음 스테이지로 진행
@@ -393,8 +395,6 @@ public class MonsterSpawner : MonoBehaviour
         return false;
     }
 
-
-
     // 테스트용 몬스터 소환 메서드 (10마리 일괄 소환)
     public async UniTask SpawnTestMonsters(int monsterId, int count)
     {
@@ -418,8 +418,6 @@ public class MonsterSpawner : MonoBehaviour
             // 짧은 딜레이로 순차적 추가 (대기열 오버플로우 방지)
             await UniTask.Delay(50);
         }
-
-        //Debug.Log($"테스트 소환 요청 완료: {count}마리가 대기열에 추가되었습니다. 순차적으로 스폰됩니다.");
     }
 
     private void AddVisualChild(GameObject monster, MonsterData monsterData)
@@ -595,7 +593,7 @@ public class MonsterSpawner : MonoBehaviour
 
     private Vector3 GetRandomSpawnPosition()
     {
-        float randomX = Random.Range(-3.5f, 3.5f);
+        float randomX = Random.Range(-4f, 4f);
         float randomY = Random.Range(12f, 17f);
         var spawnPos = new Vector3(randomX, randomY, 0);
 
@@ -777,7 +775,7 @@ public class MonsterSpawner : MonoBehaviour
 
         try
         {
-            while (spawnQueue.Count > 0 && isWaveActive)
+            while (spawnQueue.Count > 0 && isWaveActive && !IsWaveSpawnCompleted())
             {
                 ProcessSpawnQueue();
                 await UniTask.Delay((int)(spawnTime * 1000));
@@ -797,6 +795,11 @@ public class MonsterSpawner : MonoBehaviour
 
         var request = spawnQueue.Dequeue();
 
+        if (IsWaveSpawnCompleted())
+        {
+            return;
+        }
+
         bool spawnSuccess = TrySpawnFromQueue(request.monsterId);
 
         if (!spawnSuccess)
@@ -810,13 +813,6 @@ public class MonsterSpawner : MonoBehaviour
             if (retryRequest.retryCount < maxSpawnRetries)
             {
                 spawnQueue.Enqueue(retryRequest);
-                //Debug.Log($"몬스터 {request.monsterId} 스폰 재시도 요청. 재시도 횟수: {retryRequest.retryCount}");
-            }
-            else
-            {
-                var newRequest = new SpawnRequest(request.monsterId);
-                spawnQueue.Enqueue(newRequest);
-               //Debug.Log($"몬스터 {request.monsterId} 재시도 횟수 리셋하여 계속 시도");
             }
         }
         else
@@ -830,6 +826,22 @@ public class MonsterSpawner : MonoBehaviour
     // 대기열에서의 스폰 시도 (대기열용)
     private bool TrySpawnFromQueue(int monsterId)
     {
+        // 해당 몬스터 타입의 스폰 완료 여부 체크
+        bool canSpawn = false;
+        foreach (var monsterInfo in waveMonstersToSpawn)
+        {
+            if (monsterInfo.monsterId == monsterId && monsterInfo.spawned < monsterInfo.count)
+            {
+                canSpawn = true;
+                break;
+            }
+        }
+
+        if (!canSpawn)
+        {
+            return false;
+        }
+
         if (!monsterPools.TryGetValue(monsterId, out var pool))
         {
             return false;
