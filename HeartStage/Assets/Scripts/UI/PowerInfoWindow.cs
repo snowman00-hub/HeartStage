@@ -64,27 +64,62 @@ public class PowerInfoWindow : MonoBehaviour
             var characterAttack = character.GetComponent<CharacterAttack>();
             var baseData = DataTableManager.CharacterTable.Get(characterAttack.id);
 
-            // 1) Atk
-            finalAtkSum += StatCalc.GetFinalStat(character, StatType.Attack, baseData.atk_dmg);
-            baseAtkSum += baseData.atk_dmg;
-            // 2) AtkSpeed
-            finalAtkSpeedSum += StatCalc.GetFinalStat(character, StatType.AttackSpeed, baseData.atk_speed);
-            baseAtkSpeedSum += baseData.atk_speed;
-            // 3) HP
-            finalHpSum += StatCalc.GetFinalStat(character, StatType.MaxHp, baseData.char_hp);
-            baseHpSum += baseData.char_hp;
-            // 4) CritChance
-            finalCritChanceSum += StatCalc.GetFinalStat(character, StatType.CritChance, baseData.crt_chance);
-            baseCritChanceSum += baseData.crt_chance;
-            // 5) CritDamage
-            finalCritDamageSum += StatCalc.GetFinalStat(character, StatType.CritDamage, baseData.crt_dmg);
-            baseCritDamageSum += baseData.crt_dmg;
-            // 6) ExtraAtkChance
-            finalExtraAtkChanceSum += StatCalc.GetFinalStat(character, StatType.ExtraAttackChance, baseData.atk_addcount);
-            baseExtraAtkChanceSum += baseData.atk_addcount;
-            // 7) Range
-            finalRangeSum += StatCalc.GetFinalStat(character, StatType.AttackRange, baseData.atk_range);
-            baseRangeSum += baseData.atk_range;
+            // 1) Atk → 보컬
+            {
+                float baseStat = baseData.atk_dmg;
+                float finalStat = StatCalc.GetFinalStat(character, StatType.Attack, baseStat);
+
+                baseAtkSum += StatPower.GetVocalPower(baseStat);
+                finalAtkSum += StatPower.GetVocalPower(finalStat);
+            }
+            // 2) AtkSpeed → 랩
+            {
+                float baseStat = baseData.atk_speed;
+                float finalStat = StatCalc.GetFinalStat(character, StatType.AttackSpeed, baseStat);
+
+                baseAtkSpeedSum += StatPower.GetLabPower(baseStat);
+                finalAtkSpeedSum += StatPower.GetLabPower(finalStat);
+            }
+            // 3) HP → 댄스
+            {
+                float baseStat = baseData.char_hp;
+                float finalStat = StatCalc.GetFinalStat(character, StatType.MaxHp, baseStat);
+
+                baseHpSum += StatPower.GetDancePower(baseStat);
+                finalHpSum += StatPower.GetDancePower(finalStat);
+            }
+            // 4) CritChance → 비주얼
+            {
+                float baseStat = baseData.crt_chance;
+                float finalStat = StatCalc.GetFinalStat(character, StatType.CritChance, baseStat);
+
+                baseCritChanceSum += StatPower.GetVisualPower(baseStat);
+                finalCritChanceSum += StatPower.GetVisualPower(finalStat);
+            }
+            // 5) CritDamage → 섹시
+            {
+                float baseStat = baseData.crt_dmg;
+                float finalStat = StatCalc.GetFinalStat(character, StatType.CritDamage, baseStat);
+
+                baseCritDamageSum += StatPower.GetSexyPower(baseStat);
+                finalCritDamageSum += StatPower.GetSexyPower(finalStat);
+            }
+            // 6) ExtraAtkChance → 큐티
+            {
+                float baseStat = baseData.atk_addcount;
+                float finalStat = StatCalc.GetFinalStat(character, StatType.ExtraAttackChance, baseStat);
+
+                baseExtraAtkChanceSum += StatPower.GetCutyPower(baseStat);
+                finalExtraAtkChanceSum += StatPower.GetCutyPower(finalStat);
+            }
+            // 7) Range → 카리스마
+            {
+                float baseStat = baseData.atk_range;
+                float finalStat = StatCalc.GetFinalStat(character, StatType.AttackRange, baseStat);
+
+                baseRangeSum += StatPower.GetCharismaPower(baseStat);
+                finalRangeSum += StatPower.GetCharismaPower(finalStat);
+            }
         }
 
         // 개별 스탯 UI 업데이트

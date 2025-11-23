@@ -129,5 +129,14 @@ public class CharacterFence : MonoBehaviour, IDamageable
             }
         }
     }
-
+#if UNITY_EDITOR
+    // 테스트 코드
+    private void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.D))
+        {
+            Die();
+        }
+    }
+#endif
 }

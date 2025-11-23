@@ -223,4 +223,15 @@ public class StageManager : MonoBehaviour
             return;
         }
     }
+
+#if UNITY_EDITOR
+    // 테스트 코드
+    private void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.V))
+        {
+            Clear();
+        }
+    }
+#endif
 }

@@ -43,8 +43,16 @@ public class CharacterData : ScriptableObject
     // 전투력 주기
     public int GetTotalPower()
     {
-        float total = atk_dmg + atk_speed + char_hp + crt_chance + crt_dmg + atk_addcount + atk_range;
-        return Mathf.FloorToInt(total);
+        float total = 0f;
+        total += StatPower.GetVocalPower(atk_dmg);
+        total += StatPower.GetLabPower(atk_speed);
+        total += StatPower.GetDancePower(char_hp);
+        total += StatPower.GetVisualPower(crt_chance);
+        total += StatPower.GetSexyPower(crt_dmg);
+        total += StatPower.GetCutyPower(atk_addcount);
+        total += StatPower.GetCharismaPower(atk_range);
+
+        return Mathf.CeilToInt(total);
     }
 
     // 0이 아닌 스킬 아이디 얻기

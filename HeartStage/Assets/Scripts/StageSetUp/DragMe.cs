@@ -216,6 +216,7 @@ public class DragMe : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         // IsVerticalDrag는 여기서 굳이 false로 안 돌림
         // → DraggableSlot.OnDrop에서 이 값 보고 세로 드래그인지 판단
         // → 다음 OnBeginDrag에서 다시 false로 초기화됨
+        IsVerticalDrag = false;
         SetDragJustEndedFlag().Forget();
     }
 
@@ -240,7 +241,7 @@ public class DragMe : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     private async UniTaskVoid SetDragJustEndedFlag()
     {
         DragJustEnded = true;
-        await UniTask.Yield();     // 단 1프레임 동안만 true
+        await UniTask.Yield(PlayerLoopTiming.LastPostLateUpdate); // 1프레임 동안만 TAP 금지
         DragJustEnded = false;
     }
 }

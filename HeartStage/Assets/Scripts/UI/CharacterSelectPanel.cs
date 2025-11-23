@@ -29,7 +29,6 @@ public class CharacterSelectPanel : MonoBehaviour
         idolPowerCount.text = $"{characterData.GetTotalPower()}";
         levelText.text = $"LV {characterData.char_lv}";
         // expSlider 세팅하기
-        // 카드 이미지 세팅
         var texture2D = ResourceManager.Instance.Get<Texture2D>(characterData.card_imageName);
         cardImage.sprite = Sprite.Create(texture2D, new Rect(0, 0, texture2D.width, texture2D.height), new Vector2(0.5f, 0.5f));
     }

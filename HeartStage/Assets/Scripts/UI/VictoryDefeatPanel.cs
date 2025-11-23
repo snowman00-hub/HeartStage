@@ -36,7 +36,7 @@ public class VictoryDefeatPanel : GenericWindow
 
     private void Start()
     {
-        goStageChoiceButton.onClick.AddListener(StageManager.Instance.GoLobby); // 일단 로비로 가게 설정
+        goStageChoiceButton.onClick.AddListener(OnGoStageChoiceButtonClicked);
     }
 
     private void OnEnable()
@@ -87,5 +87,10 @@ public class VictoryDefeatPanel : GenericWindow
             Time.timeScale = 1f; 
             Close();
         }
+    }
+
+    private void OnGoStageChoiceButtonClicked()
+    {
+        LoadSceneManager.Instance.GoLobby();
     }
 }

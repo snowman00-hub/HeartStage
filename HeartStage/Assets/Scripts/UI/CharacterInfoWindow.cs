@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -22,6 +23,11 @@ public class CharacterInfoWindow : GenericWindow
     public TextMeshProUGUI cuty;
     public TextMeshProUGUI charisma;
 
+    [Header("Passive Range Grid")]
+    public List<Image> cells;
+    public Color originCellColor;
+    public Color skillRangeColor;
+
     private void Awake()
     {
         Instance = this;
@@ -29,33 +35,47 @@ public class CharacterInfoWindow : GenericWindow
 
     public void Init(CharacterData data)
     {
-        // 캐릭터이미지 바꾸기 characterImage
+        var texture = ResourceManager.Instance.Get<Texture2D>(data.card_imageName);
+        characterImage.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
         characterName.text = data.char_name;
         // 속성 아이콘 변경하기 attributeIcon
         rankText.text = $"{data.char_rank}";
         // 패시브 스킬 정보 세팅하기, 하나만, 범위도 표시하기
         var skillIds = data.GetSkillIds();
         var passiveSkills = skillIds.Where(x => x > 32000).ToList();
-        if(passiveSkills.Count > 0)
+        // 1. 원래 색으로 초기화
+        foreach (var cell in cells)
+        {
+            cell.color = originCellColor;
+        }
+
+        if (passiveSkills.Count > 0)
         {
             var skillData = DataTableManager.SkillTable.Get(passiveSkills[0]);
             passiveDescText.text = skillData.info;
+            // 2. 실제 스킬 범위 색칠
+            var usedSlots = new HashSet<int> { 1, 2, 3, 6, 7, 8, 11, 12, 13 };
+            var skillRangeIndexes = PassivePatternUtil.GetPatternTiles(7, skillData.passive_type, 15).Where(idx => usedSlots.Contains(idx));
+            foreach (var index in skillRangeIndexes)
+            {
+                cells[index].color = skillRangeColor;
+            }
         }
         else
         {
             passiveDescText.text = string.Empty;
         }
         // 스탯 표시
-        vocal.text = $"{data.atk_dmg}";
-        lab.text = $"{Mathf.FloorToInt(data.atk_speed)}";
-        dance.text = $"{data.char_hp}";
-        visual.text = $"{Mathf.FloorToInt(data.crt_chance)}";
-        sexy.text = $"{Mathf.FloorToInt(data.crt_dmg)}";
-        cuty.text = $"{Mathf.FloorToInt(data.atk_addcount)}";
-        charisma.text = $"{Mathf.FloorToInt(data.atk_range)}";
+        vocal.text = $"{StatPower.GetVocalPower(data.atk_dmg)}";
+        lab.text = $"{StatPower.GetLabPower(data.atk_speed)}";
+        dance.text = $"{StatPower.GetDancePower(data.char_hp)}";
+        visual.text = $"{StatPower.GetVisualPower(data.crt_chance)}";
+        sexy.text = $"{StatPower.GetSexyPower(data.crt_dmg)}";
+        cuty.text = $"{StatPower.GetCutyPower(data.atk_addcount)}";
+        charisma.text = $"{StatPower.GetCharismaPower(data.atk_range)}";
         // 액티브 스킬 아이콘 표시하기
         var activeSkills = skillIds.Where(x => x > 31000 && x < 32000).ToList();
-        if(activeSkills.Count > 0)
+        if (activeSkills.Count > 0)
         {
             var skillData = DataTableManager.SkillTable.Get(activeSkills[0]);
             activeDescText.text = skillData.GetFormattedInfo();
