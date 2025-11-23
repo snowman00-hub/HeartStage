@@ -87,19 +87,18 @@ public class StageSetupWindow : MonoBehaviour
         Time.timeScale = 0f;
         StartButton.onClick.AddListener(StartButtonClick);
 
-
-        int stageId = PlayerPrefs.GetInt("SelectedStageID", -1);
-        var stageCsv = DataTableManager.StageTable.GetStage(stageId);
-        ApplyStage(stageCsv);
-        //RebuildPassiveTiles();
+        if(StageManager.Instance != null)
+        {
+            var stageCsv = StageManager.Instance.GetCurrentStageData();
+            ApplyStage(stageCsv);
+        }
 
         if (synergyPanel != null)
         {
             synergyPanel.BuildAllButtons();
-            //UpdateSynergyUI();
         }
 
-        // 🔹 슬롯 변경 → 패시브 + 시너지 둘 다 갱신
+        // 슬롯 변경 → 패시브 + 시너지 둘 다 갱신
         DraggableSlot.OnAnySlotChanged += HandleSlotChanged;
     }
     private void OnDisable()
