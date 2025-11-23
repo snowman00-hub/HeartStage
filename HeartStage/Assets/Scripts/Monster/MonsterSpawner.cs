@@ -1,8 +1,10 @@
 ﻿using Cysharp.Threading.Tasks;
+using System;
 using System.Collections.Generic;
+using System.Linq; // (추가) ToArray 스냅샷용
+using System.Threading;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using System.Threading;
 
 [System.Serializable]
 public struct WaveMonsterInfo
@@ -36,7 +38,6 @@ public struct SpawnRequest // 재시도 요청용 구조체
     }
 }
 
-
 public class MonsterSpawner : MonoBehaviour
 {
     [Header("Reference")]
@@ -45,20 +46,20 @@ public class MonsterSpawner : MonoBehaviour
     [SerializeField] private GameObject monsterProjectilePrefab;
 
     [Header("Field")]
-    private int poolSize = 250; // wave pool size    
-    private int currentStageId;
+    private int poolSize = 250; // wave pool size
+    [SerializeField] public int currentStageId;
     private int spawnedMonsterCount = 3;
 
     [Header("SpawnMonster")]
     [SerializeField] private int maxSpawnRetries = 10;
     private float spawnRadius = 1f; // 스폰 위치 충돌 검사 반경
-    [SerializeField] private float spawnTime = 0.5f; // 대기열 처리 간격 
+    [SerializeField] private float spawnTime = 0.5f; // 대기열 처리 간격
 
     private Queue<SpawnRequest> spawnQueue = new Queue<SpawnRequest>(); // 대기열
     private bool isProcessingQueue = false; // 대기열 처리 상태
     private UniTaskCompletionSource queueProcessCTS; // 대기열 완료 CTS
 
-    // MonsterData SO 캐시 
+    // MonsterData SO 캐시
     private Dictionary<int, MonsterData> monsterDataCache = new Dictionary<int, MonsterData>();
 
     // 몬스터 타입별 풀 관리 (주 사용)
@@ -73,62 +74,62 @@ public class MonsterSpawner : MonoBehaviour
     private int totalMonstersSpawned = 0;
     private bool isWaveActive = false;
     public bool isInitialized = false;
+
     private const string MonsterProjectilePoolId = "MonsterProjectile";
     public static string GetMonsterProjectilePoolId() => MonsterProjectilePoolId;
 
-
-    //웨이브 정지용 CTS
+    // 웨이브 정지용 CTS
     private CancellationTokenSource stageCTS;
+
+    // ✅ (기존 유지) 스테이지 전환/초기화 동시 실행 방지 락
+    private readonly SemaphoreSlim stageChangeLock = new SemaphoreSlim(1, 1);
+
+    [SerializeField] private int startStageId = 601;
 
     private async void Start()
     {
-        // 테스트용: 강제로 튜토리얼로 리셋
-        //PlayerPrefs.SetInt("SelectedStageID", 601);
-        //PlayerPrefs.Save();
-
-        currentStageId = PlayerPrefs.GetInt("SelectedStageID", 601); // 기본값은 601 (튜토리얼)
+        currentStageId = startStageId;
         await InitializeAsync();
     }
 
     // 전체 초기화 프로세스 관리
     private async UniTask InitializeAsync()
     {
+        CancellationToken token;
+
+        await stageChangeLock.WaitAsync();
         try
         {
-            if (this == null || gameObject == null) return;
-
-            await InitializePool();
-            await LoadStageData();
-
-            isInitialized = true;
-
-            // 이전 루프 있으면 끊고 새로 시작
             stageCTS?.Cancel();
             stageCTS?.Dispose();
             stageCTS = new CancellationTokenSource();
+            token = stageCTS.Token;
 
-            await StartStageProgression(stageCTS.Token);
+            await InitializePool(token);
+            await LoadStageData(token);
+
+            isInitialized = true;
         }
-        catch (System.Exception e)
+        finally
         {
-            Debug.Log($"MonsterSpawner 초기화 실패: {e.Message}");
+            stageChangeLock.Release();
         }
+
+        // 자동 시작 절대 금지 (Start 눌렀을 때만 시작)
     }
 
     // 스테이지 데이터 로드 및 MonsterData SO 캐시 구축
-    private async UniTask LoadStageData()
+    private async UniTask LoadStageData(CancellationToken token)
     {
-        // 데이터 테이블 로딩 대기
+        // timeScale = 0이어도 기다리도록 UnscaledDelay
         while (DataTableManager.StageTable == null || DataTableManager.StageWaveTable == null)
         {
-            await UniTask.Delay(100);
+            token.ThrowIfCancellationRequested();
+            await UniTask.Delay(100, DelayType.UnscaledDeltaTime, cancellationToken: token);
         }
 
         currentStageData = DataTableManager.StageTable.GetStage(currentStageId);
-        if (currentStageData == null)
-        {
-            return;
-        }
+        if (currentStageData == null) return;
 
         if (StageManager.Instance != null)
         {
@@ -136,40 +137,41 @@ public class MonsterSpawner : MonoBehaviour
             StageManager.Instance.SetBackgroundByStageData(currentStageData);
         }
 
-
-        // 스테이지의 웨이브 ID 목록 가져오기
         stageWaveIds = DataTableManager.StageTable.GetWaveIds(currentStageId);
         currentWaveIndex = 0;
 
-        // 웨이브가 없을 경우 처리
-        if (stageWaveIds.Count == 0)
-        {
+        if (stageWaveIds == null || stageWaveIds.Count == 0)
             return;
-        }
 
-        // 스테이지에 등장하는 모든 몬스터 ID에 대해 SO 캐시 및 CSV로 초기화
         var monsterIds = new HashSet<int>();
         foreach (var waveId in stageWaveIds)
         {
+            token.ThrowIfCancellationRequested();
+
             var waveData = DataTableManager.StageWaveTable.Get(waveId);
-            if (waveData != null)
-            {
-                if (waveData.EnemyID1 > 0) monsterIds.Add(waveData.EnemyID1);
-                if (waveData.EnemyID2 > 0) monsterIds.Add(waveData.EnemyID2);
-                if (waveData.EnemyID3 > 0) monsterIds.Add(waveData.EnemyID3);
-            }
+            if (waveData == null) continue;
+
+            if (waveData.EnemyID1 > 0) monsterIds.Add(waveData.EnemyID1);
+            if (waveData.EnemyID2 > 0) monsterIds.Add(waveData.EnemyID2);
+            if (waveData.EnemyID3 > 0) monsterIds.Add(waveData.EnemyID3);
         }
 
-        // MonsterData SO 로드 및 캐시에 저장 (게임 시작/스테이지 시작 시에만 CSV로 초기화)
         foreach (var monsterId in monsterIds)
         {
-            var handle = Addressables.LoadAssetAsync<MonsterData>($"MonsterData_{monsterId}");
-            var monsterDataSO = await handle.Task;
-            if (monsterDataSO != null)
+            token.ThrowIfCancellationRequested();
+
+            try
             {
-                monsterDataSO.InitFromCSV(monsterId); // Init 대신 InitFromCSV 사용
-                monsterDataCache[monsterId] = monsterDataSO;
+                var handle = Addressables.LoadAssetAsync<MonsterData>($"MonsterData_{monsterId}");
+                var monsterDataSO = await handle.Task;
+
+                if (monsterDataSO != null)
+                {
+                    monsterDataSO.InitFromCSV(monsterId);
+                    monsterDataCache[monsterId] = monsterDataSO;
+                }
             }
+            catch { }
         }
     }
 
@@ -197,7 +199,6 @@ public class MonsterSpawner : MonoBehaviour
         ProgressToNextStage();
     }
 
-
     // 현재 웨이브 데이터 로드 및 UI 업데이트
     private void LoadCurrentWave()
     {
@@ -213,9 +214,8 @@ public class MonsterSpawner : MonoBehaviour
         SetUpWaveMonster();
         UpdateStageUI();
 
-        // 새 웨이브 시작 시 대기열 초기화 
+        // 새 웨이브 시작 시 대기열 초기화
         ClearSpawnQueue();
-
     }
 
     // 웨이브에 등장할 몬스터 정보 설정
@@ -277,24 +277,17 @@ public class MonsterSpawner : MonoBehaviour
 
             await UniTask.Delay((int)(spawnInterval * 1000), cancellationToken: token);
         }
+        isWaveActive = false;
+        ClearSpawnQueue();
     }
 
+    // 웨이브 완료까지 대기 (토큰으로 변경)
     private async UniTask WaitForWaveCompletion(CancellationToken token)
     {
         while (GetRemainingMonsterCount() > 0)
         {
             token.ThrowIfCancellationRequested();
             await UniTask.Delay(100, cancellationToken: token);
-        }
-    }
-
-    // 웨이브 완료까지 대기
-    private async UniTask WaitForWaveCompletion()
-    {
-        // 웨이브의 모든 몬스터가 처치될 때까지 대기
-        while (GetRemainingMonsterCount() > 0)
-        {
-            await UniTask.Delay(100);
         }
     }
 
@@ -353,7 +346,7 @@ public class MonsterSpawner : MonoBehaviour
                 bool isBoss = MonsterBehavior.IsBossMonster(monsterId);
                 Vector3? safePos = FindSafeSpawnPosition(isBoss);
 
-                if(safePos.HasValue)
+                if (safePos.HasValue)
                 {
                     // 안전한 위치면 스폰
                     monster.transform.position = safePos.Value;
@@ -368,6 +361,8 @@ public class MonsterSpawner : MonoBehaviour
                     }
                     else
                     {
+                        if(CanSpawnMore(monsterId))
+                            AddToSpawnQueue(monsterId);
                         return false;
                     }
 
@@ -381,7 +376,6 @@ public class MonsterSpawner : MonoBehaviour
                     monster.SetActive(true);
                     return true;
                 }
-
                 else
                 {
                     AddToSpawnQueue(monsterId);
@@ -391,8 +385,6 @@ public class MonsterSpawner : MonoBehaviour
         }
         return false;
     }
-
-
 
     // 테스트용 몬스터 소환 메서드 (10마리 일괄 소환)
     public async UniTask SpawnTestMonsters(int monsterId, int count)
@@ -417,8 +409,6 @@ public class MonsterSpawner : MonoBehaviour
             // 짧은 딜레이로 순차적 추가 (대기열 오버플로우 방지)
             await UniTask.Delay(50);
         }
-
-        //Debug.Log($"테스트 소환 요청 완료: {count}마리가 대기열에 추가되었습니다. 순차적으로 스폰됩니다.");
     }
 
     private void AddVisualChild(GameObject monster, MonsterData monsterData)
@@ -479,12 +469,16 @@ public class MonsterSpawner : MonoBehaviour
     }
 
     // 몬스터 오브젝트 풀 초기화 - 모든 초기화를 여기서 처리
-    private async UniTask InitializePool()
+    // ✅ (기존 시그니처 유지) 외부 호출용 non-token 버전은 token 버전을 호출
+    private UniTask InitializePool() => InitializePool(CancellationToken.None);
+
+    private async UniTask InitializePool(CancellationToken token)
     {
         // 데이터 테이블 로딩 대기
         while (DataTableManager.StageTable == null || DataTableManager.StageWaveTable == null)
         {
-            await UniTask.Delay(100);
+            token.ThrowIfCancellationRequested();
+            await UniTask.Delay(100, DelayType.UnscaledDeltaTime, cancellationToken: token);
         }
 
         // 현재 스테이지에서 사용할 몬스터 ID 수집
@@ -495,6 +489,8 @@ public class MonsterSpawner : MonoBehaviour
             var waveIds = DataTableManager.StageTable.GetWaveIds(currentStageId);
             foreach (var waveId in waveIds)
             {
+                token.ThrowIfCancellationRequested();
+
                 var waveData = DataTableManager.StageWaveTable.Get(waveId);
                 if (waveData != null)
                 {
@@ -508,6 +504,8 @@ public class MonsterSpawner : MonoBehaviour
         // MonsterData 캐시 로드
         foreach (var monsterId in monsterIds)
         {
+            token.ThrowIfCancellationRequested();
+
             try
             {
                 var handle = Addressables.LoadAssetAsync<MonsterData>($"MonsterData_{monsterId}");
@@ -523,20 +521,32 @@ public class MonsterSpawner : MonoBehaviour
             }
         }
 
-        // 몬스터 타입별 풀 생성 - 캐시에 있는 몬스터만 생성
-        foreach (var kvp in monsterDataCache)
+        // ✅ (추가) Collection modified 방지: 스냅샷 떠서 열거
+        var cacheSnapshot = monsterDataCache.ToArray();
+        if (cacheSnapshot.Length == 0)
         {
+            CreateAllPools();
+            return;
+        }
+
+        // 몬스터 타입별 풀 생성 - 캐시에 있는 몬스터만 생성
+        foreach (var kvp in cacheSnapshot)
+        {
+            token.ThrowIfCancellationRequested();
+
             int monsterId = kvp.Key;
             var monsterDataSO = kvp.Value;
 
             bool isBoss = MonsterBehavior.IsBossMonster(monsterId);
             var prefab = isBoss ? bossMonsterPrefab : monsterPrefab;
-            int poolCount = isBoss ? 1 : poolSize / monsterDataCache.Count;
+            int poolCount = isBoss ? 1 : poolSize / cacheSnapshot.Length;
 
             monsterPools[monsterId] = new List<GameObject>();
 
             for (int i = 0; i < poolCount; i++)
             {
+                token.ThrowIfCancellationRequested();
+
                 try
                 {
                     Vector3 offScreenPosition = new Vector3(-10000, -10000, 0);
@@ -572,7 +582,6 @@ public class MonsterSpawner : MonoBehaviour
                         Debug.LogWarning($"Monster {monsterId}에 HealthBar가 없습니다.");
                     }
 
-
                     // 초기 상태 설정
                     monster.SetActive(false);
                     var renderers = monster.GetComponentsInChildren<Renderer>();
@@ -595,8 +604,8 @@ public class MonsterSpawner : MonoBehaviour
 
     private Vector3 GetRandomSpawnPosition()
     {
-        float randomX = Random.Range(-3.5f, 3.5f);
-        float randomY = Random.Range(12f, 17f);
+        float randomX = UnityEngine.Random.Range(-3.5f, 3.5f);
+        float randomY = UnityEngine.Random.Range(12f, 17f);
         var spawnPos = new Vector3(randomX, randomY, 0);
 
         return spawnPos;
@@ -611,6 +620,11 @@ public class MonsterSpawner : MonoBehaviour
     // 리소스 정리
     private void OnDestroy()
     {
+        // ✅ (추가) 진행 루프 취소/정리
+        stageCTS?.Cancel();
+        stageCTS?.Dispose();
+        stageCTS = null;
+
         ClearSpawnQueue();
 
         foreach (var pool in monsterPools.Values)
@@ -628,56 +642,60 @@ public class MonsterSpawner : MonoBehaviour
         monsterPools.Clear();
     }
 
-    // 스테이지 변경
-    public async UniTask ChangeStage(int newStageId)
+    // 스테이지 변경  (핵심 수정)
+    // MonsterSpawner.cs
+
+    public async UniTask ChangeStage(int newStageId, bool startImmediately = true)
     {
-        if (!isInitialized) return;
+        CancellationToken token;
 
-        //  0) 이전 스테이지 진행 루프 완전 종료
-        stageCTS?.Cancel();
-        stageCTS?.Dispose();
-        stageCTS = new CancellationTokenSource();
-
-        //  1) 현재 진행/대기열 정리
-        isWaveActive = false;
-        ClearSpawnQueue();
-        await UniTask.Yield(); // 큐 프로세서가 isWaveActive=false를 먹고 빠져나가게 한 프레임
-
-        currentStageId = newStageId;
-
-        // 2) 몬스터 비활성화
-        DeactivateAllMonsters();
-
-        // 3) 기존 풀/캐시 해제
-        foreach (var pool in monsterPools.Values)
+        await stageChangeLock.WaitAsync();
+        try
         {
-            foreach (var monster in pool)
+            stageCTS?.Cancel();
+            stageCTS?.Dispose();
+            stageCTS = new CancellationTokenSource();
+            token = stageCTS.Token;
+
+            isWaveActive = false;
+            ClearSpawnQueue();
+            currentStageId = newStageId;
+            currentWaveIndex = 0;
+            waveMonstersToSpawn.Clear();
+            totalMonstersSpawned = 0;
+
+            DeactivateAllMonsters();
+
+            foreach (var pool in monsterPools.Values)
             {
-                if (monster != null)
-                    Addressables.ReleaseInstance(monster);
+                foreach (var monster in pool)
+                    if (monster != null && monster.gameObject != null)
+                        Addressables.ReleaseInstance(monster);
+            }
+            monsterPools.Clear();
+            monsterDataCache.Clear();
+
+            await InitializePool(token);
+            await LoadStageData(token);
+
+            isInitialized = true;
+
+            if (StageManager.Instance != null && currentStageData != null)
+            {
+                var stageCsv = DataTableManager.StageTable.GetStage(newStageId);
+                StageManager.Instance.SetCurrentStageData(stageCsv);
+                StageManager.Instance.SetWaveInfo(stageCsv.stage_step1, 1);
             }
         }
-        monsterPools.Clear();
-        monsterDataCache.Clear();
-
-        // 4) 새 스테이지 초기화
-        await InitializePool();
-        await LoadStageData();
-
-        // 5) StageManager 동기화
-        if (StageManager.Instance != null && currentStageData != null)
+        finally
         {
-            var stageCsv = DataTableManager.StageTable.GetStage(newStageId);
-            StageManager.Instance.SetCurrentStageData(stageCsv);
-            StageManager.Instance.SetWaveInfo(stageCsv.stage_step1, 1);
+            stageChangeLock.Release();
         }
 
-        currentWaveIndex = 0;
-
-        // 6) 새 CTS로 새 루프 시작
-        await StartStageProgression(stageCTS.Token);
+        // 시작은 락 밖에서 딱 1번만
+        if (startImmediately)
+            StartStageProgression(token).Forget();
     }
-
 
     // 모든 활성 몬스터 비활성화 - monsterPools 사용
     private void DeactivateAllMonsters()
@@ -756,7 +774,7 @@ public class MonsterSpawner : MonoBehaviour
     }
 
     // 충돌 회피를 위한 안전한 스폰 위치 찾기
-    private Vector3? FindSafeSpawnPosition(bool isBoss) 
+    private Vector3? FindSafeSpawnPosition(bool isBoss)
     {
         for (int i = 0; i < maxSpawnRetries; i++)
         {
@@ -773,7 +791,7 @@ public class MonsterSpawner : MonoBehaviour
     // 스폰 자리 차있으면 스폰 대기열에 추가
     private void AddToSpawnQueue(int monsterId)
     {
-        var spawnRequest = new SpawnRequest(monsterId); // 스폰 요청 초기화 
+        var spawnRequest = new SpawnRequest(monsterId); // 스폰 요청 초기화
         spawnQueue.Enqueue(spawnRequest);
 
         // 대기열 처리기가 실행 중이 아니면 시작
@@ -798,8 +816,8 @@ public class MonsterSpawner : MonoBehaviour
                 ProcessSpawnQueue();
                 await UniTask.Delay((int)(spawnTime * 1000));
             }
+
         }
-        
         finally
         {
             isProcessingQueue = false;
@@ -809,14 +827,18 @@ public class MonsterSpawner : MonoBehaviour
 
     private void ProcessSpawnQueue()
     {
-        if (spawnQueue.Count == 0) return;
+        if (spawnQueue.Count == 0) 
+            return;
 
         var request = spawnQueue.Dequeue();
+
+        if (!CanSpawnMore(request.monsterId))
+            return;
 
         bool spawnSuccess = TrySpawnFromQueue(request.monsterId);
 
         if (!spawnSuccess)
-        {            
+        {
             var retryRequest = new SpawnRequest(request.monsterId)
             {
                 requestTime = request.requestTime, // 원래 요청 시간 유지
@@ -826,20 +848,17 @@ public class MonsterSpawner : MonoBehaviour
             if (retryRequest.retryCount < maxSpawnRetries)
             {
                 spawnQueue.Enqueue(retryRequest);
-                //Debug.Log($"몬스터 {request.monsterId} 스폰 재시도 요청. 재시도 횟수: {retryRequest.retryCount}");
             }
             else
             {
                 var newRequest = new SpawnRequest(request.monsterId);
                 spawnQueue.Enqueue(newRequest);
-               //Debug.Log($"몬스터 {request.monsterId} 재시도 횟수 리셋하여 계속 시도");
             }
         }
         else
         {
             UpdateSpawnCount(request.monsterId);
             totalMonstersSpawned++;
-            //Debug.Log($"대기열에서 몬스터 {request.monsterId} 스폰 성공");
         }
     }
 
@@ -907,7 +926,7 @@ public class MonsterSpawner : MonoBehaviour
     {
         // 1) 웨이브/큐 진행 멈춤
         isWaveActive = false;
-        ClearSpawnQueue(); // private이지만 같은 클래스라 호출 가능 :contentReference[oaicite:1]{index=1}
+        ClearSpawnQueue();
 
         // 2) 현재 활성 몬스터만 싹 끄기 (Destroy X, 풀 유지)
         foreach (var pool in monsterPools.Values)
@@ -935,4 +954,21 @@ public class MonsterSpawner : MonoBehaviour
         UpdateStageUI();
     }
 
+    public void StartStageManually()
+    {
+        if (!isInitialized || stageCTS == null)
+            return;
+        StartStageProgression(stageCTS.Token).Forget();
+    }
+
+    private bool CanSpawnMore(int monsterId)
+    {
+        for (int i = 0; i < waveMonstersToSpawn.Count; i++)
+        {
+            var info = waveMonstersToSpawn[i];
+            if (info.monsterId == monsterId)
+                return info.spawned < info.count;
+        }
+        return false;
+    }
 }

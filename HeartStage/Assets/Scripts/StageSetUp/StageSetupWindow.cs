@@ -65,6 +65,7 @@ public class StageSetupWindow : MonoBehaviour
     [SerializeField] private Color previewColor = Color.cyan;       // 미리보기 색
 
     [SerializeField] private SynergyPanel synergyPanel;
+    [SerializeField] private MonsterSpawner monsterSpawner;
 
     //스폰 캐릭터 리스트 
     private readonly List<GameObject> _spawnedAllies = new();
@@ -185,7 +186,8 @@ public class StageSetupWindow : MonoBehaviour
         SynergyManager.ApplySynergies(DraggableSlots, allies);
 
         SoundManager.Instance.PlaySFX("Ui_click_01");
-        Time.timeScale = 1f;
+        StageManager.Instance.SetTimeScale(1f);
+        monsterSpawner.StartStageManually();
         gameObject.SetActive(false);
     }
 
