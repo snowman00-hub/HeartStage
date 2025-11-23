@@ -93,7 +93,7 @@ public class StageUI : MonoBehaviour
             return;
         }
 
-        // 테스트 소환 실행 (UniTask 사용)
+        // 테스트 소환 실행
         monsterSpawner.SpawnTestMonsters(testMonsterId, spawnCount).Forget();
 
         Debug.Log($"테스트 소환 실행: 몬스터 ID {testMonsterId} x {spawnCount}마리");
