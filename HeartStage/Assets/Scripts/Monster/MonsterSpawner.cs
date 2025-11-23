@@ -573,7 +573,6 @@ public class MonsterSpawner : MonoBehaviour
                         Debug.LogWarning($"Monster {monsterId}에 HealthBar가 없습니다.");
                     }
 
-
                     // 초기 상태 설정
                     monster.SetActive(false);
                     var renderers = monster.GetComponentsInChildren<Renderer>();
