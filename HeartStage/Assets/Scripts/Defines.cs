@@ -27,7 +27,6 @@ public static class IBuffIds
     public static string AttackPowerBuff => BuffIds[0];
 }
 
-
 public class Tag
 {
     public static readonly string Player = "Player";
@@ -44,9 +43,16 @@ public class AddressableLabel
 public enum WindowType
 {
     None = -1,
-    Lobby = 0,
-    StageSelect = 1,
-    StageInfo = 2,
-    VictoryDefeat = 3,
-    CharacterInfo = 4,
+    // 로비 윈도우
+    LobbyHome = 0,
+    StageSelect,
+    StageInfo,
+    // 인게임 윈도우
+    VictoryDefeat,
+    CharacterInfo,
+}
+
+public class ItemID
+{
+    public static readonly int Exp = 7103;
 }

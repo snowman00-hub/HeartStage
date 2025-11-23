@@ -662,7 +662,5 @@ public class MonsterSpawner : MonoBehaviour
         }
 
         UpdateStageUI();
-    }
-
-    
+    }    
 }

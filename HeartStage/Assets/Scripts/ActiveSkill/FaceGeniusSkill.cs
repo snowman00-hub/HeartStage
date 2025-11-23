@@ -8,6 +8,7 @@ public class FaceGeniusSkill : MonoBehaviour, ISkillBehavior
     private GameObject faceGeniusPrefab;
     private string faceGeniusAssetName = "FaceGenius";
     private string skillDataAssetName = "얼굴 천재";
+    private PenetrationType penetrationType = PenetrationType.NonPenetrate;
 
     // 디버프 모음(몬스터에게 장착시킬) (ID, 수치, 지속시간)
     private List<(int id, float value, float duration)> debuffList = new List<(int, float, float)>();
@@ -22,11 +23,14 @@ public class FaceGeniusSkill : MonoBehaviour, ISkillBehavior
         // 스킬 범위 적용
         var collider = prefabClone.GetComponent<CircleCollider2D>();
         collider.radius = skillData.skill_range;
+        // 관통 여부 세팅
+        if (skillData.skill_pierce)
+        {
+            penetrationType = PenetrationType.Penetrate;
+        }
         // 파티클 적용
         var particleGo = Instantiate(ResourceManager.Instance.Get<GameObject>(skillData.skillprojectile_prefab), prefabClone.transform);
-        var particleScale = particleGo.transform.localScale;
-        particleScale.x *= collider.radius;
-        particleGo.transform.localScale = particleScale;
+        particleGo.transform.localScale = particleGo.transform.localScale * skillData.skill_range;
         // 오브젝트 풀 생성
         PoolManager.Instance.CreatePool(faceGeniusAssetName, prefabClone, 10, 30);
         Destroy(prefabClone);
@@ -70,7 +74,7 @@ public class FaceGeniusSkill : MonoBehaviour, ISkillBehavior
         int damage = skillData.skill_dmg;
 
         proj.SetMissile(faceGeniusAssetName, skillData.skillhit_prefab, startPos, dir, speed, damage,
-            PenetrationType.NonPenetrate, false, debuffList);
+            penetrationType, false, debuffList);
     }
 
     private void OnDisable()

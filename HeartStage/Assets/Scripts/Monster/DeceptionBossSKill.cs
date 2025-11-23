@@ -31,7 +31,7 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
 
         if(monsterSpawner == null)
         {
-            monsterSpawner = FindObjectOfType<MonsterSpawner>(); // FindObject 쓰면 안좋음 변경 하긴 해야함
+            monsterSpawner = FindFirstObjectByType<MonsterSpawner>(); // FindObject 쓰면 안좋음 변경 하긴 해야함
         }
 
         await InitializeWithData(monsterData);

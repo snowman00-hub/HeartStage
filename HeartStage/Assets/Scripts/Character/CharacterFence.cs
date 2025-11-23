@@ -78,7 +78,7 @@ public class CharacterFence : MonoBehaviour, IDamageable
     
     public void Die()
     {
-
+        StageManager.Instance.Defeat();
     }
 
     private void StartShake()

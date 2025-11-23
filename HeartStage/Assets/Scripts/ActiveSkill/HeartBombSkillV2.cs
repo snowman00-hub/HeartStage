@@ -1,6 +1,7 @@
 ﻿using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEngine.CompositeCollider2D;
 
 // 몬스터 밀집 위치에 폭탄 생성
 public class HeartBombSkillV2 : MonoBehaviour, ISkillBehavior
@@ -10,6 +11,7 @@ public class HeartBombSkillV2 : MonoBehaviour, ISkillBehavior
     private string heartBombAssetName = "HeartBomb";
     private string skillDataAssetName = "폭룡적인 섹시 다이너마이트";
     private string poolId = "HeartBombSkillV2";
+    private PenetrationType penetrationType = PenetrationType.NonPenetrate;
 
     // 디버프 모음(몬스터에게 장착시킬) (ID, 수치, 지속시간)
     private List<(int id, float value, float duration)> debuffList = new List<(int, float, float)>();
@@ -24,6 +26,11 @@ public class HeartBombSkillV2 : MonoBehaviour, ISkillBehavior
         // 스킬 범위 적용
         var collider = prefabClone.GetComponent<CircleCollider2D>();
         collider.radius = skillData.skill_range;
+        // 관통 여부 세팅
+        if (skillData.skill_pierce)
+        {
+            penetrationType = PenetrationType.Penetrate;
+        }
         // 파티클 적용
         var particleGo = Instantiate(ResourceManager.Instance.Get<GameObject>(skillData.skillprojectile_prefab), prefabClone.transform);
         particleGo.transform.localScale = particleGo.transform.localScale * skillData.skill_range;
@@ -67,7 +74,7 @@ public class HeartBombSkillV2 : MonoBehaviour, ISkillBehavior
         }
 
         proj.SetMissile(poolId, skillData.skillhit_prefab, startPos, dir, 0, skillData.skill_dmg,
-            PenetrationType.Penetrate, false, debuffList);
+            penetrationType, false, debuffList);
         ReleaseAsync(projectileGo, skillData.skill_duration).Forget();
     }
 

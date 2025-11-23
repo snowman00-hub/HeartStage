@@ -183,6 +183,8 @@ public class StageManager : MonoBehaviour
                 VictoryDefeatPanel.gameObject.SetActive(true);
             }
         }
+
+        Time.timeScale = 0f;
     }
 
     private void SetBackgroundByStageData(StageCSVData stageData)

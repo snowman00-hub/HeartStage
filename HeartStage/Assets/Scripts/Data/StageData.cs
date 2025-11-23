@@ -17,6 +17,7 @@ public class StageData : ScriptableObject
     public int wave2_id;
     public int wave3_id;
     public int wave4_id;
+    public int dispatch_reward;
     public int fail_stamina;
     public string prefab;
 
@@ -36,6 +37,7 @@ public class StageData : ScriptableObject
         wave2_id = csvData.wave2_id;
         wave3_id = csvData.wave3_id;
         wave4_id = csvData.wave4_id;
+        dispatch_reward = csvData.dispatch_reward;
         fail_stamina = csvData.fail_stamina;
         prefab = csvData.prefab;
     }
@@ -57,6 +59,7 @@ public class StageData : ScriptableObject
         csvData.wave2_id = wave2_id;
         csvData.wave3_id = wave3_id;
         csvData.wave4_id = wave4_id;
+        csvData.dispatch_reward = dispatch_reward;
         csvData.fail_stamina = fail_stamina;
         csvData.prefab = prefab;
         return csvData;

@@ -55,6 +55,7 @@ public class SoundManager : MonoBehaviour
 
         CreateHitSoundPool();
     }
+
     private void CreateHitSoundPool()
     {
         hitSoundPool = new AudioSource[hitSoundPoolSize];
@@ -118,6 +119,7 @@ public class SoundManager : MonoBehaviour
             soundCooldowns[clipName] = Time.time + actualCooldown;
         }
     }
+
     public void PlayBGM(string clipName, bool loop = true)
     {
         AudioClip clip = GetBGMClip(clipName);

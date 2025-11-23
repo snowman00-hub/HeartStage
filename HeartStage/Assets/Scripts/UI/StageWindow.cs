@@ -3,13 +3,13 @@ using TMPro;
 using System.Text;
 using UnityEngine.UI;
 
-public class BattleTabUI : GenericWindow
+public class StageWindow : GenericWindow
 {
     [Header("UI References")]
     public RectTransform contentParent;
     public GameObject stagePrefab; // 피벗 (0.5,0), 앵커 (0.5,0)    
     [SerializeField] private WindowManager windowManager;
-    [SerializeField] private StageInfoUI stageInfoUI;
+    [SerializeField] private StageInfoWindow stageInfoUI;
 
     [Header("Button")]
     //[SerializeField] private Button closeButton;
