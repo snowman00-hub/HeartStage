@@ -12,8 +12,11 @@ public class ItemManager : MonoBehaviour
     public RectTransform itemBagTr;
     public RectTransform ExpTargetTr;
 
-    public TextMeshProUGUI lightStickCount;
-    private int AcquireItemCount = 0;
+    public TextMeshProUGUI lightStickCountText;
+    [HideInInspector]
+    public Dictionary<int, int> acquireItemList = new Dictionary<int, int>();
+    [HideInInspector]
+    public int lightStickCount = 0;
 
     private Vector3 inventoryItemTarget;
     private Vector3 expItemTarget;
@@ -66,34 +69,33 @@ public class ItemManager : MonoBehaviour
         }
         else
         {
-            AddToInventory(itemId, amount);
+            AcquireItem(itemId, amount);
         }
     }
 
-    // 실제 인벤토리에 데이터 저장
-    public void AddToInventory(int itemId, int amount)
+    // 아이템 획득
+    public void AcquireItem(int itemId, int amount)
     {
-        var itemList = SaveLoadManager.Data.itemList;
-        if (itemList.ContainsKey(itemId))
+        if (acquireItemList.ContainsKey(itemId))
         {
-            itemList[itemId] += amount;
+            acquireItemList[itemId] += amount;
         }
         else
         {
-            itemList.Add(itemId, amount);
+            acquireItemList.Add(itemId, amount);
         }
 
-        AcquireItemCount += amount;
-        SetItemCountUI();
-
-        // 저장 타이밍 나중에 옮기기
-        SaveLoadManager.Save();
+        if(ItemID.LightStick == itemId)
+        {
+            lightStickCount += amount;
+            SetItemCountUI();
+        }
     }
 
     // 획득 아이템 개수 UI Set
     private void SetItemCountUI()
     {
-        lightStickCount.text = $"X{AcquireItemCount}";
+        lightStickCountText.text = $"X{lightStickCount}";
     }
 
     // UI 위치의 월드좌표 얻기

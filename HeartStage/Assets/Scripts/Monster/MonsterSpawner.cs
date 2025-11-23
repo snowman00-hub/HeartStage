@@ -35,7 +35,6 @@ public struct SpawnRequest // 재시도 요청용 구조체
     }
 }
 
-
 public class MonsterSpawner : MonoBehaviour
 {
     [Header("Reference")]
@@ -297,6 +296,9 @@ public class MonsterSpawner : MonoBehaviour
         {
             await UniTask.Delay(100);
         }
+
+        // 웨이브 클리어 보상 주기
+        GiveWaveReward(currentWaveData);
     }
 
     // 다음 스테이지로 진행
@@ -884,6 +886,27 @@ public class MonsterSpawner : MonoBehaviour
         {
             isProcessingQueue = false;
             queueProcessCTS?.TrySetResult();
+        }
+    }
+
+    // 보상 주기
+    private void GiveWaveReward(StageWaveCSVData waveData)
+    {
+        var rewardData = DataTableManager.RewardTable.Get(waveData.wave_reward);
+        // 팬 보상
+        StageManager.Instance.fanReward += rewardData.user_fan_amount;
+        // 아이템 보상 주기
+        if(rewardData.normal_clear1 != 0)
+        {
+            ItemManager.Instance.AcquireItem(rewardData.normal_clear1, rewardData.normal_clear1_a);
+        }
+        if (rewardData.normal_clear2 != 0)
+        {
+            ItemManager.Instance.AcquireItem(rewardData.normal_clear2, rewardData.normal_clear2_a);
+        }
+        if (rewardData.normal_clear3 != 0)
+        {
+            ItemManager.Instance.AcquireItem(rewardData.normal_clear3, rewardData.normal_clear3_a);
         }
     }
 }

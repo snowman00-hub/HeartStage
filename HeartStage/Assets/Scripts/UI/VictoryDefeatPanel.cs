@@ -48,24 +48,47 @@ public class VictoryDefeatPanel : GenericWindow
     {
         nextStageOrRetryButton.onClick.RemoveAllListeners();
         int stageID = PlayerPrefs.GetInt("SelectedStageID", -1);
-        // UI 갱신 스테이지 매니저 수정후 고치기
-        // 보상 저장해 뒀다가 UI 적용하기
-        //currentStageText.text = $"스테이지 {1}-{StageManager.Instance.stageNumber}"; //
-        //clearWaveText.text = $"{StageManager.Instance.WaveCount}";//
-        //addFansText.text = 
 
         if (isClear)
         {
             clearOrFailText.text = "Clear";
             rightButtonText.text = "다음\n스테이지";
             nextStageOrRetryButton.onClick.AddListener(() => OnNextStageButtonClicked());
+
+            clearWaveText.text = $"{StageManager.Instance.WaveCount}";
         }
         else
         {
             clearOrFailText.text = "Fail";
             rightButtonText.text = "재도전";
             nextStageOrRetryButton.onClick.AddListener(LoadSceneManager.Instance.GoStage);
+
+            clearWaveText.text = $"{StageManager.Instance.WaveCount - 1}";
         }
+
+        var stageData = StageManager.Instance.currentStageCSVData;
+        currentStageText.text = $"스테이지 {stageData.stage_step1}-{stageData.stage_step2}";
+        addFansText.text = $"{StageManager.Instance.fanReward}";
+
+        // 획득 아이템 표시
+        lightStickCount.text = $"{ItemManager.Instance.lightStickCount}";
+        if (ItemManager.Instance.acquireItemList.ContainsKey(ItemID.HeartStick))
+        {
+            heartStickCount.text = $"{ItemManager.Instance.acquireItemList[ItemID.HeartStick]}";
+        }
+        else
+        {
+            heartStickCount.text = "0";
+        }
+        if (ItemManager.Instance.acquireItemList.ContainsKey(ItemID.TrainingPoint))
+        {
+            trainingPoint.text = $"{ItemManager.Instance.acquireItemList[ItemID.TrainingPoint]}";
+        }
+        else
+        {
+            trainingPoint.text = "0";
+        }
+        //
     }
 
     private void OnNextStageButtonClicked()
@@ -91,6 +114,7 @@ public class VictoryDefeatPanel : GenericWindow
 
     private void OnGoStageChoiceButtonClicked()
     {
+        WindowManager.currentWindow = WindowType.StageSelect;
         LoadSceneManager.Instance.GoLobby();
     }
 }

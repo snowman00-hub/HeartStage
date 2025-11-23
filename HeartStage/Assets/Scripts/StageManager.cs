@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class StageManager : MonoBehaviour
@@ -45,6 +46,17 @@ public class StageManager : MonoBehaviour
         }
     }
 
+    // 최초 보상 나중에 추가하기
+    [HideInInspector]
+    public int fanReward = 0; // 늘어난 팬수
+    [HideInInspector]
+    public Dictionary<int, int> rewardItemList = new Dictionary<int, int>(); // 보상 아이템 리스트
+
+    private void Awake()
+    {
+        Instance = this;
+    }
+
     private void Start()
     {
         // 저장된 스테이지 데이터 로드
@@ -69,11 +81,6 @@ public class StageManager : MonoBehaviour
                 SetWaveInfo(stageData.stage_step1, startingWave);
             }
         }
-    }
-
-    private void Awake()
-    {
-        Instance = this;
     }
 
     public void GoLobby()
@@ -166,6 +173,7 @@ public class StageManager : MonoBehaviour
         }
 
         Time.timeScale = 0f;
+        GetReward();
     }
 
     // 패배시
@@ -186,6 +194,29 @@ public class StageManager : MonoBehaviour
         }
 
         Time.timeScale = 0f;
+        GetReward();
+    }
+
+    // 보상 저장하기
+    private void GetReward()
+    {
+        SaveLoadManager.Load();
+        var saveItemList = SaveLoadManager.Data.itemList;
+        // 아이템 저장
+        foreach(var kvp in ItemManager.Instance.acquireItemList)
+        {
+            if (saveItemList.ContainsKey(kvp.Key))
+            {
+                saveItemList[kvp.Key] += kvp.Value;
+            }
+            else
+            {
+                saveItemList.Add(kvp.Key, kvp.Value);
+            }
+        }
+
+        //
+        SaveLoadManager.Save();
     }
 
     public void SetBackgroundByStageData(StageCSVData stageData)

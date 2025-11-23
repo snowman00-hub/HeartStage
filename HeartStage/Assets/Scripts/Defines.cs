@@ -16,6 +16,7 @@ public static class DataTableIds
     public static string Stage => "StageTable";
     public static string Select => "SelectTable";
     public static string Synergy => "SynergyTable";
+    public static string Reward => "RewardTable";
 }
 
 public static class IBuffIds
@@ -54,7 +55,11 @@ public enum WindowType
 
 public class ItemID
 {
+    public static readonly int LightStick = 7101;
+    public static readonly int HeartStick = 7102;
     public static readonly int Exp = 7103;
+    public static readonly int TrainingPoint = 7104;
+    public static readonly int LuckyDrawCoupon = 7105;
 }
 
 public static class StatPower

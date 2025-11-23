@@ -8,39 +8,51 @@ public class WindowManager : MonoBehaviour
     [Header("Reference")]
     [SerializeField] private List<GenericWindow> windows;
 
-    public WindowType currentWindow { get; private set; }
+    public static WindowType currentWindow { get; set; }
 
     private void Awake()
     {
         Instance = this;
     }
 
-    private void Start()
+    private void OnEnable()
     {
-        currentWindow = WindowType.None;
-
-        // null 체크를 포함한 초기화
-        foreach (var window in windows)
+        if(currentWindow != WindowType.None)
         {
-            if (window != null)
-            {
-                window.Init(this);
-                // 로비 씬에서는 Lobby 윈도우만 활성화 상태 유지
-                bool isLobbyWindow = window.GetComponent<LobbyUI>() != null;
-                bool isLobbyScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "Lobby";
-
-                if (isLobbyScene && isLobbyWindow)
-                {
-                    // 로비 윈도우는 활성화 상태 유지
-                    continue;
-                }
-                else
-                {
-                    window.gameObject.SetActive(false);
-                }
-            }
+            Open(currentWindow);
+        }
+        else
+        {
+            Open(WindowType.LobbyHome);
         }
     }
+
+    //private void Start()
+    //{
+    //    currentWindow = WindowType.None;
+
+    //    // null 체크를 포함한 초기화
+    //    foreach (var window in windows)
+    //    {
+    //        if (window != null)
+    //        {
+    //            window.Init(this);
+    //            // 로비 씬에서는 Lobby 윈도우만 활성화 상태 유지
+    //            bool isLobbyWindow = window.GetComponent<LobbyUI>() != null;
+    //            bool isLobbyScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "Lobby";
+
+    //            if (isLobbyScene && isLobbyWindow)
+    //            {
+    //                // 로비 윈도우는 활성화 상태 유지
+    //                continue;
+    //            }
+    //            else
+    //            {
+    //                window.gameObject.SetActive(false);
+    //            }
+    //        }
+    //    }
+    //}
 
     public void OpenOverlay(WindowType id)
     {

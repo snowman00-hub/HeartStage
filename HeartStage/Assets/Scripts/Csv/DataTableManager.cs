@@ -75,6 +75,13 @@ public static class DataTableManager
             await table.LoadAsync(id);
             tables.Add(id, table);
         }
+
+        {
+            var table = new RewardTable();
+            var id = DataTableIds.Reward;
+            await table.LoadAsync(id);
+            tables.Add(id, table);
+        }
     }
 
     public static ItemTable ItemTable
@@ -144,6 +151,14 @@ public static class DataTableManager
         get
         {
             return Get<SynergyTable>(DataTableIds.Synergy);
+        }
+    }
+
+    public static RewardTable RewardTable
+    {
+        get
+        {
+            return Get<RewardTable>(DataTableIds.Reward);
         }
     }
 

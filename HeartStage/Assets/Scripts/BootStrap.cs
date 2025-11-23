@@ -28,9 +28,10 @@ public class BootStrap : MonoBehaviour
         string lastScene = EditorPrefs.GetString(Key, "");
         if (!string.IsNullOrEmpty(lastScene) && lastScene != "Assets/Scenes/bootScene.unity")
             targetScene = lastScene;
+#else
+        Application.targetFrameRate = 60;
 #endif
-        
-        Debug.Log($"다음 씬 로드: {targetScene}");
+
         await Addressables.LoadSceneAsync(targetScene);
     }
 }
