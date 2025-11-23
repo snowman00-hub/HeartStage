@@ -9,6 +9,7 @@ using UnityEngine.ResourceManagement.ResourceProviders;
 public class DebugOverlaySceneManager : MonoBehaviour
 {
     public static DebugOverlaySceneManager Instance;
+    private float prevTimeScale = 1f;
 
     [Header("Skill Test Scene Addressables Key")]
     [SerializeField] private string skillTestAddress = "Assets/Scenes/SkillTestScene.unity";
@@ -65,13 +66,16 @@ public class DebugOverlaySceneManager : MonoBehaviour
     {
         FreezeActiveScene();
 
+        //  timeScale 임시 복구
+        prevTimeScale = Time.timeScale;
+        Time.timeScale = 1f;
+
         var handle = Addressables.LoadSceneAsync(skillTestAddress, LoadSceneMode.Additive);
         overlayHandle = handle;
 
         var sceneInstance = await handle.ToUniTask();
         SceneManager.SetActiveScene(sceneInstance.Scene);
     }
-
     public async UniTask CloseSkillTest()
     {
         if (overlayHandle == null) return;
@@ -83,6 +87,9 @@ public class DebugOverlaySceneManager : MonoBehaviour
             SceneManager.SetActiveScene(frozenScene);
 
         Unfreeze();
+
+        //  원래 timeScale로 복구
+        Time.timeScale = prevTimeScale;
     }
 }
 
