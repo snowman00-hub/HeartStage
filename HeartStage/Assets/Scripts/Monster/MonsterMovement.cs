@@ -3,31 +3,26 @@ using UnityEngine;
 
 public class MonsterMovement : MonoBehaviour
 {
-    [Header("Movement Settings")]
     private MonsterData monsterData;
     private bool isInitialized = false;
 
-    [Header("Anti-Overlap Settings")]
-    [SerializeField] private float separationRadius = 1.0f;  // 분리 반경
-    [SerializeField] private float separationForce = 3f;     // 분리 힘
-    [SerializeField] private float minDistance = 0.6f;       // 최소 거리 유지
+    [SerializeField] private float separationRadius = 1.2f;   // 분리 반경
+    [SerializeField] private float separationForce = 3f;      // 분리 힘
+    [SerializeField] private float minDistance = 0.6f;        // 최소 거리 유지
     [SerializeField] private float frontCheckDistance = 0.8f; // 앞줄 체크 거리
 
-    [Header("Screen Bounds")]
     [SerializeField] private float screenMargin = 0.5f;
 
-    // 벽 감지 관련
-    private bool isNearWall = false;
-    private bool isFrontBlocked = false; // 앞줄 막힘 상태
+    private bool isNearWall = false;      // 벽 근접 상태
+    private bool isFrontBlocked = false;  // 앞줄 막힘 상태
 
-    // 화면 경계 캐싱
-    private float leftBound, rightBound;
+    private float leftBound;
+    private float rightBound;
     private bool boundsInitialized = false;
 
-    // 모든 활성 몬스터 추적
     private static List<MonsterMovement> allActiveMonsters = new List<MonsterMovement>();
 
-    private Collider2D selfCollider;  //혼란 전용 셀프 콜라이더
+    private Collider2D selfCollider;  // 혼란 전용 셀프 콜라이더
     [SerializeField] private float confuseSearchRadius = 5f; // 혼란 상태에서 타겟 탐색 반경
 
     public void Awake()
@@ -50,44 +45,55 @@ public class MonsterMovement : MonoBehaviour
 
     private void Update()
     {
-        if (EffectBase.Has<KnockbackEffect>(gameObject))
-        {
-            return;
-        }
-
-        if (EffectBase.Has<ConfuseEffect>(gameObject))
-        {
-            ConfuseMove();
-            return;
-        }
-
-        if (!isInitialized ||
-            monsterData == null ||
-            EffectBase.Has<StunEffect>(gameObject) ||
-            EffectBase.Has<ParalyzeEffect>(gameObject))
-        {
-            return;
-        }
+        // 상태 체크
+        if (!CanMove()) return;
 
         if (!boundsInitialized)
         {
             InitializeScreenBounds();
         }
 
-        // 벽과 앞줄 체크
+        // 벽, 앞줄 체크
         CheckWallProximity();
         CheckFrontBlocked();
 
-        // 막혀있지 않으면 이동
+        // 이동 처리
         if (!isNearWall && !isFrontBlocked)
         {
-            MoveDown();
+            MoveWithSeparation(Vector3.down * monsterData.moveSpeed * Time.deltaTime);
         }
+
         else if (!isNearWall && isFrontBlocked)
         {
-            // 앞이 막혀있으면 좌우 분리만 적용
-            ApplyOnlyHorizontalSeparation();
+            MoveWithSeparation(Vector3.zero);
         }
+    }
+
+    // 이동 가능 상태 체크
+    private bool CanMove()
+    {
+        if (EffectBase.Has<KnockbackEffect>(gameObject))
+        {
+            return false;
+        }
+
+        if (EffectBase.Has<ConfuseEffect>(gameObject))
+        {
+            ConfuseMove(); 
+            return false;
+        }
+
+        if (!isInitialized || monsterData == null)
+        {
+            return false;
+        }
+
+        if (EffectBase.Has<StunEffect>(gameObject) || EffectBase.Has<ParalyzeEffect>(gameObject))
+        {
+            return false;
+        }
+
+        return true;
     }
 
     public void Init(MonsterData data, Vector3 direction)
@@ -104,17 +110,17 @@ public class MonsterMovement : MonoBehaviour
         boundsInitialized = true;
     }
 
-    // 벽 근접 확인 (SO의 최신 attackRange 사용)
+    // 벽 근접 확인
     private void CheckWallProximity()
     {
-        Collider2D wallCollider = Physics2D.OverlapCircle
+        isNearWall = Physics2D.OverlapCircle
         (
             transform.position,
-            monsterData.attackRange, // SO의 최신 값 직접 사용
+            monsterData.attackRange,
             LayerMask.GetMask(Tag.Wall)
-        );
+        )
 
-        isNearWall = (wallCollider != null);
+        != null;
     }
 
     // 앞줄 막힘 확인
@@ -122,22 +128,19 @@ public class MonsterMovement : MonoBehaviour
     {
         isFrontBlocked = false;
 
-        // 앞쪽(아래쪽) 영역에 다른 몬스터가 있는지 체크
-        Vector3 frontCheckPosition = transform.position + Vector3.down * frontCheckDistance;
-
-        foreach (var otherMonster in allActiveMonsters)
+        foreach (var other in allActiveMonsters)
         {
-            if (otherMonster == this || otherMonster == null) continue;
-            if (!otherMonster.gameObject.activeInHierarchy) continue;
-
-            // 다른 몬스터가 내 앞(아래쪽)에 있는지 체크
-            if (otherMonster.transform.position.y < transform.position.y)
+            if (other == this || other == null || !other.gameObject.activeInHierarchy)
             {
-                float horizontalDistance = Mathf.Abs(otherMonster.transform.position.x - transform.position.x);
-                float verticalDistance = transform.position.y - otherMonster.transform.position.y;
+                continue;
+            }
 
-                // 앞쪽 근처에 있으면 막힌 것으로 판정
-                if (horizontalDistance < minDistance && verticalDistance < frontCheckDistance)
+            if (other.transform.position.y < transform.position.y)
+            {
+                float dx = Mathf.Abs(other.transform.position.x - transform.position.x);
+                float dy = transform.position.y - other.transform.position.y;
+
+                if (dx < minDistance && dy < frontCheckDistance)
                 {
                     isFrontBlocked = true;
                     break;
@@ -146,123 +149,110 @@ public class MonsterMovement : MonoBehaviour
         }
     }
 
-    private void MoveDown()
+    // 이동 + 분리 힘 적용
+    private void MoveWithSeparation(Vector3 move)
     {
-        // 1. 기본 아래쪽 이동 (SO의 최신 moveSpeed 직접 사용)
-        Vector3 downwardMovement = Vector3.down * monsterData.moveSpeed * Time.deltaTime;
-
-        // 2. 좌우 분리만 적용 (y축 이동 방해 안함)
-        Vector3 separationMovement = GetHorizontalSeparationForce();
-
-        // 3. 최종 이동
-        Vector3 finalMovement = downwardMovement + separationMovement;
-        Vector3 newPosition = transform.position + finalMovement;
-
-        // 4. 화면 경계 제한 적용
+        Vector3 separation = GetHorizontalSeparationForce();
+        Vector3 newPosition = transform.position + move + separation;
         newPosition = ClampToScreenBounds(newPosition);
-
         transform.position = newPosition;
     }
 
-    // 좌우 분리만 적용
-    private void ApplyOnlyHorizontalSeparation()
-    {
-        // 앞이 막혔을 때는 좌우 분리만 적용
-        Vector3 separationMovement = GetHorizontalSeparationForce();
-        Vector3 newPosition = transform.position + separationMovement;
-
-        // 화면 경계 제한
-        newPosition = ClampToScreenBounds(newPosition);
-
-        transform.position = newPosition;
-    }
-
-    // 좌우 분리 힘 계산 (SO의 최신 moveSpeed 사용)
+    // 좌우 분리 힘 계산
     private Vector3 GetHorizontalSeparationForce()
     {
-        Vector3 separationForceVector = Vector3.zero;
-
-        foreach (var otherMonster in allActiveMonsters)
+        Vector3 forceSum = Vector3.zero;
+        foreach (var other in allActiveMonsters)
         {
-            if (otherMonster == this || otherMonster == null) continue;
-            if (!otherMonster.gameObject.activeInHierarchy) continue;
+            if (other == this || other == null || !other.gameObject.activeInHierarchy)
+            { 
+                continue;
+            }
 
-            float distance = Vector3.Distance(transform.position, otherMonster.transform.position);
+            float distance = Vector3.Distance(transform.position, other.transform.position);
 
             if (distance < separationRadius && distance > 0.01f)
             {
-                Vector3 directionAway = transform.position - otherMonster.transform.position;
-                directionAway.y = 0f;
+                Vector3 away = transform.position - other.transform.position;
+                away.y = 0f;
 
-                if (directionAway.magnitude > 0.01f)
+                // x축이 거의 같으면 랜덤하게 좌/우로 분리
+                if (Mathf.Abs(away.x) < 0.01f)
                 {
-                    float normalizedDistance = distance / separationRadius;
-                    float strength = separationForce * (1f - normalizedDistance) * Time.deltaTime;
+                    away.x = (Random.value > 0.5f) ? 1f : -1f;
+                }
+
+                if (away.magnitude > 0.01f)
+                {
+                    float norm = distance / separationRadius;
+                    float strength = separationForce * (1f - norm) * Time.deltaTime;
 
                     if (distance < minDistance)
                     {
                         strength *= 1.5f;
                     }
 
-                    Vector3 force = directionAway.normalized * strength;
+                    Vector3 force = away.normalized * strength;
 
                     // 경계에 붙었을 때 바깥 방향 힘 무시
-                    if ((transform.position.x <= leftBound && force.x < 0) ||
-                        (transform.position.x >= rightBound && force.x > 0))
+                    if ((transform.position.x <= leftBound && force.x < 0) || (transform.position.x >= rightBound && force.x > 0))
                     {
                         force.x = 0;
                     }
 
-                    separationForceVector += force;
+                    forceSum += force;
                 }
             }
         }
 
-        float maxSeparationSpeed = monsterData.moveSpeed * 0.5f;
-        if (separationForceVector.magnitude > maxSeparationSpeed)
+        float maxSpeed = monsterData.moveSpeed * 0.5f;
+
+        if (forceSum.magnitude > maxSpeed)
         {
-            separationForceVector = separationForceVector.normalized * maxSeparationSpeed;
+            forceSum = forceSum.normalized * maxSpeed;
         }
 
-        return separationForceVector;
+        return forceSum;
     }
 
     // 화면 경계 제한
-    private Vector3 ClampToScreenBounds(Vector3 position)
+    private Vector3 ClampToScreenBounds(Vector3 pos)
     {
-        if (!boundsInitialized) return position;
+        if (!boundsInitialized)
+        {
+            return pos;
+        }
 
-        // x 경계 체크
-        if (position.x < leftBound)
-            position.x = leftBound + 0.01f; // 살짝 안쪽으로
-        else if (position.x > rightBound)
-            position.x = rightBound - 0.01f;
+        if (pos.x < leftBound)
+        {
+            pos.x = leftBound + 0.01f;
+        }
 
-        return position;
+        else if (pos.x > rightBound)
+        {
+            pos.x = rightBound - 0.01f;
+        }
+
+        return pos;
     }
 
-    // 몬스터 리스트 정리 (성능 최적화)
+    // 몬스터 리스트 정리
     private void LateUpdate()
     {
         if (Time.frameCount % 60 == 0)
         {
-            CleanupMonsterList();
+            allActiveMonsters.RemoveAll(m => m == null || !m.gameObject.activeInHierarchy);
         }
     }
 
-    // 비활성 몬스터 정리
-    private static void CleanupMonsterList()
-    {
-        allActiveMonsters.RemoveAll(monster => monster == null || !monster.gameObject.activeInHierarchy);
-    }
-
+    // 혼란 상태 이동
     private void ConfuseMove()
     {
         if (!isInitialized || monsterData == null)
             return;
 
-        // 1) 주변에서 자기 제외하고 가장 가까운 몬스터 찾기
-        Collider2D[] hits = Physics2D.OverlapCircleAll(
+        Collider2D[] hits = Physics2D.OverlapCircleAll
+        (
             transform.position,
             confuseSearchRadius,
             LayerMask.GetMask(Tag.Monster)
@@ -273,10 +263,11 @@ public class MonsterMovement : MonoBehaviour
 
         foreach (var col in hits)
         {
-            if (col == null || col == selfCollider)   // 자기 자신 제외
+            if (col == null || col == selfCollider)
                 continue;
 
             float dSq = (col.transform.position - transform.position).sqrMagnitude;
+
             if (dSq < bestDistSq)
             {
                 bestDistSq = dSq;
@@ -284,19 +275,15 @@ public class MonsterMovement : MonoBehaviour
             }
         }
 
-        //근처 타겟이없으면 그냥 가만히 서있기
-        if (closest == null)
+        if (closest == null) 
             return;
 
-        // 2) 사거리 체크
         float attackRangeSq = monsterData.attackRange * monsterData.attackRange;
 
         if (bestDistSq > attackRangeSq)
         {
-            // 2-1) 사거리 밖이면 → 타겟 쪽으로 이동
             Vector3 dir = (closest.transform.position - transform.position).normalized;
             transform.position += dir * monsterData.moveSpeed * Time.deltaTime;
-            return;
         }
     }
 }

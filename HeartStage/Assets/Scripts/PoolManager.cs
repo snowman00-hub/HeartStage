@@ -111,7 +111,7 @@ public class PoolManager : MonoBehaviour
             pool.Release(obj);
     }
 
-    public void CleanupForSceneTransition() // 이 메서드 추가
+    public void CleanScene() // 이 메서드 추가
     {
         isDestroying = true;
     }

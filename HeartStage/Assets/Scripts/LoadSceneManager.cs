@@ -28,7 +28,7 @@ public class LoadSceneManager : MonoBehaviour
         // 씬 전환 직전에 PoolManager 정리
         if (PoolManager.Instance != null)
         {
-            PoolManager.Instance.CleanupForSceneTransition();
+            PoolManager.Instance.CleanScene();
         }
 
         Addressables.LoadSceneAsync(StageAddress, UnityEngine.SceneManagement.LoadSceneMode.Single);
@@ -40,7 +40,7 @@ public class LoadSceneManager : MonoBehaviour
         // 씬 전환 직전에 PoolManager 정리
         if (PoolManager.Instance != null)
         {
-            PoolManager.Instance.CleanupForSceneTransition();
+            PoolManager.Instance.CleanScene();
         }
 
         Addressables.LoadSceneAsync(LobbyAddress, UnityEngine.SceneManagement.LoadSceneMode.Single);

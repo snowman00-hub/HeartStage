@@ -89,7 +89,8 @@ public class StageWindow : GenericWindow
             var button = stageObj.GetComponent<Button>();
             if (button != null)
             {
-                var capturedStageData = stageData; // 클로저 문제 해결을 위해 지역 변수에 할당
+                // 지역 변수에 복사하여 각각의 값을 캡처
+                var capturedStageData = stageData; // 클로저 문제 해결
                 button.onClick.AddListener(() => OnStageInfoButtonClicked(capturedStageData));
             }
 

@@ -49,6 +49,13 @@ public class VictoryDefeatPanel : GenericWindow
         nextStageOrRetryButton.onClick.RemoveAllListeners();
         int stageID = PlayerPrefs.GetInt("SelectedStageID", -1);
 
+        if(StageManager.Instance != null && StageManager.Instance.GetCurrentStageData() != null)
+        {
+            var currentStage = StageManager.Instance.GetCurrentStageData();
+            currentStageText.text = $"스테이지 {currentStage.stage_step1}-{currentStage.stage_step2}";
+            clearWaveText.text = $"{StageManager.Instance.WaveCount}";
+        }
+
         if (isClear)
         {
             clearOrFailText.text = "Clear";
@@ -105,7 +112,6 @@ public class VictoryDefeatPanel : GenericWindow
 
             // 스테이지 변경
             LoadSceneManager.Instance.GoStage();
-            //monsterSpawner.ChangeStage(nextStage.stage_ID).Forget();
 
             Time.timeScale = 1f; 
             Close();
