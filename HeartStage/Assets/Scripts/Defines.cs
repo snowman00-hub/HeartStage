@@ -17,6 +17,7 @@ public static class DataTableIds
     public static string Select => "SelectTable";
     public static string Synergy => "SynergyTable";
     public static string Reward => "RewardTable";
+    public static string Shop => "ShopTable";
 }
 
 public static class IBuffIds

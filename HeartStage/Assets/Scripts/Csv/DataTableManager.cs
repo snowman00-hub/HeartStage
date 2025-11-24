@@ -82,6 +82,13 @@ public static class DataTableManager
             await table.LoadAsync(id);
             tables.Add(id, table);
         }
+
+        {
+            var table = new ShopTable();
+            var id = DataTableIds.Shop;
+            await table.LoadAsync(id);
+            tables.Add(id, table);
+        }
     }
 
     public static ItemTable ItemTable
@@ -159,6 +166,14 @@ public static class DataTableManager
         get
         {
             return Get<RewardTable>(DataTableIds.Reward);
+        }
+    }
+
+    public static ShopTable ShopTable
+    {
+        get
+        {
+            return Get<ShopTable>(DataTableIds.Shop);
         }
     }
 
