@@ -487,7 +487,6 @@ public class MonsterSpawner : MonoBehaviour
             }
         }
     }
-
     private Vector3 GetRandomSpawnPosition()
     {
         float randomX = Random.Range(-4f, 4f);
