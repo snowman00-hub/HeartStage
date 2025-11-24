@@ -2,11 +2,13 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections.Generic;
+
 public class StageUI : MonoBehaviour
 {
     public TextMeshProUGUI waveCountText;
     public TextMeshProUGUI remainMonsterCountText;
-    public GameObject SelectWindow; 
+    public GameObject SelectWindow;
 
     [Header("Button")]
     [SerializeField] private Button BossSkill1Button1;
@@ -16,6 +18,10 @@ public class StageUI : MonoBehaviour
     [SerializeField] private MonsterSpawner monsterSpawner;
     [SerializeField] private int testMonsterId = 21101; // 기본 몬스터 ID (필요시 변경 가능)
     [SerializeField] private int spawnCount = 10; // 소환할 몬스터 수
+
+    // 디버프 관리용 딕셔너리 추가
+    private Dictionary<CharacterAttack, (float originalSpeed, float endTime)> attackSpeedDebuffs = new Dictionary<CharacterAttack, (float, float)>();
+
     private void Start()
     {
         // 버튼 이벤트 연결
@@ -32,6 +38,12 @@ public class StageUI : MonoBehaviour
         SelectWindow.SetActive(true);
     }
 
+    private void Update()
+    {
+        // 디버프 만료 체크
+        CheckAttackSpeedDebuffExpiration();
+    }
+
     private void OnDestroy()
     {
         // 버튼 이벤트 해제
@@ -43,6 +55,9 @@ public class StageUI : MonoBehaviour
 
         if (BossSkill1Button3 != null)
             BossSkill1Button3.onClick.RemoveListener(OnBossSkillButton3Clicked);
+
+        // 모든 디버프 해제
+        ClearAllAttackSpeedDebuffs();
     }
 
     public void SetWaveCount(int stageNumber, int waveOrder)
@@ -85,6 +100,7 @@ public class StageUI : MonoBehaviour
     {
         ExecuteBooingSkill(); // 야유 스킬 (31101)
     }
+
     private void ExecuteSummonTest()
     {
         // MonsterSpawner 참조 확인
@@ -123,7 +139,7 @@ public class StageUI : MonoBehaviour
         Debug.Log($"스피드 버프 스킬 실행! {monsters.Length}마리 몬스터에게 적용");
     }
 
-    /// 야유 스킬 직접 실행 (31101)
+    /// 야유 스킬 직접 실행 (31101) - 코루틴 없이 개선된 버전
     private void ExecuteBooingSkill()
     {
         // 모든 소환된 캐릭터에게 공격속도 디버프 적용
@@ -137,32 +153,87 @@ public class StageUI : MonoBehaviour
             var characterAttack = character.GetComponent<CharacterAttack>();
             if (characterAttack == null) continue;
 
-            // CharacterData 가져오기
+            // CSV에서 원본 공격속도 가져오기 (변조되지 않은 원본 값)
             var csvData = DataTableManager.CharacterTable.Get(characterAttack.id);
             if (csvData == null) continue;
 
+            float originalSpeed = csvData.atk_speed; // CSV에서 직접 가져온 원본 값
+            float debuffEndTime = Time.time + 5f; // 5초간 지속
+
+            // 기존 디버프가 있으면 제거
+            if (attackSpeedDebuffs.ContainsKey(characterAttack))
+            {
+                RemoveAttackSpeedDebuff(characterAttack);
+            }
+
+            // CharacterData에 디버프 적용
             var characterData = ResourceManager.Instance.Get<CharacterData>(csvData.data_AssetName);
-            if (characterData == null) continue;
+            if (characterData != null)
+            {
+                characterData.atk_speed = originalSpeed * 1.2f; //  느리게 
 
-            // 공격속도를 10배 느리게 만들기 (5초간)
-            float originalSpeed = characterData.atk_speed;
-            characterData.atk_speed = originalSpeed * 10f;
-
-            // 5초 후 원래 속도로 복구
-            StartCoroutine(RestoreAttackSpeedAfterDelay(characterData, originalSpeed, 5f));
+                // 디버프 정보 저장
+                attackSpeedDebuffs[characterAttack] = (originalSpeed, debuffEndTime);
+            }
         }
 
         Debug.Log($"야유 스킬 실행! {characters.Length}명 캐릭터의 공격속도 디버프 적용");
     }
 
-    /// 지정된 시간 후 공격속도 복구
-    private System.Collections.IEnumerator RestoreAttackSpeedAfterDelay(CharacterData characterData, float originalSpeed, float delay)
+    /// 디버프 만료 체크 (Update에서 호출)
+    private void CheckAttackSpeedDebuffExpiration()
     {
-        yield return new WaitForSeconds(delay);
+        var expiredCharacters = new List<CharacterAttack>();
 
-        if (characterData != null)
+        foreach (var kvp in attackSpeedDebuffs)
         {
-            characterData.atk_speed = originalSpeed;
+            var character = kvp.Key;
+            var endTime = kvp.Value.endTime;
+
+            // 캐릭터가 파괴되었거나 디버프 시간이 만료된 경우
+            if (character == null || Time.time >= endTime)
+            {
+                expiredCharacters.Add(character);
+            }
+        }
+
+        // 만료된 디버프들을 제거
+        foreach (var character in expiredCharacters)
+        {
+            RemoveAttackSpeedDebuff(character);
+        }
+    }
+
+    /// 개별 캐릭터의 공격속도 디버프 해제
+    private void RemoveAttackSpeedDebuff(CharacterAttack character)
+    {
+        if (character == null || !attackSpeedDebuffs.ContainsKey(character))
+            return;
+
+        var originalSpeed = attackSpeedDebuffs[character].originalSpeed;
+
+        // CharacterData 복구
+        var csvData = DataTableManager.CharacterTable.Get(character.id);
+        if (csvData != null)
+        {
+            var characterData = ResourceManager.Instance.Get<CharacterData>(csvData.data_AssetName);
+            if (characterData != null)
+            {
+                characterData.atk_speed = originalSpeed; // 원본 속도로 복구
+            }
+        }
+
+        // 디버프 정보 제거
+        attackSpeedDebuffs.Remove(character);
+    }
+
+    /// 모든 공격속도 디버프 해제
+    private void ClearAllAttackSpeedDebuffs()
+    {
+        var allCharacters = new List<CharacterAttack>(attackSpeedDebuffs.Keys);
+        foreach (var character in allCharacters)
+        {
+            RemoveAttackSpeedDebuff(character);
         }
     }
 }

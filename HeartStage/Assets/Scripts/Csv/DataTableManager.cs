@@ -84,7 +84,21 @@ public static class DataTableManager
         }
 
         {
-            var table = new ShopTable();
+            var table = new GachaTable();
+            var id = DataTableIds.Gacha;
+            await table.LoadAsync(id);
+            tables.Add(id, table);
+        }
+
+        {
+            var table = new GachaTypeTable();
+            var id = DataTableIds.GachaType;
+            await table.LoadAsync(id);
+            tables.Add(id, table);
+        }
+        
+        {
+        	var table = new ShopTable();
             var id = DataTableIds.Shop;
             await table.LoadAsync(id);
             tables.Add(id, table);
@@ -169,6 +183,22 @@ public static class DataTableManager
         }
     }
 
+    public static GachaTable GachaTable
+    {
+        get
+        {
+            return Get<GachaTable>(DataTableIds.Gacha);
+        }
+    }
+
+    public static GachaTypeTable GachaTypeTable
+    {
+        get
+        {
+            return Get<GachaTypeTable>(DataTableIds.GachaType);
+        }
+    }
+    
     public static ShopTable ShopTable
     {
         get

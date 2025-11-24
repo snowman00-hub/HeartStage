@@ -10,11 +10,13 @@ public class LobbyUI : MonoBehaviour
     [Header("Button")]
     [SerializeField] private Button stageUiButton;
     [SerializeField] private Button homeUiButton;
+    [SerializeField] private Button gachaButton;
 
     private void Awake()
     {
         stageUiButton.onClick.AddListener(OnStageUiButtonClicked);
         homeUiButton.onClick.AddListener(OnLobbyHomeUiButtonClicked);
+        gachaButton.onClick.AddListener(OnGachaButtonClicked);
     }
 
     private void OnStageUiButtonClicked()
@@ -28,4 +30,11 @@ public class LobbyUI : MonoBehaviour
         windowManager.Open(WindowType.LobbyHome);
         SoundManager.Instance.PlaySFX("Ui_click_01");
     }
+
+    private void OnGachaButtonClicked()
+    {
+        windowManager.OpenOverlay(WindowType.Gacha);
+        SoundManager.Instance.PlaySFX("Ui_click_01");
+    }
+
 }

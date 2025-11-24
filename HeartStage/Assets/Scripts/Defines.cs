@@ -17,6 +17,8 @@ public static class DataTableIds
     public static string Select => "SelectTable";
     public static string Synergy => "SynergyTable";
     public static string Reward => "RewardTable";
+    public static string Gacha => "GachaTable";
+    public static string GachaType => "GachaTypeTable";
     public static string Shop => "ShopTable";
 }
 
@@ -49,10 +51,19 @@ public enum WindowType
     LobbyHome = 0,
     StageSelect,
     StageInfo,
+    Gacha,
+    GachaPercentage,
+
     // 인게임 윈도우
     VictoryDefeat,
     CharacterInfo,
 }
+
+public class SoundName
+{
+    public static readonly string SFX_UI_Button_Click = "Ui_click_01";
+}
+
 
 public class ItemID
 {
