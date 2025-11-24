@@ -65,6 +65,10 @@ public class StageSetupWindow : MonoBehaviour
     [SerializeField] private Color previewColor = Color.cyan;       // 미리보기 색
 
     [SerializeField] private SynergyPanel synergyPanel;
+    [SerializeField] private MonsterSpawner monsterSpawner;
+
+    //스폰 캐릭터 리스트 
+    private readonly List<GameObject> _spawnedAllies = new();
 
     private void OnEnable()
     {
@@ -87,19 +91,18 @@ public class StageSetupWindow : MonoBehaviour
         Time.timeScale = 0f;
         StartButton.onClick.AddListener(StartButtonClick);
 
-
-        int stageId = PlayerPrefs.GetInt("SelectedStageID", -1);
-        var stageCsv = DataTableManager.StageTable.GetStage(stageId);
-        ApplyStage(stageCsv);
-        //RebuildPassiveTiles();
+        if(StageManager.Instance != null)
+        {
+            var stageCsv = StageManager.Instance.GetCurrentStageData();
+            ApplyStage(stageCsv);
+        }
 
         if (synergyPanel != null)
         {
             synergyPanel.BuildAllButtons();
-            //UpdateSynergyUI();
         }
 
-        // 🔹 슬롯 변경 → 패시브 + 시너지 둘 다 갱신
+        // 슬롯 변경 → 패시브 + 시너지 둘 다 갱신
         DraggableSlot.OnAnySlotChanged += HandleSlotChanged;
     }
     private void OnDisable()
@@ -183,12 +186,15 @@ public class StageSetupWindow : MonoBehaviour
         SynergyManager.ApplySynergies(DraggableSlots, allies);
 
         SoundManager.Instance.PlaySFX("Ui_click_01");
-        Time.timeScale = 1f;
+        StageManager.Instance.SetTimeScale(1f);
+        monsterSpawner.StartStageManually();
         gameObject.SetActive(false);
     }
 
     private List<GameObject> PlaceAll()
     {
+        DespawnAllAllies();
+
         var allies = new List<GameObject>();
 
         foreach (var kvp in StageIndexs)
@@ -208,6 +214,8 @@ public class StageSetupWindow : MonoBehaviour
     {
         GameObject obj = Instantiate(basePrefab, worldPos, Quaternion.identity);
         var attack = obj.GetComponent<CharacterAttack>();
+
+        _spawnedAllies.Add(obj);   // 스폰 리스트에 등록
 
         AddPassiveEffects(obj, slotIndex);
 
@@ -507,5 +515,18 @@ public class StageSetupWindow : MonoBehaviour
 
         deployCountText.text = $"{cur} / {max}";
         deployCountText.color = (max > 0 && cur >= max) ? deployFullColor : deployOkColor;
+    }
+
+    public void DespawnAllAllies()
+    {
+        for (int i = _spawnedAllies.Count - 1; i >= 0; i--)
+        {
+            var go = _spawnedAllies[i];
+
+            if (go != null && !go.Equals(null))
+                Destroy(go);
+
+            _spawnedAllies.RemoveAt(i);
+        }
     }
 }
