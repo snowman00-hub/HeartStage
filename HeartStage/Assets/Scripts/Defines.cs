@@ -49,11 +49,18 @@ public enum WindowType
     StageSelect,
     StageInfo,
     Gacha,
+    GachaPercentage,
 
     // 인게임 윈도우
     VictoryDefeat,
     CharacterInfo,
 }
+
+public class SoundName
+{
+    public static readonly string SFX_UI_Button_Click = "Ui_click_01";
+}
+
 
 public class ItemID
 {

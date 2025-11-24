@@ -17,6 +17,15 @@ public class GachaUI : GenericWindow
         base.Close();
     }
 
+    private void Awake()
+    {
+        percentageInfoButton.onClick.AddListener(OnGachaPercentageInfoButtonClicked);
+    }
 
+    private void OnGachaPercentageInfoButtonClicked()
+    {
+        WindowManager.Instance.OpenOverlay(WindowType.GachaPercentage);
+        SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);
+    }
 }
 
