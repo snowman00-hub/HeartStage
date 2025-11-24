@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using UnityEngine.Pool;
 
 public class PoolManager : MonoBehaviour
@@ -8,19 +7,10 @@ public class PoolManager : MonoBehaviour
     public static PoolManager Instance { get; private set; }
 
     private Dictionary<string, IObjectPool<GameObject>> poolDict = new Dictionary<string, IObjectPool<GameObject>>();
-    private bool isDestroying = false; // 파괴중인지 여부 확인용 플래그
 
     private void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
-        {
-            Destroy(gameObject);
-            return;
-        }
+        Instance = this;
     }
 
     // 오브젝트 풀 생성
@@ -60,11 +50,6 @@ public class PoolManager : MonoBehaviour
     // 가져가기
     public GameObject Get(string id)
     {
-        if(isDestroying)
-        {
-            return null;
-        }
-
         if (string.IsNullOrEmpty(id)) 
         {
             Debug.LogError("[ObjectPool] ID가 null 또는 empty입니다");
@@ -82,7 +67,7 @@ public class PoolManager : MonoBehaviour
 
     // 해당 오브젝트를 풀로 복귀시키기
     public void Release(string id, GameObject obj)
-    {
+    {     
         if (obj == null || obj.Equals(null))
             return;
 
@@ -109,15 +94,5 @@ public class PoolManager : MonoBehaviour
 
         foreach (var obj in temp)
             pool.Release(obj);
-    }
-
-    public void CleanScene() // 이 메서드 추가
-    {
-        isDestroying = true;
-    }
-
-    private void OnDestroy()
-    {
-        isDestroying = true;
     }
 }

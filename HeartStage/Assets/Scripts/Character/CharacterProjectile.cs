@@ -46,6 +46,14 @@ public class CharacterProjectile : MonoBehaviour
         cts = null;
     }
 
+    private void OnDestroy()
+    {
+        isReleased = true;
+        cts?.Cancel();
+        cts?.Dispose();
+        cts = null;
+    }
+
     // 이동
     private void Update()
     {
@@ -140,6 +148,14 @@ public class CharacterProjectile : MonoBehaviour
             return;
 
         isReleased = true;
-        PoolManager.Instance.Release(id, gameObject);
+
+        if (PoolManager.Instance != null)
+        {
+            PoolManager.Instance.Release(id, gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);  // 씬 전환 등 PoolManager 없으면 그냥 제거
+        }
     }
 }

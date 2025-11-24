@@ -25,6 +25,13 @@ public class CharacterFence : MonoBehaviour, IDamageable
         Instance = this;
     }
 
+    private void OnDestroy()
+    {
+        shakeCts?.Cancel();
+        shakeCts?.Dispose();
+        shakeCts = null;
+    }
+
     public void Init()
     {
         int prevMaxHp = maxHp;
@@ -91,12 +98,14 @@ public class CharacterFence : MonoBehaviour, IDamageable
     // 흔들기
     private async UniTask ShakeAsync(CancellationToken token)
     {
-        if (this == null || transform == null) 
+        if (imageGo == null)
             return;
 
         if (!isShaking)
         {
-            // 최초 흔들기 시작할 때만 원래 위치 저장
+            if (imageGo == null) 
+                return;
+
             originalPos = imageGo.localPosition;
             isShaking = true;
         }
@@ -107,10 +116,7 @@ public class CharacterFence : MonoBehaviour, IDamageable
         {
             while (timer < shakeDuration)
             {
-                if (this == null || transform == null) 
-                    return;
-
-                if (token.IsCancellationRequested)
+                if (token.IsCancellationRequested || imageGo == null)
                     return;
 
                 float y = Mathf.Sin(timer * 50f) * shakeMagnitude;
@@ -122,7 +128,7 @@ public class CharacterFence : MonoBehaviour, IDamageable
         }
         finally
         {
-            if (!token.IsCancellationRequested)
+            if (!token.IsCancellationRequested && imageGo != null)
             {
                 imageGo.localPosition = originalPos;
                 isShaking = false;
