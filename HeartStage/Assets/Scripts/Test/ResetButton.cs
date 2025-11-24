@@ -1,13 +1,10 @@
-﻿using Cysharp.Threading.Tasks;
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class ResetButton : MonoBehaviour
 {
     [SerializeField] private Button resetButton;
-    [SerializeField] private MonsterSpawner monsterSpawner;
-    [SerializeField] private StageSetupWindow stageSetupWindow;
     [SerializeField] private int resetStageId = -1; // -1이면 현재 스테이지
     [SerializeField] private TextMeshProUGUI resetMassage;
 
@@ -18,36 +15,25 @@ public class ResetButton : MonoBehaviour
         resetButton.onClick.AddListener(OnResetButtonClicked);
     }
 
-    private async void OnResetButtonClicked()
+    private void OnDestroy()
     {
-        if (_isResetting || monsterSpawner == null) return;
+        resetButton.onClick.RemoveListener(OnResetButtonClicked);
+    }
+
+    private void OnResetButtonClicked()
+    {
+        if (_isResetting) return;
         _isResetting = true;
         resetButton.interactable = false;
 
-        try
-        {
-            // 1) 몬스터/아군 정리
-            monsterSpawner.DespawnAllMonsters();
-            stageSetupWindow?.DespawnAllAllies();
+        int targetId = resetStageId > 0 ? resetStageId :
+        (StageManager.Instance?.GetCurrentStageData()?.stage_ID
+        ?? PlayerPrefs.GetInt("SelectedStageID", 601));
 
-            int targetId = resetStageId > 0 ? resetStageId : monsterSpawner.currentStageId;
+        if (resetMassage != null)
+            resetMassage.text = $"리셋(씬 리로드) : {targetId}";
 
-            resetMassage.text = $"리셋중... {targetId}";
-
-            await monsterSpawner.ChangeStage(targetId);
-
-            // 3) 배치창 켜고 멈춤
-            if (stageSetupWindow != null)
-                stageSetupWindow.gameObject.SetActive(true);
-
-            resetMassage.text = $"리셋완료 {targetId}";
-
-            StageManager.Instance.SetTimeScale(0f);
-        }
-        finally
-        {
-            resetButton.interactable = true;
-            _isResetting = false;
-        }
+        // prefs 저장 + Stage 씬 다시 로드
+        LoadSceneManager.Instance.GoTestStage(targetId, 1);
     }
 }

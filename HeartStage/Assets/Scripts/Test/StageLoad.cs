@@ -6,14 +6,12 @@ using UnityEngine.UI;
 
 public class StageLoad : MonoBehaviour
 {
-    [SerializeField] private StageSetupWindow stageSetupWindow;
     [SerializeField] private TMP_InputField stageInput;
     [SerializeField] private Button stageLoadButton;
     [SerializeField] private TMP_Dropdown stageDropdown;
-    [SerializeField] private MonsterSpawner monsterSpawner;
     [SerializeField] private TextMeshProUGUI LoadMassage;
 
-    public int stageId = 601;
+    public int stageId = 601;   // fallback
 
     private readonly List<int> dropdownStageIds = new();
     private bool _isLoading;
@@ -24,14 +22,20 @@ public class StageLoad : MonoBehaviour
         while (DataTableManager.StageTable == null)
             await UniTask.Delay(50, DelayType.UnscaledDeltaTime);
 
-        stageInput.text = stageId.ToString();
-        stageInput.onEndEdit.AddListener(OnInputChanged);
-        stageLoadButton.onClick.AddListener(OnClickLoadStage);
+        // ✅ 1) "현재 스테이지 id"로 stageId 갱신
+        stageId = ResolveCurrentStageId();
 
+        // ✅ 2) Dropdown 만들고 현재 id로 동기화
         BuildStageDropdown();
         stageDropdown.onValueChanged.AddListener(OnDropdownChanged);
 
         SyncDropdownByStageId(stageId);
+
+        // ✅ 3) Input도 현재 id 기준으로 표시
+        stageInput.text = stageId.ToString();
+        stageInput.onEndEdit.AddListener(OnInputChanged);
+
+        stageLoadButton.onClick.AddListener(OnClickLoadStage);
     }
 
     private void OnDestroy()
@@ -39,6 +43,25 @@ public class StageLoad : MonoBehaviour
         stageInput.onEndEdit.RemoveListener(OnInputChanged);
         stageLoadButton.onClick.RemoveListener(OnClickLoadStage);
         stageDropdown.onValueChanged.RemoveListener(OnDropdownChanged);
+    }
+
+    // ✅ 현재 스테이지 id 찾기 (StageManager → Prefs → fallback)
+    private int ResolveCurrentStageId()
+    {
+        int fromStageManager =
+            StageManager.Instance != null &&
+            StageManager.Instance.GetCurrentStageData() != null
+                ? StageManager.Instance.GetCurrentStageData().stage_ID
+                : -1;
+
+        if (fromStageManager > 0)
+            return fromStageManager;
+
+        int fromPrefs = PlayerPrefs.GetInt("SelectedStageID", -1);
+        if (fromPrefs > 0)
+            return fromPrefs;
+
+        return stageId > 0 ? stageId : 601;
     }
 
     private void BuildStageDropdown()
@@ -76,8 +99,18 @@ public class StageLoad : MonoBehaviour
     private void SyncDropdownByStageId(int id)
     {
         int idx = dropdownStageIds.IndexOf(id);
+
+        // ✅ 목록에 없으면 첫 번째로 fallback
+        if (idx < 0 && dropdownStageIds.Count > 0)
+        {
+            idx = 0;
+            stageId = dropdownStageIds[0];
+        }
+
         if (idx >= 0)
             stageDropdown.SetValueWithoutNotify(idx);
+
+        stageDropdown.RefreshShownValue();
     }
 
     private void OnInputChanged(string text)
@@ -95,45 +128,19 @@ public class StageLoad : MonoBehaviour
 
     public void OnClickLoadStage() => LoadStage(stageId);
 
-    public async void LoadStage(int id)
+    public void LoadStage(int id)
     {
         if (_isLoading) return;
         _isLoading = true;
 
-        try
-        {
-            stageId = id;
-            stageInput.text = stageId.ToString();
-            SyncDropdownByStageId(stageId);
+        stageId = id;
+        stageInput.text = stageId.ToString();
+        SyncDropdownByStageId(stageId);
 
-            var stageCsv = DataTableManager.StageTable.GetStage(stageId);
-            if (stageCsv == null)
-            {
-                Debug.LogError($"Stage ID {stageId} not found in StageTable.");
-                return;
-            }
+        if (LoadMassage != null)
+            LoadMassage.text = $"씬 리로드로 로딩중 {stageId}...";
 
-            LoadMassage.text = $"로딩중 {stageId}...";
-
-            if (monsterSpawner != null)
-                await monsterSpawner.ChangeStage(stageId, false);
-
-            // 스포너 변경 끝난 뒤 UI 적용
-            stageSetupWindow.ApplyStage(stageCsv);
-            StageManager.Instance.SetCurrentStageData(stageCsv);
-            StageManager.Instance.SetBackgroundByStageData(stageCsv);
-            StageManager.Instance.SetWaveInfo(stageCsv.stage_step1, 1);
-
-            if (stageSetupWindow != null)
-                stageSetupWindow.gameObject.SetActive(true);
-
-            LoadMassage.text = $"{stageId} 로딩완료";
-
-            StageManager.Instance.SetTimeScale(0f);
-        }
-        finally
-        {
-            _isLoading = false;
-        }
+        // ✅ prefs 저장 + Stage 씬 다시 로드
+        LoadSceneManager.Instance.GoTestStage(stageId, 1);
     }
 }

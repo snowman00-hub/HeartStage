@@ -1,24 +1,25 @@
-﻿using System.Collections.Generic;
+﻿using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using UnityEngine.SceneManagement;
-using Cysharp.Threading.Tasks;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceProviders;
+using UnityEngine.SceneManagement;
 
 public class DebugOverlaySceneManager : MonoBehaviour
 {
     public static DebugOverlaySceneManager Instance;
     private float prevTimeScale = 1f;
 
-    [Header("Skill Test Scene Addressables Key")]
     [SerializeField] private string skillTestAddress = "Assets/Scenes/SkillTestScene.unity";
-
-    [Header("Exclude roots from freezing (Stage scene only)")]
     [SerializeField] private List<GameObject> excludeRoots = new();
 
     private Scene frozenScene;
     private readonly List<GameObject> frozenRoots = new();
+
+    // 추가: 루트별 원래 active 상태 저장
+    private readonly Dictionary<GameObject, bool> frozenRootStates = new();
+
     private AsyncOperationHandle<SceneInstance>? overlayHandle;
     private bool isFrozen;
 
@@ -26,7 +27,7 @@ public class DebugOverlaySceneManager : MonoBehaviour
     {
         if (Instance != null) { Destroy(gameObject); return; }
         Instance = this;
-        DontDestroyOnLoad(gameObject);   // 반드시 전역 유지
+        DontDestroyOnLoad(gameObject);
     }
 
     private void FreezeActiveScene()
@@ -35,13 +36,20 @@ public class DebugOverlaySceneManager : MonoBehaviour
 
         frozenScene = SceneManager.GetActiveScene();
         frozenRoots.Clear();
+        frozenRootStates.Clear();
+
         frozenScene.GetRootGameObjects(frozenRoots);
 
         foreach (var go in frozenRoots)
         {
             if (go == null) continue;
             if (excludeRoots.Contains(go)) continue;
-            go.SetActive(false); // StageTestScene.ver1 “진짜 정지”
+
+            // 원래 상태 저장
+            frozenRootStates[go] = go.activeSelf;
+
+            // 꺼버림
+            go.SetActive(false);
         }
 
         isFrozen = true;
@@ -55,10 +63,16 @@ public class DebugOverlaySceneManager : MonoBehaviour
         {
             if (go == null) continue;
             if (excludeRoots.Contains(go)) continue;
-            go.SetActive(true);
+
+            // ✅ “무조건 true”가 아니라 원래 상태로 복구
+            if (frozenRootStates.TryGetValue(go, out bool wasActive))
+                go.SetActive(wasActive);
+            else
+                go.SetActive(true); // 혹시 모를 안전망
         }
 
         frozenRoots.Clear();
+        frozenRootStates.Clear();
         isFrozen = false;
     }
 
@@ -66,16 +80,18 @@ public class DebugOverlaySceneManager : MonoBehaviour
     {
         FreezeActiveScene();
 
-        //  timeScale 임시 복구
-        prevTimeScale = Time.timeScale;
-        Time.timeScale = 1f;
+        prevTimeScale = Time.timeScale; // 기록만
+        // Time.timeScale = 1f;  <-- (구버전에 있으면 제거)
 
         var handle = Addressables.LoadSceneAsync(skillTestAddress, LoadSceneMode.Additive);
         overlayHandle = handle;
 
         var sceneInstance = await handle.ToUniTask();
         SceneManager.SetActiveScene(sceneInstance.Scene);
+
+        ApplyUnscaledToScene(sceneInstance.Scene);
     }
+
     public async UniTask CloseSkillTest()
     {
         if (overlayHandle == null) return;
@@ -87,9 +103,8 @@ public class DebugOverlaySceneManager : MonoBehaviour
             SceneManager.SetActiveScene(frozenScene);
 
         Unfreeze();
-
-        //  원래 timeScale로 복구
         Time.timeScale = prevTimeScale;
     }
-}
 
+    private void ApplyUnscaledToScene(Scene scene) { /* 너가 쓰던 그거 */ }
+}

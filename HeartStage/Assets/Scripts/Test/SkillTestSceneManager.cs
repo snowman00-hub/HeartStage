@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Cysharp.Threading.Tasks;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using TMPro;
@@ -61,24 +62,21 @@ public class SkillTestManager : MonoBehaviour
     private AsyncOperationHandle<GameObject> currentHandle;
     private bool hasHandle = false;
 
-    private void Start()
+    private async void Start()
     {
-        // 1) 스킬 테이블 로딩 (이미 LoadAsync 되어 있다고 가정)
+        while (DataTableManager.SkillTable == null)
+            await UniTask.Delay(10, DelayType.UnscaledDeltaTime);
+
         skillDB = DataTableManager.SkillTable.GetAll();
         skillList = new List<SkillData>(skillDB.Values);
-
-        // skill_id 기준 정렬
         skillList.Sort((a, b) => a.skill_id.CompareTo(b.skill_id));
 
-        // 2) UI 빌드
         BuildSkillDropdown();
         SetupRangeSliderIfNeeded();
 
-        // 3) 주소 라벨 기반으로 이펙트 키 목록 빌드
         StartCoroutine(BuildProjectileKeyDropdownFromLabel(projectileEffectLabel));
         StartCoroutine(BuildHitKeyDropdownFromLabel(hitEffectLabel));
 
-        // 4) 이벤트 연결
         skillDropdown.onValueChanged.AddListener(OnSkillChanged);
 
         if (projectileKeyDropdown != null)
@@ -433,6 +431,7 @@ public class SkillTestManager : MonoBehaviour
             if (op.Status == AsyncOperationStatus.Succeeded)
             {
                 currentPreviewInstance = op.Result;
+                ApplyUnscaled(currentPreviewInstance);   // 추가
                 Debug.Log($"[SkillTest] projectile 프리뷰 생성 성공: {currentProjectileKey}");
                 ApplyRangeToPreview();
             }
@@ -540,5 +539,21 @@ public class SkillTestManager : MonoBehaviour
         if (currentSkill != null)
             UnityEditor.EditorUtility.SetDirty(currentSkill);
 #endif
+    }
+
+    private void ApplyUnscaled(GameObject go)
+    {
+        if (go == null) return;
+
+        foreach (var ps in go.GetComponentsInChildren<ParticleSystem>(true))
+        {
+            var main = ps.main;
+            main.useUnscaledTime = true;
+        }
+
+        foreach (var anim in go.GetComponentsInChildren<Animator>(true))
+        {
+            anim.updateMode = AnimatorUpdateMode.UnscaledTime;
+        }
     }
 }
