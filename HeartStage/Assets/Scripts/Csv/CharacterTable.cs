@@ -108,4 +108,49 @@ public class CharacterTable : DataTable
 
         return skills.Where(s => s != 0).ToList();
     }
+
+    public void BuildDefaultSaveDictionaries(
+    IEnumerable<string> starterNames,
+    out Dictionary<string, bool> unlockedByName,
+    out Dictionary<int, int> expById,
+    out List<int> ownedBaseIds
+    )
+    {
+        unlockedByName = new Dictionary<string, bool>();
+        expById = new Dictionary<int, int>();
+        ownedBaseIds = new List<int>();
+
+        // 1) 캐릭터별 기본 row id 뽑기 (내부에서만 int로 사용)
+        var baseIdByName = table.Values
+            .GroupBy(r => r.char_name)
+            .ToDictionary(
+                g => g.Key,
+                g => g.OrderBy(r => r.char_rank)
+                      .ThenBy(r => r.char_lv)
+                      .First().char_id
+            );
+
+        var starterSet = starterNames != null
+            ? new HashSet<string>(starterNames)
+            : new HashSet<string>();
+
+        // 2) unlockedByName(name->bool) 자동 세팅
+        foreach (var kv in baseIdByName)
+        {
+            string name = kv.Key;
+            int baseId = kv.Value;
+
+            bool isStarter = starterSet.Contains(name);
+
+            // 도감/보유 체크용
+            unlockedByName[name] = isStarter;
+
+            // 스타터면 보유 id + exp(0)까지 같이 세팅
+            if (isStarter)
+            {
+                ownedBaseIds.Add(baseId);
+                expById[baseId] = 0;
+            }
+        }
+    }
 }
