@@ -48,6 +48,8 @@ public enum WindowType
     LobbyHome = 0,
     StageSelect,
     StageInfo,
+    Gacha,
+
     // 인게임 윈도우
     VictoryDefeat,
     CharacterInfo,
