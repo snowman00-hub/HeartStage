@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -31,7 +32,7 @@ public class StageManager : MonoBehaviour
         set
         {
             waveCount = value;
-            StageUI.SetWaveCount(stageNumber, waveOrder); 
+            StageUI.SetWaveCount(stageNumber, waveOrder);
         }
     }
 
@@ -57,8 +58,11 @@ public class StageManager : MonoBehaviour
         Instance = this;
     }
 
-    private void Start()
+    private async void Start()
     {
+        // StageTable 준비될 때까지 대기
+        while (DataTableManager.StageTable == null)
+            await UniTask.Delay(50, DelayType.UnscaledDeltaTime);
         // 저장된 스테이지 데이터 로드
         LoadSelectedStageData();
     }
@@ -121,6 +125,10 @@ public class StageManager : MonoBehaviour
         {
             stageNumber = stageData.stage_step1;
             waveOrder = 1; // 스테이지 시작시 첫 번째 웨이브
+            waveCount = 1;
+
+            if (StageUI != null)
+                StageUI.SetWaveCount(stageNumber, waveOrder);
         }
     }
 
@@ -163,7 +171,7 @@ public class StageManager : MonoBehaviour
     }
 
     // 승리시 
-    public void Clear() 
+    public void Clear()
     {
         VictoryDefeatPanel.isClear = true;
 
@@ -202,7 +210,7 @@ public class StageManager : MonoBehaviour
     {
         var saveItemList = SaveLoadManager.Data.itemList;
         // 아이템 저장
-        foreach(var kvp in ItemManager.Instance.acquireItemList)
+        foreach (var kvp in ItemManager.Instance.acquireItemList)
         {
             if (saveItemList.ContainsKey(kvp.Key))
             {
@@ -258,7 +266,7 @@ public class StageManager : MonoBehaviour
     // 테스트 코드
     private void Update()
     {
-        if(Input.GetKeyDown(KeyCode.V))
+        if (Input.GetKeyDown(KeyCode.V))
         {
             Clear();
         }

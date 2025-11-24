@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -66,7 +67,10 @@ public class StageSetupWindow : MonoBehaviour
 
     [SerializeField] private SynergyPanel synergyPanel;
 
-    private void OnEnable()
+    //스폰 캐릭터 리스트 
+    private readonly List<GameObject> _spawnedAllies = new();
+
+    private async void OnEnable()
     {
         StageIndexs = new Dictionary<int, int>();
         PassiveIndexs = new Dictionary<int, List<PassiveEffectData>>();
@@ -78,30 +82,36 @@ public class StageSetupWindow : MonoBehaviour
             _passiveStackCounts = new int[len];
 
             for (int i = 0; i < len; i++)
-            {
                 if (DraggableSlots[i] != null)
                     DraggableSlots[i].slotIndex = i;
-            }
         }
 
         Time.timeScale = 0f;
         StartButton.onClick.AddListener(StartButtonClick);
 
-
-        int stageId = PlayerPrefs.GetInt("SelectedStageID", -1);
-        var stageCsv = DataTableManager.StageTable.GetStage(stageId);
-        ApplyStage(stageCsv);
-        //RebuildPassiveTiles();
+        // 여기 추가: 데이터 준비될 때까지 대기
+        await WaitAndApplyStage();
 
         if (synergyPanel != null)
-        {
             synergyPanel.BuildAllButtons();
-            //UpdateSynergyUI();
-        }
 
-        // 🔹 슬롯 변경 → 패시브 + 시너지 둘 다 갱신
         DraggableSlot.OnAnySlotChanged += HandleSlotChanged;
     }
+
+    private async UniTask WaitAndApplyStage()
+    {
+        // StageManager & currentStageCSVData 준비될 때까지
+        while (StageManager.Instance == null || StageManager.Instance.GetCurrentStageData() == null)
+            await UniTask.Delay(10, DelayType.UnscaledDeltaTime);
+
+        var stageCsv = StageManager.Instance.GetCurrentStageData();
+        ApplyStage(stageCsv);
+
+        // 혹시라도 색/카운트 바로 보이게 강제 갱신
+        RebuildPassiveTiles();
+        UpdateDeployCountUI();
+    }
+
     private void OnDisable()
     {
         StartButton.onClick.RemoveListener(StartButtonClick);
@@ -183,12 +193,14 @@ public class StageSetupWindow : MonoBehaviour
         SynergyManager.ApplySynergies(DraggableSlots, allies);
 
         SoundManager.Instance.PlaySFX("Ui_click_01");
-        Time.timeScale = 1f;
+        StageManager.Instance.SetTimeScale(1f);
         gameObject.SetActive(false);
     }
 
     private List<GameObject> PlaceAll()
     {
+        DespawnAllAllies();
+
         var allies = new List<GameObject>();
 
         foreach (var kvp in StageIndexs)
@@ -208,6 +220,8 @@ public class StageSetupWindow : MonoBehaviour
     {
         GameObject obj = Instantiate(basePrefab, worldPos, Quaternion.identity);
         var attack = obj.GetComponent<CharacterAttack>();
+
+        _spawnedAllies.Add(obj);   // 스폰 리스트에 등록
 
         AddPassiveEffects(obj, slotIndex);
 
@@ -507,5 +521,18 @@ public class StageSetupWindow : MonoBehaviour
 
         deployCountText.text = $"{cur} / {max}";
         deployCountText.color = (max > 0 && cur >= max) ? deployFullColor : deployOkColor;
+    }
+
+    public void DespawnAllAllies()
+    {
+        for (int i = _spawnedAllies.Count - 1; i >= 0; i--)
+        {
+            var go = _spawnedAllies[i];
+
+            if (go != null && !go.Equals(null))
+                Destroy(go);
+
+            _spawnedAllies.RemoveAt(i);
+        }
     }
 }

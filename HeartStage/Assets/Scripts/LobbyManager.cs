@@ -40,9 +40,17 @@ public class LobbyManager : MonoBehaviour
         MoneyUISet();
     }
 
+    // 외부(스테이지 버튼 등)에서 stageId 넣어 호출하는 표준 진입점
+    public void GoStage(int stageId)
+    {
+        LoadSceneManager.Instance.GoStage(stageId, 1);
+    }
+
+    // “마지막 선택 스테이지로 가기” 버튼용
     public void GoStage()
     {
-        LoadSceneManager.Instance.GoStage();
+        int last = PlayerPrefs.GetInt("SelectedStageID", 601);
+        LoadSceneManager.Instance.GoStage(last, 1);
     }
 
     private void MoneyUISet()
