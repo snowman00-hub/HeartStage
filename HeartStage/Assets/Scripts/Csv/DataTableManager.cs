@@ -82,6 +82,20 @@ public static class DataTableManager
             await table.LoadAsync(id);
             tables.Add(id, table);
         }
+
+        {
+            var table = new GachaTable();
+            var id = DataTableIds.Gacha;
+            await table.LoadAsync(id);
+            tables.Add(id, table);
+        }
+
+        {
+            var table = new GachaTypeTable();
+            var id = DataTableIds.GachaType;
+            await table.LoadAsync(id);
+            tables.Add(id, table);
+        }
     }
 
     public static ItemTable ItemTable
@@ -159,6 +173,22 @@ public static class DataTableManager
         get
         {
             return Get<RewardTable>(DataTableIds.Reward);
+        }
+    }
+
+    public static GachaTable GachaTable
+    {
+        get
+        {
+            return Get<GachaTable>(DataTableIds.Gacha);
+        }
+    }
+
+    public static GachaTypeTable GachaTypeTable
+    {
+        get
+        {
+            return Get<GachaTypeTable>(DataTableIds.GachaType);
         }
     }
 
