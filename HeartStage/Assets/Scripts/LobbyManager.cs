@@ -53,7 +53,7 @@ public class LobbyManager : MonoBehaviour
         LoadSceneManager.Instance.GoStage(last, 1);
     }
 
-    private void MoneyUISet()
+    public void MoneyUISet()
     {
         var itemList = SaveLoadManager.Data.itemList;
         if (itemList.ContainsKey(ItemID.LightStick))
@@ -74,4 +74,22 @@ public class LobbyManager : MonoBehaviour
             HeartStickCount = 0;
         }
     }
+
+    // 테스트용 치트 함수
+    public void GetMoney() // 라이트 스틱, 하트 스틱, 트레이닝 포인트
+    {
+        ItemInvenHelper.AddItem(ItemID.LightStick, 5000);
+        ItemInvenHelper.AddItem(ItemID.HeartStick, 1000);
+        ItemInvenHelper.AddItem(ItemID.TrainingPoint, 100000);
+        ItemInvenHelper.AddItem(7110, 20);
+        ItemInvenHelper.AddItem(7113, 20);
+        ItemInvenHelper.AddItem(7114, 20);
+    }
+    public void SaveReset()
+    {
+        SaveLoadManager.Data = new SaveDataV1();
+        SaveLoadManager.Save();
+        MoneyUISet();
+    }
+    //
 }

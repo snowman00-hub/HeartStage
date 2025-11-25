@@ -64,21 +64,24 @@ public class PurchaseConfirmPanel : MonoBehaviour
 
         // 라이트 스틱, 하트 스틱으로 아이템 구매
         var purchaseItemList = shopTableData.GetValidItems();
-        if (shopTableData.Shop_currency == ItemID.LightStick)
-        {
-            if (!ItemInvenHelper.TryConsumeItem(ItemID.LightStick, shopTableData.Shop_price))
-            {
-                // 구매 실패
-                ShowImpossiblePurchaseAsync().Forget();
-                return;
-            }
+        int currencyId = shopTableData.Shop_currency;   // LightStick 또는 HeartStick
+        int price = shopTableData.Shop_price;
 
-            // 구매 성공, 아이템 지급
-            foreach (var item in purchaseItemList)
-            {
-                ItemInvenHelper.AddItem(item.id,item.amount);
-            }
+        // 1) 구매 가능 여부 검사
+        if (!ItemInvenHelper.TryConsumeItem(currencyId, price))
+        {
+            ShowImpossiblePurchaseAsync().Forget(); // 구매 실패
+            return;
         }
+
+        // 2) 구매 성공 → 아이템 지급
+        foreach (var item in purchaseItemList)
+        {
+            ItemInvenHelper.AddItem(item.id, item.amount);
+        }
+
+        // 3) 끝
+        wholePanel.gameObject.SetActive(false);
     }
 
     private async UniTaskVoid ShowImpossiblePurchaseAsync()

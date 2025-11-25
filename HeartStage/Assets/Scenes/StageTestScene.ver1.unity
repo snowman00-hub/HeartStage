@@ -5789,11 +5789,11 @@ PrefabInstance:
       objectReference: {fileID: 1728478820}
     - target: {fileID: 1890603866457553676, guid: 3b1111f729f6c5c49bb6a4387d59044c, type: 3}
       propertyPath: windowList.Array.data[0].windowType
-      value: 6
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 1890603866457553676, guid: 3b1111f729f6c5c49bb6a4387d59044c, type: 3}
       propertyPath: windowList.Array.data[1].windowType
-      value: 7
+      value: 51
       objectReference: {fileID: 0}
     - target: {fileID: 2345486004710282648, guid: 3b1111f729f6c5c49bb6a4387d59044c, type: 3}
       propertyPath: m_LocalPosition.x
@@ -6010,6 +6010,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d20c57eba5c44fa45b79799100bf0990, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isDead: 0
+  heartPrefab: {fileID: 0}
 --- !u!4 &514678651
 Transform:
   m_ObjectHideFlags: 0
@@ -7805,6 +7807,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d20c57eba5c44fa45b79799100bf0990, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isDead: 0
+  heartPrefab: {fileID: 0}
 --- !u!4 &661893440
 Transform:
   m_ObjectHideFlags: 0
@@ -10487,6 +10491,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d20c57eba5c44fa45b79799100bf0990, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isDead: 0
+  heartPrefab: {fileID: 0}
 --- !u!4 &813140698
 Transform:
   m_ObjectHideFlags: 0

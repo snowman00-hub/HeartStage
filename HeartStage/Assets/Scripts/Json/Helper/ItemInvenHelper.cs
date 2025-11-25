@@ -13,6 +13,8 @@ public static class ItemInvenHelper
             Items[id] = amount;
 
         SaveLoadManager.Save();
+        LobbyManager.Instance?.MoneyUISet();
+
     }
 
     // 아이템 소비 시도, 보유 개수보다 적으면 실패
@@ -27,6 +29,7 @@ public static class ItemInvenHelper
             Items.Remove(id);
 
         SaveLoadManager.Save();
+        LobbyManager.Instance?.MoneyUISet();
         return true;
     }
 

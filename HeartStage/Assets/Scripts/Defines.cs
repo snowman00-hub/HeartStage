@@ -51,7 +51,7 @@ public enum WindowType
     Gacha5TryResult,
 
     // 인게임 윈도우
-    VictoryDefeat,
+    VictoryDefeat = 50, // 위에 추가해도 안바뀌게 큰 값으로 해두기
     CharacterInfo,
 }
 
