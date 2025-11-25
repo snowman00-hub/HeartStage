@@ -103,6 +103,20 @@ public static class DataTableManager
             await table.LoadAsync(id);
             tables.Add(id, table);
         }
+
+        {
+            var table = new RankUpTable();
+            var id = DataTableIds.RankUp;
+            await table.LoadAsync(id);
+            tables.Add(id, table);
+        }
+
+        {
+            var table = new LevelUpTable();
+            var id = DataTableIds.LevelUp;
+            await table.LoadAsync(id);
+            tables.Add(id, table);
+        }
     }
 
     public static ItemTable ItemTable
@@ -204,6 +218,22 @@ public static class DataTableManager
         get
         {
             return Get<ShopTable>(DataTableIds.Shop);
+        }
+    }
+
+    public static RankUpTable RankUpTable
+    {
+        get
+        {
+            return Get<RankUpTable>(DataTableIds.RankUp);
+        }
+    }
+
+    public static LevelUpTable LevelUpTable
+    {
+        get
+        {
+            return Get<LevelUpTable>(DataTableIds.LevelUp);
         }
     }
 
