@@ -1,6 +1,5 @@
 ﻿using System.Text;
 using TMPro;
-using UnityEditor.U2D.Animation;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -53,16 +52,23 @@ public class GachaResultUI : GenericWindow
         }
 
         var characterData = gachaResult.characterData;
+        var gachaData = gachaResult.gachaData;
 
-        if(characterNameText != null)
+        if(gachaData.Gacha_have > 0 && gachaResult.isDuplicate)
         {
-            var sb = new StringBuilder();
-            sb.Clear();
-            sb.Append(characterData.char_name);
-            characterNameText.text = sb.ToString();
+            var itemData = DataTableManager.ItemTable.Get(gachaData.Gacha_have);
+            {
+                if(itemData != null)
+                {
+                    SetCharacterImageToItem(itemData);
+                    SetCharacterNameText(itemData.item_name);
+                    return;
+                }
+            }
         }
 
         SetCharacterImage(characterData);
+        SetCharacterNameText(characterData.char_name);
     }
 
     private void SetCharacterImage(CharacterCSVData characterCsvData)
@@ -122,5 +128,16 @@ public class GachaResultUI : GenericWindow
         }
 
         SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);
+    }
+
+    private void SetCharacterNameText(string name)
+    {
+        if (characterNameText != null)
+        {
+            var sb = new StringBuilder();
+            sb.Clear();
+            sb.Append(name);
+            characterNameText.text = sb.ToString();
+        }
     }
 }

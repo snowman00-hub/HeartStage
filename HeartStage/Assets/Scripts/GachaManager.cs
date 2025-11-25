@@ -2,8 +2,8 @@
 using UnityEngine;
 public struct GachaResult
 {
-    public GachaData gachaData;
-    public CharacterCSVData characterData;
+    public GachaData gachaData; // 뽑힌 가챠 데이터
+    public CharacterCSVData characterData; // 뽑힌 캐릭터 데이터
     public bool isDuplicate; // 중복 여부 
 
     public GachaResult(GachaData gachaData, CharacterCSVData characterData, bool isDuplicate = false)
@@ -130,7 +130,7 @@ public class GachaManager : MonoBehaviour
                             }
                         }
                     }
-                    result.Add(new GachaResult(selectedItem, characterData));
+                    result.Add(new GachaResult(selectedItem, characterData, alreadyOwned));
                 }
             }
         }
