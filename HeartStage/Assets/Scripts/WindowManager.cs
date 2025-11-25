@@ -12,7 +12,7 @@ public class WindowManager : MonoBehaviour
     public static WindowManager Instance;
 
     [Header("Reference")]
-    [SerializeField] private List<WindowPair> windowList;
+    public List<WindowPair> windowList;
 
     public static WindowType currentWindow { get; set; }
     private Dictionary<WindowType, GenericWindow> windows;

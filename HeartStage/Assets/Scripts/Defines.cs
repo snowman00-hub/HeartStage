@@ -53,6 +53,7 @@ public enum WindowType
     StageInfo,
     Gacha,
     GachaPercentage,
+    GachaResult,
 
     // 인게임 윈도우
     VictoryDefeat,
