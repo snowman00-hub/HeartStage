@@ -10,18 +10,11 @@ public class ItemCSVData
 {
     public int item_id { get; set; }
     public string item_name { get; set; }
-    public string item_desc { get; set; }
     public int item_type { get; set; }
     public int item_use { get; set; }
-    public int item_drop { get; set; }
-    public string item_dropinfo { get; set; }
-    public int item_inv { get; set; }
+    public bool item_inv { get; set; }
     public int item_dup { get; set; }
-    public bool item_canbuy { get; set; }
-    public int item_shop { get; set; }
-    public int price_type { get; set; }
-    public float item_price { get; set; }
-    public string info { get; set; }
+    public string item_desc { get; set; }
     public string prefab { get; set; }
 }
 

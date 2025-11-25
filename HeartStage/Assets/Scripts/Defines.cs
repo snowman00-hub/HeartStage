@@ -59,7 +59,6 @@ public class SoundName
     public static readonly string SFX_UI_Button_Click = "Ui_click_01";
 }
 
-
 public class ItemID
 {
     public static readonly int LightStick = 7101;

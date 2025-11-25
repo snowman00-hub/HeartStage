@@ -9,7 +9,7 @@ public class FeaturePurchase : MonoBehaviour
     public TextMeshProUGUI itemInfoText;
     public Image currencyIcon;
     public TextMeshProUGUI priceText;
-    public Button purchaseButton;
+    public Button clickButton;
 
     private void Awake()
     {
@@ -22,6 +22,6 @@ public class FeaturePurchase : MonoBehaviour
 
     private void Start()
     {
-        //purchaseButton.onClick.AddListener();
+        clickButton.onClick.AddListener(() => PurchaseConfirmPanel.Instance.Open(shopTableID));
     }
 }

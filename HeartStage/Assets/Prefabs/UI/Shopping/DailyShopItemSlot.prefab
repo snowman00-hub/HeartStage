@@ -34,7 +34,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.09374898, y: 0.24626821}
   m_AnchorMax: {x: 0.625, y: 0.7207318}
-  m_AnchoredPosition: {x: 0.6100006, y: -0.2987013}
+  m_AnchoredPosition: {x: 0.6100006, y: -0.29870224}
   m_SizeDelta: {x: 0.4680004, y: 1.4027}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6870431614130608425
@@ -245,7 +245,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.10666622}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -0.9245987}
+  m_AnchoredPosition: {x: 0, y: -0.92459106}
   m_SizeDelta: {x: 0, y: 1.8493004}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7921911006170501855
@@ -296,6 +296,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2392831024112323963}
   - component: {fileID: 6666445519658156728}
+  - component: {fileID: 6276952412299160157}
   m_Layer: 5
   m_Name: DailyShopItemSlot
   m_TagString: Untagged
@@ -318,10 +319,10 @@ RectTransform:
   - {fileID: 8218822937195282129}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 280, y: 300}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6666445519658156728
 CanvasRenderer:
@@ -331,6 +332,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3220607859622514678}
   m_CullTransparentMesh: 1
+--- !u!114 &6276952412299160157
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3220607859622514678}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1608e1f3367558249a179695262f76d5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  backgroundImage: {fileID: 4240696321542751953}
+  itemNameText: {fileID: 3335473213710607320}
+  itemImage: {fileID: 2883529479651849253}
+  priceText: {fileID: 1395590779502296859}
+  currencyIcon: {fileID: 5406521958434659671}
 --- !u!1 &3377927972238229868
 GameObject:
   m_ObjectHideFlags: 0
@@ -367,7 +385,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.10666622}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -0.9245987}
+  m_AnchoredPosition: {x: 0, y: -0.92459106}
   m_SizeDelta: {x: 0, y: 1.8493004}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3950450313195299062
@@ -726,7 +744,7 @@ GameObject:
   - component: {fileID: 5800124888821468343}
   - component: {fileID: 5406521958434659671}
   m_Layer: 5
-  m_Name: LightStickIcon
+  m_Name: CurrencyIcon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -821,10 +839,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 7615279062048975261}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -8}
-  m_SizeDelta: {x: 140, y: 140}
+  m_AnchorMin: {x: 0.24285713, y: 0.21458848}
+  m_AnchorMax: {x: 0.74285716, y: 0.733529}
+  m_AnchoredPosition: {x: 2, y: -1}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5133780077559971995
 CanvasRenderer:
