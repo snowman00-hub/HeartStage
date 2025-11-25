@@ -49,4 +49,12 @@ public class LevelUpTable : DataTable
 
         return table[levelUpId];
     }
+
+    public int GetLevelUpCost(int levelUpId)
+    {
+        var data = Get(levelUpId);
+        if (data == null)
+            return 0;
+        return data.Lvup_ingrd_Itm_count;
+    }
 }

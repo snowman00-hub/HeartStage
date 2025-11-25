@@ -58,6 +58,7 @@ public class CharacterDetailPanel : MonoBehaviour
     // 런타임에 만든 스킬 스프라이트 누수 방지용
     private Sprite[] _runtimeSkillSprites;
 
+    [Header("종료 버튼")]
     [SerializeField] Button ExitButton;
 
     public void SetCharacter(CharacterCSVData characterData)
@@ -92,6 +93,13 @@ public class CharacterDetailPanel : MonoBehaviour
 
         // 스킬 이미지가 필요하면 여기서 ApplySkillImages(characterData.char_id); 같은 식으로 확장
         ApplySkillImages(characterData.char_id);
+
+        // 레벨업 구현 Onclick 리스너 등은 여기서 추가 가능
+
+        // 랭크업 구현 Onclick 리스너 등은 여기서 추가 가능
+
+        // 필요 재화 정보도 여기서 설정 가능
+
     }
 
     private void ApplyCharacterImage(string imageKey)
@@ -206,6 +214,13 @@ public class CharacterDetailPanel : MonoBehaviour
             skillImages[i].sprite = null;
             skillImages[i].gameObject.SetActive(false);
         }
+    }
+
+    public void ApplyLevelUpText(int charId)
+    {
+        var lvdata = DataTableManager.LevelUpTable.Get(charId);
+        levelUpCostText.text = $"트레이닝 포인트: {lvdata.Lvup_ingrd_Itm_count}";
+
     }
 
 
