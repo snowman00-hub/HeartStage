@@ -9,7 +9,7 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     private bool isBoss = false;
     private MonsterSpawner monsterSpawner;
     private HealthBar healthBar;
-    private bool isDead = false;
+    public bool isDead = false;
 
     private readonly string attack = "Attack";
     private readonly string run = "Run"; // 이동 상태 파라미터 추가
@@ -51,6 +51,11 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         monsterData = data;
         isDead = false;
         heartPrefab.SetActive(false);
+
+        if (selfCollider != null)
+        {
+            selfCollider.enabled = true;
+        }
 
         // 최초 스폰 시 또는 최대 HP가 변경된 경우에만 HP 설정
         if (currentHP <= 0 || maxHP != data.hp)
@@ -187,7 +192,7 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 
     public void OnDamage(int damage, bool isCritical = false)
     {
-        if (isDead)
+        if (isDead || isFading)
             return;
 
         if (monsterData != null)
@@ -213,6 +218,11 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
             return;
 
         isDead = true;
+
+        if(selfCollider != null)
+        {
+            selfCollider.enabled = false;
+        }
 
         if(heartPrefab != null)
         {

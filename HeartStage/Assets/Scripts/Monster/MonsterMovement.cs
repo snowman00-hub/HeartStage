@@ -72,6 +72,12 @@ public class MonsterMovement : MonoBehaviour
     // 이동 가능 상태 체크
     private bool CanMove()
     {
+        var monsterBehavior = GetComponent<MonsterBehavior>();
+        if (monsterBehavior != null && monsterBehavior.isDead)
+        {
+            return false;
+        }
+
         if (EffectBase.Has<KnockbackEffect>(gameObject))
         {
             return false;
@@ -248,6 +254,10 @@ public class MonsterMovement : MonoBehaviour
     // 혼란 상태 이동
     private void ConfuseMove()
     {
+        var monsterBehavior = GetComponent<MonsterBehavior>();
+        if (monsterBehavior != null && monsterBehavior.isDead)
+            return;
+
         if (!isInitialized || monsterData == null)
             return;
 
