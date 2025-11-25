@@ -36,6 +36,7 @@ public class Gacha5TryResultUI : GenericWindow
         ClearResults();
     }
 
+    // 5개 가챠 결과 표시
     private void DisplayResults(List<GachaResult> results)
     {
         ClearResults();

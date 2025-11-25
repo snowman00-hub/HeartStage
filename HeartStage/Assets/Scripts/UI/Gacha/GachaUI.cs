@@ -39,6 +39,7 @@ public class GachaUI : GenericWindow
         SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);
     }
 
+    // 1회 가챠 뽑기 버튼 클릭
     private void OnGachaButtonOnClicked()
     {
         var gachaResult = GachaManager.Instance.DrawGacha(currentGachaTypeId);
@@ -59,6 +60,7 @@ public class GachaUI : GenericWindow
         SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);
     }
 
+    // 5회 가챠 뽑기 버튼 클릭
     private void OnGachaFiveButtonClicked()
     {
         var gachaResults = GachaManager.Instance.DrawGachaFiveTimes(currentGachaTypeId);

@@ -29,13 +29,13 @@ public class GachaManager : MonoBehaviour
         }
     }
 
+    // 1회 뽑기
     public GachaResult? DrawGacha(int gachaTypeId)
     {
         // 가챠 타입 정보 가져오기
         var gachaType = DataTableManager.GachaTypeTable.Get(gachaTypeId);
         if (gachaType == null)
         {
-            Debug.LogError($"가챠 타입 {gachaTypeId}를 찾을 수 없습니다.");
             return null;
         }
 
@@ -57,6 +57,9 @@ public class GachaManager : MonoBehaviour
             return null;
         }
 
+        // 캐릭터 획득 처리
+        SaveLoadManager.AcquireCharacter(selectedItem.Gacha_item, DataTableManager.CharacterTable);
+
         // 결과 반환
         return new GachaResult
         {
@@ -65,6 +68,7 @@ public class GachaManager : MonoBehaviour
         };
     }
 
+    // 5회 뽑기
     public List<GachaResult> DrawGachaFiveTimes(int gachaTypeId)
     {
         var result = new List<GachaResult>();   
@@ -89,6 +93,9 @@ public class GachaManager : MonoBehaviour
                 var characterData = DataTableManager.CharacterTable.Get(selectedItem.Gacha_item);
                 if (characterData != null)
                 {
+                    // 캐릭터 획득 처리     
+                    SaveLoadManager.AcquireCharacter(selectedItem.Gacha_item, DataTableManager.CharacterTable);
+
                     result.Add(new GachaResult(selectedItem, characterData));
                 }
             }
@@ -97,6 +104,7 @@ public class GachaManager : MonoBehaviour
         return result;
     }
 
+    // 확률에 따른 랜덤 아이템 선택
     private GachaData DrawRandomItem(List<GachaData> gachaItems)
     {
         // 전체 확률의 합 계산

@@ -5078,22 +5078,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: SoundManager
       objectReference: {fileID: 0}
-    - target: {fileID: 2334482760404264193, guid: 1da4adfa36b9bc041a17273813a79a4b, type: 3}
-      propertyPath: OutputAudioMixerGroup
-      value: 
-      objectReference: {fileID: 177977266687567346, guid: 4a0ec5898f5cb34498868177aeb8cfda, type: 2}
-    - target: {fileID: 4335922525373453498, guid: 1da4adfa36b9bc041a17273813a79a4b, type: 3}
-      propertyPath: audioMixer
-      value: 
-      objectReference: {fileID: 24100000, guid: 4a0ec5898f5cb34498868177aeb8cfda, type: 2}
-    - target: {fileID: 4335922525373453498, guid: 1da4adfa36b9bc041a17273813a79a4b, type: 3}
-      propertyPath: bgmMixerGroup
-      value: 
-      objectReference: {fileID: 177977266687567346, guid: 4a0ec5898f5cb34498868177aeb8cfda, type: 2}
-    - target: {fileID: 4335922525373453498, guid: 1da4adfa36b9bc041a17273813a79a4b, type: 3}
-      propertyPath: sfxMixerGroup
-      value: 
-      objectReference: {fileID: 8000605955469031922, guid: 4a0ec5898f5cb34498868177aeb8cfda, type: 2}
     - target: {fileID: 6074361638723540769, guid: 1da4adfa36b9bc041a17273813a79a4b, type: 3}
       propertyPath: m_LocalPosition.x
       value: -6.4813595
@@ -5134,10 +5118,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 6717558550069187121, guid: 1da4adfa36b9bc041a17273813a79a4b, type: 3}
-      propertyPath: OutputAudioMixerGroup
-      value: 
-      objectReference: {fileID: 8000605955469031922, guid: 4a0ec5898f5cb34498868177aeb8cfda, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -5152,30 +5132,6 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 1890603866457553676, guid: 3b1111f729f6c5c49bb6a4387d59044c, type: 3}
-      propertyPath: windows.Array.size
-      value: 7
-      objectReference: {fileID: 0}
-    - target: {fileID: 1890603866457553676, guid: 3b1111f729f6c5c49bb6a4387d59044c, type: 3}
-      propertyPath: windowList.Array.size
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 1890603866457553676, guid: 3b1111f729f6c5c49bb6a4387d59044c, type: 3}
-      propertyPath: 'windows.Array.data[3]'
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 1890603866457553676, guid: 3b1111f729f6c5c49bb6a4387d59044c, type: 3}
-      propertyPath: 'windows.Array.data[4]'
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 1890603866457553676, guid: 3b1111f729f6c5c49bb6a4387d59044c, type: 3}
-      propertyPath: 'windows.Array.data[5]'
-      value: 
-      objectReference: {fileID: 1866029706}
-    - target: {fileID: 1890603866457553676, guid: 3b1111f729f6c5c49bb6a4387d59044c, type: 3}
-      propertyPath: 'windows.Array.data[6]'
-      value: 
-      objectReference: {fileID: 1859982282}
-    - target: {fileID: 1890603866457553676, guid: 3b1111f729f6c5c49bb6a4387d59044c, type: 3}
       propertyPath: windowList.Array.data[0].window
       value: 
       objectReference: {fileID: 1866029706}
@@ -5183,22 +5139,6 @@ PrefabInstance:
       propertyPath: windowList.Array.data[1].window
       value: 
       objectReference: {fileID: 1859982282}
-    - target: {fileID: 1890603866457553676, guid: 3b1111f729f6c5c49bb6a4387d59044c, type: 3}
-      propertyPath: windowList.Array.data[2].window
-      value: 
-      objectReference: {fileID: 1859982282}
-    - target: {fileID: 1890603866457553676, guid: 3b1111f729f6c5c49bb6a4387d59044c, type: 3}
-      propertyPath: windowList.Array.data[0].windowType
-      value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 1890603866457553676, guid: 3b1111f729f6c5c49bb6a4387d59044c, type: 3}
-      propertyPath: windowList.Array.data[1].windowType
-      value: 7
-      objectReference: {fileID: 0}
-    - target: {fileID: 1890603866457553676, guid: 3b1111f729f6c5c49bb6a4387d59044c, type: 3}
-      propertyPath: windowList.Array.data[2].windowType
-      value: -1
-      objectReference: {fileID: 0}
     - target: {fileID: 2345486004710282648, guid: 3b1111f729f6c5c49bb6a4387d59044c, type: 3}
       propertyPath: m_LocalPosition.x
       value: -7.4854846
@@ -10558,7 +10498,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 9.6
+  orthographic size: 11.400001
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -17143,10 +17083,6 @@ PrefabInstance:
       value: ItemManager
       objectReference: {fileID: 0}
     - target: {fileID: 2195250807669488888, guid: 787cccc6cf2318745a0b2eb7deb6fd09, type: 3}
-      propertyPath: DropItem
-      value: 
-      objectReference: {fileID: 5276542467426891939, guid: f440b3adc2b5f154180fb52171095a04, type: 3}
-    - target: {fileID: 2195250807669488888, guid: 787cccc6cf2318745a0b2eb7deb6fd09, type: 3}
       propertyPath: itemBagTr
       value: 
       objectReference: {fileID: 105078321}
@@ -17154,18 +17090,6 @@ PrefabInstance:
       propertyPath: ExpTargetTr
       value: 
       objectReference: {fileID: 1257687629}
-    - target: {fileID: 2195250807669488888, guid: 787cccc6cf2318745a0b2eb7deb6fd09, type: 3}
-      propertyPath: imageIconTr
-      value: 
-      objectReference: {fileID: 105078321}
-    - target: {fileID: 2195250807669488888, guid: 787cccc6cf2318745a0b2eb7deb6fd09, type: 3}
-      propertyPath: inventoryItem
-      value: 
-      objectReference: {fileID: 2593618247865440988, guid: 10eb9ecfc3d28a74087c08608b1b832a, type: 3}
-    - target: {fileID: 2195250807669488888, guid: 787cccc6cf2318745a0b2eb7deb6fd09, type: 3}
-      propertyPath: lightStickCount
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 2195250807669488888, guid: 787cccc6cf2318745a0b2eb7deb6fd09, type: 3}
       propertyPath: lightStickCountText
       value: 
