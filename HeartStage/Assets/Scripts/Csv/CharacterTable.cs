@@ -51,7 +51,7 @@ public class CharacterTable : DataTable
     private readonly Dictionary<int, CharacterCSVData> table = new Dictionary<int, CharacterCSVData>();
 
     //이름 찾기용
-    private Dictionary<string, CharacterData> nametable = new Dictionary<string, CharacterData>();
+    private Dictionary<string, CharacterCSVData> nametable = new Dictionary<string, CharacterCSVData>();
 
     public override async UniTask LoadAsync(string filename)
     {
@@ -81,9 +81,7 @@ public class CharacterTable : DataTable
         {
             if (!nametable.ContainsKey(item.char_name))
             {
-                var charData = ScriptableObject.CreateInstance<CharacterData>();
-                charData.UpdateData(item);
-                nametable.Add(item.char_name, charData);
+                nametable.Add(item.char_name, item);
             }
             else
             {
@@ -169,7 +167,7 @@ public class CharacterTable : DataTable
         }
     }
 
-    public CharacterData GetByName(string name)
+    public CharacterCSVData GetByName(string name)
     {
         if (string.IsNullOrEmpty(name)) 
             return null;

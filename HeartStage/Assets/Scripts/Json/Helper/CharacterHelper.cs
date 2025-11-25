@@ -42,7 +42,7 @@ public static class CharacterHelper
         CharacterExpById.Remove(currentId);
         CharacterExpById[nextId] = remainExp;
     }
-    public static void CommitUpgradeResult(int startId, int finalId, int remainExp)
+    public static void CommitUpgradeResult(int startId, int finalId, int remainExp = 0)
     {
         //레벨 업/랭크 업 결과 확정 처리
         if (finalId != startId)
