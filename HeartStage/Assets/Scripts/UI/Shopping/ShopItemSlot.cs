@@ -13,6 +13,9 @@ public class ShopItemSlot : MonoBehaviour
     [SerializeField] private Image currencyIcon;
     [SerializeField] private Button clickButton;
 
+    private bool isPurchased = false;
+    [SerializeField] private CanvasGroup canvasGroup;
+
     private void Awake()
     {
         Init(shopTableID);
@@ -20,21 +23,54 @@ public class ShopItemSlot : MonoBehaviour
 
     private void Start()
     {
-        clickButton.onClick.AddListener(() => PurchaseConfirmPanel.Instance.Open(shopTableID));
+        clickButton.onClick.AddListener(() => PurchaseConfirmPanel.Instance.Open(shopTableID, this));
     }
 
-    public void Init(int id)
+    public void Init(int id, bool purchased = false)
     {
         shopTableID = id;
         var shopTableData = DataTableManager.ShopTable.Get(id);
+
+        isPurchased = purchased && shopTableData.Shop_multibuy == 1; // 재구매 여부 판단
 
         itemNameText.text = shopTableData.Shop_item_name;
 
         var texture = ResourceManager.Instance.Get<Texture2D>(shopTableData.Shop_icon);
         itemImage.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
-        
+        itemImage.SetNativeSize(); // 앵커를 중간에 해두기
+
         priceText.text = $"{shopTableData.Shop_price}";
 
         CurrencyIcon.CurrencyIconChange(currencyIcon, shopTableData.Shop_currency);
+
+        UpdatePurchasedState();
+    }
+
+    // 구매 확정
+    public void MarkAsPurchased()
+    {
+        var shopTableData = DataTableManager.ShopTable.Get(shopTableID);
+        if (shopTableData.Shop_multibuy == 1) // 재구매 여부 판단
+        {
+            isPurchased = true;
+            UpdatePurchasedState();
+        }
+    }
+
+    // 재구매 가능 여부에 따라 음영 처리
+    private void UpdatePurchasedState()
+    {
+        if (isPurchased)
+        {
+            canvasGroup.interactable = false;
+            canvasGroup.blocksRaycasts = false;
+            canvasGroup.alpha = 0.5f;
+        }
+        else
+        {
+            canvasGroup.interactable = true;
+            canvasGroup.blocksRaycasts = true;
+            canvasGroup.alpha = 1f;
+        }
     }
 }

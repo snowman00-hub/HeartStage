@@ -22,6 +22,11 @@ public class PurchaseConfirmPanel : MonoBehaviour
         Instance = this;
     }
 
+    private void OnDisable()
+    {
+        currentSlot = null;
+    }
+
     private void Start()
     {
         purchaseButton.onClick.AddListener(OnPurchaseButtonClicked);
@@ -30,6 +35,28 @@ public class PurchaseConfirmPanel : MonoBehaviour
     public void Open(int shopTableID)
     {
         tableID = shopTableID;
+        var shopTableData = DataTableManager.ShopTable.Get(shopTableID);
+        confirmText.text = $"{shopTableData.Shop_item_name}\n을 구매하시겠습니까?";
+        descText.text = shopTableData.Shop_info;
+
+        // Shop_item_type1 이 표시되게 일단
+        if (SaveLoadManager.Data.itemList.ContainsKey(shopTableData.Shop_item_type1))
+        {
+            currentAmountText.text = $"현재 보유량: {SaveLoadManager.Data.itemList[shopTableData.Shop_item_type1]}";
+        }
+        else
+        {
+            currentAmountText.text = "현재 보유량: 0";
+        }
+
+        wholePanel.gameObject.SetActive(true);
+    }
+
+    private ShopItemSlot currentSlot;
+    public void Open(int shopTableID, ShopItemSlot slot)
+    {
+        tableID = shopTableID;
+        currentSlot = slot;
         var shopTableData = DataTableManager.ShopTable.Get(shopTableID);
         confirmText.text = $"{shopTableData.Shop_item_name}\n을 구매하시겠습니까?";
         descText.text = shopTableData.Shop_info;
@@ -82,6 +109,10 @@ public class PurchaseConfirmPanel : MonoBehaviour
 
         // 3) 끝
         wholePanel.gameObject.SetActive(false);
+        if(currentSlot != null)
+        {
+            currentSlot.MarkAsPurchased();
+        }
     }
 
     private async UniTaskVoid ShowImpossiblePurchaseAsync()

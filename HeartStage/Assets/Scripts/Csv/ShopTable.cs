@@ -81,4 +81,41 @@ public class ShopTable : DataTable
         }
         return table[id];
     }
+
+    // 조각아이디들
+    public List<int> GetPieceIds()
+    {
+        List<int> result = new List<int>();
+
+        foreach (var id in table.Keys)
+        {
+            if (id >= 101000 && id <= 102000)
+            {
+                result.Add(id);
+            }
+        }
+
+        return result;
+    }
+
+    // 데일리 샵에서 조각 세 개 랜덤으로 얻기
+    public List<int> GetRandomThreePieceIds()
+    {
+        // 1) 먼저 범위 안의 ID들을 모아오기
+        List<int> pieceIds = GetPieceIds();
+
+        // 개수가 3개 미만이면 그대로 반환(혹은 에러 처리 가능)
+        if (pieceIds.Count < 3)
+            return pieceIds;
+
+        // 2) 셔플해서 앞에 3개 가져오기
+        for (int i = 0; i < pieceIds.Count; i++)
+        {
+            int randIndex = UnityEngine.Random.Range(i, pieceIds.Count);
+            (pieceIds[i], pieceIds[randIndex]) = (pieceIds[randIndex], pieceIds[i]);
+        }
+
+        // 3) 첫 3개 반환
+        return pieceIds.GetRange(0, 3);
+    }
 }
