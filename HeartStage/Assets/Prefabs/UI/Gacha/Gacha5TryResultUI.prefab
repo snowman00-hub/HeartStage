@@ -110,7 +110,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.10237037, y: 0.3321228}
   m_AnchorMax: {x: 0.9027778, y: 0.7026316}
-  m_AnchoredPosition: {x: -4.6951294, y: 0.27783203}
+  m_AnchoredPosition: {x: -4.6950684, y: 0.27783203}
   m_SizeDelta: {x: -16.7432, y: 7.264801}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4638884721321811187
@@ -261,13 +261,14 @@ GameObject:
   - component: {fileID: 6193749274078748700}
   - component: {fileID: 70231617561951619}
   - component: {fileID: 5274631139330606313}
+  - component: {fileID: 8522154842926828178}
   m_Layer: 5
   m_Name: Gacha5TryResultUI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &6193749274078748700
 RectTransform:
   m_ObjectHideFlags: 0
@@ -331,6 +332,22 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &8522154842926828178
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4912055506069326012}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d325d925e639f646a9c6964f9de9ec7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  contentParent: {fileID: 8318619531686108874}
+  gachaResultItemPrefab: {fileID: 6678486613317007208, guid: f4ad0c200b28af140b79476ae1885b80, type: 3}
+  closeButton: {fileID: 9085886602520921127}
+  retryButton: {fileID: 7041560711790474310}
 --- !u!1 &8767631901696467857
 GameObject:
   m_ObjectHideFlags: 0
@@ -571,6 +588,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5138970774127377410, guid: 95d25384112ca452a9d55595a624daf6, type: 3}
   m_PrefabInstance: {fileID: 890627709893587925}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &7041560711790474310 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7918598107318552467, guid: 95d25384112ca452a9d55595a624daf6, type: 3}
+  m_PrefabInstance: {fileID: 890627709893587925}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1437508923814839220
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -730,6 +758,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5138970774127377410, guid: 95d25384112ca452a9d55595a624daf6, type: 3}
   m_PrefabInstance: {fileID: 1437508923814839220}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &9085886602520921127 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7918598107318552467, guid: 95d25384112ca452a9d55595a624daf6, type: 3}
+  m_PrefabInstance: {fileID: 1437508923814839220}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &4302461653166709271
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -845,6 +884,10 @@ PrefabInstance:
     - target: {fileID: 7741465485023937884, guid: 6f3e0045a06aec14a8237618cfd5f6ce, type: 3}
       propertyPath: m_fontColor32.rgba
       value: 4278190080
+      objectReference: {fileID: 0}
+    - target: {fileID: 7741465485023937884, guid: 6f3e0045a06aec14a8237618cfd5f6ce, type: 3}
+      propertyPath: m_hasFontAssetChanged
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -972,6 +1015,10 @@ PrefabInstance:
       propertyPath: m_fontColor32.rgba
       value: 4278190080
       objectReference: {fileID: 0}
+    - target: {fileID: 7741465485023937884, guid: 6f3e0045a06aec14a8237618cfd5f6ce, type: 3}
+      propertyPath: m_hasFontAssetChanged
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1097,6 +1144,10 @@ PrefabInstance:
     - target: {fileID: 7741465485023937884, guid: 6f3e0045a06aec14a8237618cfd5f6ce, type: 3}
       propertyPath: m_fontColor32.rgba
       value: 4278190080
+      objectReference: {fileID: 0}
+    - target: {fileID: 7741465485023937884, guid: 6f3e0045a06aec14a8237618cfd5f6ce, type: 3}
+      propertyPath: m_hasFontAssetChanged
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1235,6 +1286,10 @@ PrefabInstance:
     - target: {fileID: 7741465485023937884, guid: 6f3e0045a06aec14a8237618cfd5f6ce, type: 3}
       propertyPath: m_fontColor32.rgba
       value: 4278190080
+      objectReference: {fileID: 0}
+    - target: {fileID: 7741465485023937884, guid: 6f3e0045a06aec14a8237618cfd5f6ce, type: 3}
+      propertyPath: m_hasFontAssetChanged
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

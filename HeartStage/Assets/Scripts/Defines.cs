@@ -48,6 +48,7 @@ public enum WindowType
     Gacha,
     GachaPercentage,
     GachaResult,
+    Gacha5TryResult,
 
     // 인게임 윈도우
     VictoryDefeat,

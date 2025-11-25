@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class GachaUI : GenericWindow
@@ -12,7 +13,8 @@ public class GachaUI : GenericWindow
     [SerializeField] private Button gachaFiveButton;
 
     // 간단한 정적 변수로 결과 전달
-    public static GachaResult? gachaResultReciever; 
+    public static GachaResult? gachaResultReciever;
+    public static List<GachaResult> gachaFiveResultReceiver;
 
     public override void Open()
     {
@@ -28,6 +30,7 @@ public class GachaUI : GenericWindow
     {
         percentageInfoButton.onClick.AddListener(OnGachaPercentageInfoButtonClicked);
         gachaButton.onClick.AddListener(OnGachaButtonOnClicked);
+        gachaFiveButton.onClick.AddListener(OnGachaFiveButtonClicked);
     }
 
     private void OnGachaPercentageInfoButtonClicked()
@@ -36,7 +39,7 @@ public class GachaUI : GenericWindow
         SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);
     }
 
-    public void OnGachaButtonOnClicked()
+    private void OnGachaButtonOnClicked()
     {
         var gachaResult = GachaManager.Instance.DrawGacha(currentGachaTypeId);
 
@@ -51,6 +54,24 @@ public class GachaUI : GenericWindow
         else
         {
             Debug.LogError("가챠 뽑기 실패");
+        }
+
+        SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);
+    }
+
+    private void OnGachaFiveButtonClicked()
+    {
+        var gachaResults = GachaManager.Instance.DrawGachaFiveTimes(currentGachaTypeId);
+
+        if (gachaResults != null && gachaResults.Count > 0)
+        {
+            gachaFiveResultReceiver = gachaResults;
+            WindowManager.Instance.OpenOverlay(WindowType.Gacha5TryResult);
+        }
+
+        else
+        {
+            Debug.LogError("5회 가챠 뽑기 실패");
         }
 
         SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);

@@ -65,6 +65,38 @@ public class GachaManager : MonoBehaviour
         };
     }
 
+    public List<GachaResult> DrawGachaFiveTimes(int gachaTypeId)
+    {
+        var result = new List<GachaResult>();   
+
+        var gachaType = DataTableManager.GachaTypeTable.Get(gachaTypeId);
+        if (gachaType == null)
+        {
+            return result;
+        }
+
+        var gachaItems = GachaTable.GetGachaByType(gachaTypeId);
+        if (gachaItems == null || gachaItems.Count == 0)
+        {
+            return result;
+        }
+
+        for (int i = 0; i < 5; i++)
+        {
+            var selectedItem = DrawRandomItem(gachaItems);
+            if(selectedItem != null)
+            {
+                var characterData = DataTableManager.CharacterTable.Get(selectedItem.Gacha_item);
+                if (characterData != null)
+                {
+                    result.Add(new GachaResult(selectedItem, characterData));
+                }
+            }
+        }
+
+        return result;
+    }
+
     private GachaData DrawRandomItem(List<GachaData> gachaItems)
     {
         // 전체 확률의 합 계산
