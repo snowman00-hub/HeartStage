@@ -11877,12 +11877,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 477024efd5c4a344b932aed12450b0c8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  windows:
-  - {fileID: 1420606183}
-  - {fileID: 496701942}
-  - {fileID: 68106098}
-  - {fileID: 1988237650}
-  - {fileID: 1254890727}
+  windowList:
+  - windowType: 3
+    window: {fileID: 1988237650}
+  - windowType: 4
+    window: {fileID: 1254890727}
+  - windowType: 1
+    window: {fileID: 496701942}
+  - windowType: 2
+    window: {fileID: 68106098}
 --- !u!1001 &1057700524
 PrefabInstance:
   m_ObjectHideFlags: 0

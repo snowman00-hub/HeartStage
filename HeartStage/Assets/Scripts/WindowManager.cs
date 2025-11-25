@@ -1,18 +1,34 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
+[System.Serializable]
+public class WindowPair
+{
+    public WindowType windowType;
+    public GenericWindow window;
+}
 public class WindowManager : MonoBehaviour
 {
     public static WindowManager Instance;
 
     [Header("Reference")]
-    [SerializeField] private List<GenericWindow> windows;
+    [SerializeField] private List<WindowPair> windowList;
 
     public static WindowType currentWindow { get; set; }
+    private Dictionary<WindowType, GenericWindow> windows;
 
     private void Awake()
     {
         Instance = this;
+        
+        windows = new Dictionary<WindowType, GenericWindow>();
+        foreach (var pair in windowList)
+        {
+            if(pair.window != null && !windows.ContainsKey(pair.windowType))
+            {
+                windows[pair.windowType] = pair.window;
+            }
+        }
     }
 
     private void OnEnable()
@@ -21,38 +37,7 @@ public class WindowManager : MonoBehaviour
         {
             Open(currentWindow);
         }
-        else
-        {
-            Open(WindowType.LobbyHome);
-        }
     }
-
-    //private void Start()
-    //{
-    //    currentWindow = WindowType.None;
-
-    //    // null 체크를 포함한 초기화
-    //    foreach (var window in windows)
-    //    {
-    //        if (window != null)
-    //        {
-    //            window.Init(this);
-    //            // 로비 씬에서는 Lobby 윈도우만 활성화 상태 유지
-    //            bool isLobbyWindow = window.GetComponent<LobbyUI>() != null;
-    //            bool isLobbyScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "Lobby";
-
-    //            if (isLobbyScene && isLobbyWindow)
-    //            {
-    //                // 로비 윈도우는 활성화 상태 유지
-    //                continue;
-    //            }
-    //            else
-    //            {
-    //                window.gameObject.SetActive(false);
-    //            }
-    //        }
-    //    }
-    //}
 
     public void OpenOverlay(WindowType id)
     {
@@ -60,10 +45,10 @@ public class WindowManager : MonoBehaviour
         if (!IsValidWindow(id)) return;
 
         // 이미 같은 타입의 오버레이가 열려있으면 열지 않음
-        if (windows[(int)id].gameObject.activeSelf)
+        if (windows[id].gameObject.activeSelf)
             return;
 
-        windows[(int)id].Open();
+        windows[id].Open();
     }
 
     public void Open(WindowType id)
@@ -73,17 +58,16 @@ public class WindowManager : MonoBehaviour
         // 현재 윈도우 닫기
         if (IsValidWindow(currentWindow))
         {
-            windows[(int)currentWindow].Close();
+            windows[currentWindow].Close();
         }
 
         currentWindow = id;
-        windows[(int)currentWindow].gameObject.SetActive(true);
-        windows[(int)currentWindow].Open();
+        windows[currentWindow].gameObject.SetActive(true);
+        windows[currentWindow].Open();
     }
 
     private bool IsValidWindow(WindowType windowType)
     {
-        int index = (int)windowType;
-        return index >= 0 && index < windows.Count && windows[index] != null;
+        return windowType != WindowType.None && windows.ContainsKey(windowType) && windows[windowType] != null;
     }
 }
