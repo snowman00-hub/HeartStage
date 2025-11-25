@@ -11,7 +11,6 @@ public class CharacterCSVData
     public int char_id { get; set; }
     public string char_name { get; set; }
     public int char_lv { get; set; }
-    public int char_exp { get; set; }
     public int char_rank { get; set; }
     public int char_type { get; set; }
 

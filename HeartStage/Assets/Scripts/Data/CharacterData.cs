@@ -8,7 +8,6 @@ public class CharacterData : ScriptableObject
     public int char_id;
     public string char_name;
     public int char_lv;
-    public int char_exp;
     public int char_rank;
     public int char_type;
 
@@ -68,7 +67,6 @@ public class CharacterData : ScriptableObject
         char_id = csv.char_id;
         char_name = csv.char_name;
         char_lv = csv.char_lv;
-        char_exp = csv.char_exp;
         char_rank = csv.char_rank;
         char_type = csv.char_type;
 
@@ -109,7 +107,6 @@ public class CharacterData : ScriptableObject
             char_id = char_id,
             char_name = char_name,
             char_lv = char_lv,
-            char_exp = char_exp,
             char_rank = char_rank,
             char_type = char_type,
 
