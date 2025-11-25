@@ -11840,6 +11840,10 @@ PrefabInstance:
       value: LobbyManager
       objectReference: {fileID: 0}
     - target: {fileID: 6831307780154694614, guid: 167eb62ff04db2f40ad84bf221ef23a0, type: 3}
+      propertyPath: windowList.Array.size
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 6831307780154694614, guid: 167eb62ff04db2f40ad84bf221ef23a0, type: 3}
       propertyPath: windowList.Array.data[0].window
       value: 
       objectReference: {fileID: 1988237650}
@@ -11863,6 +11867,14 @@ PrefabInstance:
       propertyPath: windowList.Array.data[5].window
       value: 
       objectReference: {fileID: 68106098}
+    - target: {fileID: 6831307780154694614, guid: 167eb62ff04db2f40ad84bf221ef23a0, type: 3}
+      propertyPath: windowList.Array.data[6].window
+      value: 
+      objectReference: {fileID: 1734442928}
+    - target: {fileID: 6831307780154694614, guid: 167eb62ff04db2f40ad84bf221ef23a0, type: 3}
+      propertyPath: windowList.Array.data[6].windowType
+      value: 6
+      objectReference: {fileID: 0}
     - target: {fileID: 9122204888615148877, guid: 167eb62ff04db2f40ad84bf221ef23a0, type: 3}
       propertyPath: heartStickCountText
       value: 
@@ -18406,6 +18418,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 6193749274078748700, guid: d319a22ecf61a1c4cb902a89b713120b, type: 3}
   m_PrefabInstance: {fileID: 1732949577}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1734442928 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8522154842926828178, guid: d319a22ecf61a1c4cb902a89b713120b, type: 3}
+  m_PrefabInstance: {fileID: 1732949577}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d325d925e639f646a9c6964f9de9ec7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1736319586
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -57,8 +57,12 @@ public class GachaManager : MonoBehaviour
             return null;
         }
 
-        // 캐릭터 획득 처리
-        SaveLoadManager.AcquireCharacter(selectedItem.Gacha_item, DataTableManager.CharacterTable);
+        bool alreadyOwned = SaveLoadManager.Data.ownedIds.Contains(selectedItem.Gacha_item);
+        if (!alreadyOwned)
+        {
+            // 캐릭터 획득 처리     
+            SaveLoadManager.AcquireCharacter(selectedItem.Gacha_item, DataTableManager.CharacterTable);
+        }
 
         // 결과 반환
         return new GachaResult
@@ -93,9 +97,16 @@ public class GachaManager : MonoBehaviour
                 var characterData = DataTableManager.CharacterTable.Get(selectedItem.Gacha_item);
                 if (characterData != null)
                 {
-                    // 캐릭터 획득 처리     
-                    SaveLoadManager.AcquireCharacter(selectedItem.Gacha_item, DataTableManager.CharacterTable);
-
+                    bool alreadyOwned = SaveLoadManager.Data.ownedIds.Contains(selectedItem.Gacha_item);
+                    if (!alreadyOwned)
+                    {
+                        // 캐릭터 획득 처리     
+                        SaveLoadManager.AcquireCharacter(selectedItem.Gacha_item, DataTableManager.CharacterTable);
+                    }
+                    else
+                    {
+                        // 아이템 중복 보상 처리 
+                    }
                     result.Add(new GachaResult(selectedItem, characterData));
                 }
             }
