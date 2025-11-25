@@ -21,15 +21,8 @@ public static class DataTableIds
     public static string Gacha => "GachaTable";
     public static string GachaType => "GachaTypeTable";
     public static string Shop => "ShopTable";
-}
-
-public static class IBuffIds
-{
-    public static readonly string[] BuffIds =
-    {
-        "AttackPowerBuff",
-    };
-    public static string AttackPowerBuff => BuffIds[0];
+    public static string RankUp => "RankUpTable";
+    public static string LevelUp => "LevelUpTable";
 }
 
 public class Tag
