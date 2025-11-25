@@ -9,7 +9,14 @@ public class GachaPercentageUI : GenericWindow
     [SerializeField] private RectTransform content;
     [SerializeField] private GameObject percentageInfoPrefab;
 
+    [SerializeField] private Button closeButton;
+
     private readonly List<GameObject> spawnedItems = new List<GameObject>();   
+
+    private void Awake()
+    {
+        closeButton.onClick.AddListener(OnCloseButtonClicked);
+    }
 
     public override void Open()
     {
@@ -85,5 +92,10 @@ public class GachaPercentageUI : GenericWindow
             }
         }
         spawnedItems.Clear();
+    }
+
+    private void OnCloseButtonClicked()
+    {
+        Close();
     }
 }

@@ -9,13 +9,18 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     private bool isBoss = false;
     private MonsterSpawner monsterSpawner;
     private HealthBar healthBar;
-    private bool isDead = false;
+    public bool isDead = false;
 
     private readonly string attack = "Attack";
     private readonly string run = "Run"; // 이동 상태 파라미터 추가
     private bool wasMoving = false; // 클래스 상단에 추가
 
-    //private readonly string die = "Die";
+    [SerializeField] private GameObject heartPrefab;
+    private float fadeOutTime = 0.7f;
+    private bool isFading = false;
+    private float fadeTimer = 0f;
+    private SpriteRenderer[] spriteRenderers;
+    private Color[] originalSpriteColors;
 
     private Animator animator;
     //혼란 전용 셀프 콜라이더
@@ -45,6 +50,12 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     {
         monsterData = data;
         isDead = false;
+        heartPrefab.SetActive(false);
+
+        if (selfCollider != null)
+        {
+            selfCollider.enabled = true;
+        }
 
         // 최초 스폰 시 또는 최대 HP가 변경된 경우에만 HP 설정
         if (currentHP <= 0 || maxHP != data.hp)
@@ -62,6 +73,9 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         }
 
         lastPosition = transform.position;
+
+        SaveOriginalColor();
+        ResetFadeState();
     }
 
     // 체력바 초기화
@@ -82,7 +96,13 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 
     private void Update()
     {
-        if (monsterData == null || EffectBase.Has<StunEffect>(gameObject))
+        if (isFading)
+        {
+            UpdateFade();
+            return; 
+        }
+
+        if (isDead || monsterData == null || EffectBase.Has<StunEffect>(gameObject))
             return;
 
         // 이동 상태 체크 및 애니메이션 업데이트
@@ -172,11 +192,12 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 
     public void OnDamage(int damage, bool isCritical = false)
     {
+        if (isDead || isFading)
+            return;
+
         if (monsterData != null)
         {
             currentHP -= damage;
-
-            //SoundManager.Instance.PlayMonsterHitSound();
 
             var ondamageEvents = GetComponents<IDamaged>();
             foreach (var ondamageEvent in ondamageEvents)
@@ -198,12 +219,24 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 
         isDead = true;
 
+        if(selfCollider != null)
+        {
+            selfCollider.enabled = false;
+        }
+
+        if(heartPrefab != null)
+        {
+            heartPrefab.SetActive(true);
+        }
+
         if (monsterSpawner != null && monsterData != null)
         {
             monsterSpawner.OnMonsterDied(monsterData.id);
         }
 
-        gameObject.SetActive(false);
+        isFading = true;
+        fadeTimer = 0f;
+
         // 경험치 생성
         int rand = Random.Range(monsterData.minExp, monsterData.maxExp + 1);
         ItemManager.Instance.SpawnItem(ItemID.Exp, rand, transform.position);
@@ -314,4 +347,54 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 
         return id == 22201 || id == 22214; // 보스 id
     }
+
+    private void ResetFadeState()
+    {
+        isFading = false;
+        fadeTimer = 0f;
+
+        // 원본 색상으로 복원
+        for (int i = 0; i < spriteRenderers.Length; i++)
+        {
+            if (spriteRenderers[i] != null)
+            {
+                spriteRenderers[i].color = originalSpriteColors[i];
+            }
+        }
+    }
+
+    // 색상 원래대로 저장
+    private void SaveOriginalColor()
+    {
+        spriteRenderers = GetComponentsInChildren<SpriteRenderer>();
+        originalSpriteColors = new Color[spriteRenderers.Length];
+
+        for (int i = 0; i < spriteRenderers.Length; i++)
+        {
+            originalSpriteColors[i] = spriteRenderers[i].color;
+        }
+    }
+
+    private void UpdateFade()
+    {
+        fadeTimer += Time.deltaTime;
+        float alpha = Mathf.Lerp(1f, 0f, fadeTimer / fadeOutTime);
+
+        for (int i = 0; i < spriteRenderers.Length; i++)
+        {
+            if (spriteRenderers[i] != null)
+            {
+                Color newColor = originalSpriteColors[i];
+                newColor.a = alpha;
+                spriteRenderers[i].color = newColor;
+            }
+        }
+
+        if (fadeTimer >= fadeOutTime)
+        {
+            gameObject.SetActive(false);
+        }
+    }
+
+
 }

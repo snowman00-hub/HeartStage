@@ -48,6 +48,7 @@ public enum WindowType
     Gacha,
     GachaPercentage,
     GachaResult,
+    Gacha5TryResult,
 
     // 인게임 윈도우
     VictoryDefeat,
@@ -56,7 +57,7 @@ public enum WindowType
 
 public class SoundName
 {
-    public static readonly string SFX_UI_Button_Click = "Ui_click_01";
+    public static readonly string SFX_UI_Button_Click = "Ui_click_01";    
 }
 
 public class ItemID

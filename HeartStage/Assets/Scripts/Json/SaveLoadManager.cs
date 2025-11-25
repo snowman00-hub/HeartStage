@@ -55,7 +55,6 @@ public class SaveLoadManager
             return false;
         }
     }
-
     public static bool Load(int slot = 0)
     {
         if (slot < 0 || slot > SaveFilename.Length)
