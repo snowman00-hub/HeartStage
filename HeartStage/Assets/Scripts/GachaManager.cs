@@ -1,5 +1,4 @@
-﻿using NUnit.Framework.Interfaces;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 public struct GachaResult
 {
