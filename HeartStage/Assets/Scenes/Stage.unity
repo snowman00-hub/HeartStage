@@ -5156,6 +5156,10 @@ PrefabInstance:
       value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 1890603866457553676, guid: 3b1111f729f6c5c49bb6a4387d59044c, type: 3}
+      propertyPath: windowList.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 1890603866457553676, guid: 3b1111f729f6c5c49bb6a4387d59044c, type: 3}
       propertyPath: 'windows.Array.data[3]'
       value: 
       objectReference: {fileID: 0}
@@ -5171,6 +5175,30 @@ PrefabInstance:
       propertyPath: 'windows.Array.data[6]'
       value: 
       objectReference: {fileID: 1859982282}
+    - target: {fileID: 1890603866457553676, guid: 3b1111f729f6c5c49bb6a4387d59044c, type: 3}
+      propertyPath: windowList.Array.data[0].window
+      value: 
+      objectReference: {fileID: 1866029706}
+    - target: {fileID: 1890603866457553676, guid: 3b1111f729f6c5c49bb6a4387d59044c, type: 3}
+      propertyPath: windowList.Array.data[1].window
+      value: 
+      objectReference: {fileID: 1859982282}
+    - target: {fileID: 1890603866457553676, guid: 3b1111f729f6c5c49bb6a4387d59044c, type: 3}
+      propertyPath: windowList.Array.data[2].window
+      value: 
+      objectReference: {fileID: 1859982282}
+    - target: {fileID: 1890603866457553676, guid: 3b1111f729f6c5c49bb6a4387d59044c, type: 3}
+      propertyPath: windowList.Array.data[0].windowType
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 1890603866457553676, guid: 3b1111f729f6c5c49bb6a4387d59044c, type: 3}
+      propertyPath: windowList.Array.data[1].windowType
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 1890603866457553676, guid: 3b1111f729f6c5c49bb6a4387d59044c, type: 3}
+      propertyPath: windowList.Array.data[2].windowType
+      value: -1
+      objectReference: {fileID: 0}
     - target: {fileID: 2345486004710282648, guid: 3b1111f729f6c5c49bb6a4387d59044c, type: 3}
       propertyPath: m_LocalPosition.x
       value: -7.4854846
@@ -10530,7 +10558,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 11.400001
+  orthographic size: 9.6
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -20638,7 +20666,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 22f1cda13e947c346b64a23791e42af3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  firstSelected: {fileID: 0}
   monsterSpawner: {fileID: 1888274805}
   powerInfoWindow: {fileID: 1793024543}
   clearOrFailText: {fileID: 799913162}

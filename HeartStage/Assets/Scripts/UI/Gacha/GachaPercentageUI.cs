@@ -49,7 +49,6 @@ public class GachaPercentageUI : GenericWindow
     {
         if (percentageInfoPrefab == null || content == null)
         {
-            Debug.LogError("percentageInfoPrefab 또는 content가 설정되지 않았습니다.");
             return;
         }
 
@@ -68,7 +67,7 @@ public class GachaPercentageUI : GenericWindow
             Debug.LogError("GachaPercentageItemPrefab 컴포넌트를 찾을 수 없습니다.");
         }
 
-        // 위치 조정 (RectTransform 설정)
+        // 위치
         if (itemObject.transform is RectTransform rectTransform)
         {
             rectTransform.localScale = Vector3.one;
