@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -57,6 +58,8 @@ public class CharacterDetailPanel : MonoBehaviour
     private Sprite _runtimeSprite;
     // 런타임에 만든 스킬 스프라이트 누수 방지용
     private Sprite[] _runtimeSkillSprites;
+    // 현재 표시 중인 캐릭터 ID
+    private int _currentCharacterId;
 
     [Header("종료 버튼")]
     [SerializeField] Button ExitButton;
@@ -69,6 +72,8 @@ public class CharacterDetailPanel : MonoBehaviour
             Clear();
             return;
         }
+
+        _currentCharacterId = characterData.char_id;
 
         nameText.text = characterData.char_name;
         rankText.text = $"등급: {characterData.char_rank}";
@@ -219,8 +224,27 @@ public class CharacterDetailPanel : MonoBehaviour
     public void ApplyLevelUpText(int charId)
     {
         var lvdata = DataTableManager.LevelUpTable.Get(charId);
-        levelUpCostText.text = $"트레이닝 포인트: {lvdata.Lvup_ingrd_Itm_count}";
 
+        levelUpCostText.text = $"트레이닝 포인트: / {lvdata.Lvup_ingrd_Itm_count}";
+    }
+
+    public void OnLevelUpButtonClick(int charId)
+    {
+        var lvdata = DataTableManager.LevelUpTable.Get(charId);
+
+        if (ItemInvenHelper.TryConsumeItem(lvdata.Lvup_ingrd_Itm, lvdata.Lvup_ingrd_Itm_count))
+        {
+            levelUpCostText.text = "트레이닝 포인트: 충분함";
+            levelUpButton.interactable = true;
+        }
+        else
+        {
+            levelUpCostText.text = "트레이닝 포인트: 부족함";
+            levelUpButton.interactable = false;
+
+        }
+
+        levelUpCostText.text = $"트레이닝 포인트: {lvdata.Lvup_ingrd_Itm_count}";
     }
 
 
