@@ -25,6 +25,18 @@ public class ShopData
     public int Shop_24hr { get; set; }
     public string Shop_info { get; set; }
     public string Shop_icon { get; set; }
+
+    public List<(int type, int amount)> GetValidItems()
+    {
+        var list = new List<(int, int)>();
+
+        if (Shop_item_type1 != 0) list.Add((Shop_item_type1, Shop_item_amount1));
+        if (Shop_item_type2 != 0) list.Add((Shop_item_type2, Shop_item_amount2));
+        if (Shop_item_type3 != 0) list.Add((Shop_item_type3, Shop_item_amount3));
+        if (Shop_item_type4 != 0) list.Add((Shop_item_type4, Shop_item_amount4));
+
+        return list;
+    }
 }
 
 public class ShopTable : DataTable

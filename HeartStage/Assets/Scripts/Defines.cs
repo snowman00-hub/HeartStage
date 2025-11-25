@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 
 public enum Languages
 {
@@ -74,11 +75,38 @@ public class ItemID
     public static readonly int LuckyDrawCoupon = 7105;
 }
 
-public class CurrencyIconAssetName
+public class CurrencyIcon
 {
     public static readonly string lightStickIcon = "LightstickImage";
     public static readonly string heartStickIcon = "HeartStickImage";
     public static readonly string dollarIcon = "DollarIcon";
+
+    // 0 : 없음
+    // 1 : 원화
+    // 2 : 달러
+    // 7101 : 라이트스틱
+    // 7102 : 하트스틱
+
+    public static void CurrencyIconChange(Image image, int id)
+    {
+        string iconAssetName = id switch
+        {
+            1 => dollarIcon,
+            7101 => lightStickIcon,
+            7102 => heartStickIcon,
+            _ => null,
+        };
+
+        if (iconAssetName == null)
+            return;
+
+        var texture = ResourceManager.Instance.Get<Texture2D>(iconAssetName);
+
+        if (texture == null)
+            return;
+
+        image.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+    }
 }
 
 public static class StatPower
