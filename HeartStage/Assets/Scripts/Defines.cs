@@ -74,6 +74,13 @@ public class ItemID
     public static readonly int LuckyDrawCoupon = 7105;
 }
 
+public class CurrencyIconAssetName
+{
+    public static readonly string lightStickIcon = "LightstickImage";
+    public static readonly string heartStickIcon = "HeartStickImage";
+    public static readonly string dollarIcon = "DollarIcon";
+}
+
 public static class StatPower
 {
     // 능력치 파워 = (능력치 / 기준값(BaseLine)) * 영향도(Weight)
