@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5114086378906040291}
   - component: {fileID: 9122204888615148877}
+  - component: {fileID: 1707895295283425825}
   m_Layer: 0
   m_Name: LobbyManager
   m_TagString: Untagged
@@ -44,3 +45,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84d4616cf9c09a548b5b9672cb894be6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  lightStickCountText: {fileID: 0}
+  heartStickCountText: {fileID: 0}
+--- !u!114 &1707895295283425825
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5849150692469919682}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 477024efd5c4a344b932aed12450b0c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  windowList:
+  - windowType: 3
+    window: {fileID: 0}
+  - windowType: 4
+    window: {fileID: 0}
+  - windowType: 1
+    window: {fileID: 0}
+  - windowType: 2
+    window: {fileID: 0}
+  - windowType: 5
+    window: {fileID: 0}

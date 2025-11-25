@@ -12,7 +12,7 @@ public class GachaUI : GenericWindow
     [SerializeField] private Button gachaFiveButton;
 
     // 간단한 정적 변수로 결과 전달
-    public static GachaResult? pendingGachaResult;
+    public static GachaResult? gachaResultReciever;
 
     public override void Open()
     {
@@ -43,7 +43,7 @@ public class GachaUI : GenericWindow
         if (gachaResult.HasValue)
         {
             // 정적 변수에 결과 저장
-            pendingGachaResult = gachaResult.Value;
+            gachaResultReciever = gachaResult.Value;
 
             // 결과창 열기
             WindowManager.Instance.OpenOverlay(WindowType.GachaResult);

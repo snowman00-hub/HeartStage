@@ -25,10 +25,10 @@ public class GachaResultUI : GenericWindow
     {
         base.Open();
 
-        if(GachaUI.pendingGachaResult.HasValue)
+        if(GachaUI.gachaResultReciever.HasValue)
         {
-            SetGachaResult(GachaUI.pendingGachaResult.Value);
-            GachaUI.pendingGachaResult = null; // 결과 사용 후 초기화
+            SetGachaResult(GachaUI.gachaResultReciever.Value);
+            GachaUI.gachaResultReciever = null; // 결과 사용 후 초기화
         }
 
         DisPlayResult();

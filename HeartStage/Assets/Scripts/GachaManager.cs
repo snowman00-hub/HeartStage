@@ -39,8 +39,7 @@ public class GachaManager : MonoBehaviour
             return null;
         }
 
-        // 재화 차감 추가해야함
-       
+        // 재화 차감 추가해야함       
 
         // 해당 타입의 가챠 아이템들 가져오기
         var gachaItems = GachaTable.GetGachaByType(gachaTypeId);
