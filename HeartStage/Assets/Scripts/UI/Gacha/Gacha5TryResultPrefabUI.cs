@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using TMPro;
+using UnityEditor.U2D.Animation;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -45,9 +46,28 @@ public class Gacha5TryResultPrefabUI : MonoBehaviour
         {
             characterImage.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
         }
+
         else
         {
             Debug.LogWarning($"캐릭터 이미지를 로드할 수 없습니다: {characterData.card_imageName}");
+        }
+    }
+
+    private void SetCharacterImageToItem(ItemCSVData itemCsvData)
+    {
+        if (characterImage == null || string.IsNullOrEmpty(itemCsvData.prefab))
+        {
+            return;
+        }
+
+        var texture = ResourceManager.Instance.Get<Texture2D>(itemCsvData.prefab);
+        if(texture != null)
+        {
+            characterImage.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+        }
+        else
+        {
+            Debug.LogWarning($"아이템 이미지를 로드할 수 없습니다: {itemCsvData.prefab}");
         }
     }
 }
