@@ -12,7 +12,7 @@ public class GachaUI : GenericWindow
     [SerializeField] private Button gachaFiveButton;
 
     // 간단한 정적 변수로 결과 전달
-    public static GachaResult? gachaResultReciever;
+    public static GachaResult? gachaResultReciever; 
 
     public override void Open()
     {
@@ -36,7 +36,7 @@ public class GachaUI : GenericWindow
         SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);
     }
 
-    private void OnGachaButtonOnClicked()
+    public void OnGachaButtonOnClicked()
     {
         var gachaResult = GachaManager.Instance.DrawGacha(currentGachaTypeId);
 

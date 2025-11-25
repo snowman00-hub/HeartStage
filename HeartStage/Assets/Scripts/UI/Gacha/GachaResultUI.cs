@@ -14,11 +14,13 @@ public class GachaResultUI : GenericWindow
     [SerializeField] private Button closeButton;
     [SerializeField] private Button reTryButton;
 
+
     private GachaResult gachaResult;
 
     private void Awake()
     {        
         closeButton.onClick.AddListener(OnCloseButtonClicked);
+        reTryButton.onClick.AddListener(OnRetryButtonClicked);
     }
 
     public override void Open()
@@ -88,7 +90,18 @@ public class GachaResultUI : GenericWindow
 
     private void OnRetryButtonClicked()
     {
-        Close();
-        // 다시 뽑는 로직 
+        var gachaResult = GachaManager.Instance.DrawGacha(2); // 2는 캐릭터 가챠 타입 
+        
+        if(gachaResult.HasValue)
+        {
+            SetGachaResult(gachaResult.Value);
+            DisPlayResult();
+        }
+        else
+        {
+            Debug.LogError("가챠 뽑기 실패");
+        }
+
+        SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);
     }
 }

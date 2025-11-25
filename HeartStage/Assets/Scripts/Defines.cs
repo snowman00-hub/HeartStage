@@ -56,7 +56,7 @@ public enum WindowType
 
 public class SoundName
 {
-    public static readonly string SFX_UI_Button_Click = "Ui_click_01";
+    public static readonly string SFX_UI_Button_Click = "Ui_click_01";    
 }
 
 
