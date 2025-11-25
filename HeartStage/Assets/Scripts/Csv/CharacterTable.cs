@@ -48,7 +48,11 @@ public class CharacterTable : DataTable
 {
     public static readonly string Unknown = "키 없음";
 
+    //id 찾기용
     private readonly Dictionary<int, CharacterCSVData> table = new Dictionary<int, CharacterCSVData>();
+
+    //이름 찾기용
+    private Dictionary<string, CharacterData> nametable = new Dictionary<string, CharacterData>();
 
     public override async UniTask LoadAsync(string filename)
     {
@@ -71,7 +75,19 @@ public class CharacterTable : DataTable
             }
             else
             {
-                Debug.LogError("몬스터 아이디 중복!");
+                Debug.LogError("캐릭터 아이디 중복!");
+            }
+        }
+        foreach (var item in list)
+        {
+            if (!nametable.ContainsKey(item.char_name))
+            {
+                var charData = ScriptableObject.CreateInstance<CharacterData>();
+                charData.UpdateData(item);
+                nametable.Add(item.char_name, charData);
+            }
+            else
+            {
             }
         }
 
@@ -152,5 +168,13 @@ public class CharacterTable : DataTable
                 expById[baseId] = 0;
             }
         }
+    }
+
+    public CharacterData GetByName(string name)
+    {
+        if (string.IsNullOrEmpty(name)) 
+            return null;
+        nametable.TryGetValue(name, out var data);
+        return data;
     }
 }
