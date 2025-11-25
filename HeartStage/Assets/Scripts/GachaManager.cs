@@ -1,14 +1,17 @@
-﻿using System.Collections.Generic;
+﻿using NUnit.Framework.Interfaces;
+using System.Collections.Generic;
 using UnityEngine;
 public struct GachaResult
 {
     public GachaData gachaData;
     public CharacterCSVData characterData;
+    public bool isDuplicate; // 중복 여부 
 
-    public GachaResult(GachaData gachaData, CharacterCSVData characterData)
+    public GachaResult(GachaData gachaData, CharacterCSVData characterData, bool isDuplicate = false)
     {
         this.gachaData = gachaData;
         this.characterData = characterData;
+        this.isDuplicate = isDuplicate;
     }
 }
 
@@ -63,19 +66,32 @@ public class GachaManager : MonoBehaviour
             // 캐릭터 획득 처리     
             SaveLoadManager.AcquireCharacter(selectedItem.Gacha_item, DataTableManager.CharacterTable);
         }
+        else
+        {
+            if (selectedItem.Gacha_have > 0)
+            {
+                var itemData = DataTableManager.ItemTable.Get(selectedItem.Gacha_have);
+                if (itemData != null)
+                {
+                    ItemInvenHelper.AddItem(selectedItem.Gacha_have, 1); // 중복 보상 아이템 추가
+                    Debug.Log($"중복 보상 아이템 획득: {itemData.item_name}");
+                }
+            }
+        }
 
         // 결과 반환
         return new GachaResult
         {
             gachaData = selectedItem,
-            characterData = DataTableManager.CharacterTable.Get(selectedItem.Gacha_item)
+            characterData = DataTableManager.CharacterTable.Get(selectedItem.Gacha_item),
+            isDuplicate = alreadyOwned
         };
     }
 
     // 5회 뽑기
     public List<GachaResult> DrawGachaFiveTimes(int gachaTypeId)
     {
-        var result = new List<GachaResult>();   
+        var result = new List<GachaResult>();
 
         var gachaType = DataTableManager.GachaTypeTable.Get(gachaTypeId);
         if (gachaType == null)
@@ -92,7 +108,7 @@ public class GachaManager : MonoBehaviour
         for (int i = 0; i < 5; i++)
         {
             var selectedItem = DrawRandomItem(gachaItems);
-            if(selectedItem != null)
+            if (selectedItem != null)
             {
                 var characterData = DataTableManager.CharacterTable.Get(selectedItem.Gacha_item);
                 if (characterData != null)
@@ -105,7 +121,15 @@ public class GachaManager : MonoBehaviour
                     }
                     else
                     {
-                        // 아이템 중복 보상 처리 
+                        if (selectedItem.Gacha_have > 0)
+                        {
+                            var itemData = DataTableManager.ItemTable.Get(selectedItem.Gacha_have);
+                            if (itemData != null)
+                            {
+                                ItemInvenHelper.AddItem(selectedItem.Gacha_have, 1); // 중복 보상 아이템 추가
+                                Debug.Log($"중복 보상 아이템 획득: {itemData.item_name}");
+                            }
+                        }
                     }
                     result.Add(new GachaResult(selectedItem, characterData));
                 }
