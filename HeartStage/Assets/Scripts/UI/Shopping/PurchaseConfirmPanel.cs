@@ -49,20 +49,36 @@ public class PurchaseConfirmPanel : MonoBehaviour
 
     private void OnPurchaseButtonClicked()
     {
-        if(tableID < 101001) // 기능 구입은 나중에 구현
+        if (tableID < 101001) // 기능 구입은 나중에 구현
         {
             ShowImpossiblePurchaseAsync().Forget();
             return;
         }
 
         var shopTableData = DataTableManager.ShopTable.Get(tableID);
-        if(shopTableData.Shop_currency < 10) // 현금 구매는 나중에 구현하기
+        if (shopTableData.Shop_currency < 10) // 현금 구매는 나중에 구현하기
         {
             ShowImpossiblePurchaseAsync().Forget();
             return;
         }
 
+        // 라이트 스틱, 하트 스틱으로 아이템 구매
+        var purchaseItemList = shopTableData.GetValidItems();
+        if (shopTableData.Shop_currency == ItemID.LightStick)
+        {
+            if (!ItemInvenHelper.TryConsumeItem(ItemID.LightStick, shopTableData.Shop_price))
+            {
+                // 구매 실패
+                ShowImpossiblePurchaseAsync().Forget();
+                return;
+            }
 
+            // 구매 성공, 아이템 지급
+            foreach (var item in purchaseItemList)
+            {
+                ItemInvenHelper.AddItem(item.id,item.amount);
+            }
+        }
     }
 
     private async UniTaskVoid ShowImpossiblePurchaseAsync()

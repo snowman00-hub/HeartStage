@@ -26,7 +26,7 @@ public class ShopData
     public string Shop_info { get; set; }
     public string Shop_icon { get; set; }
 
-    public List<(int type, int amount)> GetValidItems()
+    public List<(int id, int amount)> GetValidItems()
     {
         var list = new List<(int, int)>();
 

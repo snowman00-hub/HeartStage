@@ -64,8 +64,8 @@ public class ItemID
     public static readonly int LightStick = 7101;
     public static readonly int HeartStick = 7102;
     public static readonly int Exp = 7103;
-    public static readonly int TrainingPoint = 7104;
-    public static readonly int LuckyDrawCoupon = 7105;
+    public static readonly int DreamEnergy = 7104;
+    public static readonly int TrainingPoint = 7105;
 }
 
 public class CurrencyIcon

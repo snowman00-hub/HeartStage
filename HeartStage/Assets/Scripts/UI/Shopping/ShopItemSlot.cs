@@ -11,16 +11,26 @@ public class ShopItemSlot : MonoBehaviour
     [SerializeField] private Image itemImage;
     [SerializeField] private TextMeshProUGUI priceText;
     [SerializeField] private Image currencyIcon;
+    [SerializeField] private Button clickButton;
+
+    private void Awake()
+    {
+        Init(shopTableID);
+    }
+
+    private void Start()
+    {
+        clickButton.onClick.AddListener(() => PurchaseConfirmPanel.Instance.Open(shopTableID));
+    }
 
     public void Init(int id)
     {
         shopTableID = id;
         var shopTableData = DataTableManager.ShopTable.Get(id);
-        var itemData = DataTableManager.ItemTable.Get(shopTableData.Shop_item_type1); // 일단 1번 아이템만
 
         itemNameText.text = shopTableData.Shop_item_name;
 
-        var texture = ResourceManager.Instance.Get<Texture2D>(itemData.prefab);
+        var texture = ResourceManager.Instance.Get<Texture2D>(shopTableData.Shop_icon);
         itemImage.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
         
         priceText.text = $"{shopTableData.Shop_price}";

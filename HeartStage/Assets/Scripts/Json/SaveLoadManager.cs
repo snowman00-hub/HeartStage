@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using SaveDataVC = SaveDataV1;
@@ -134,5 +133,4 @@ public class SaveLoadManager
 
         Save(); // 최종 1회 저장
     }
-
 }
