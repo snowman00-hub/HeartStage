@@ -163,16 +163,16 @@ public class CharacterDetailPanel : MonoBehaviour
         var skillIds = DataTableManager.CharacterTable.GetSkillIds(charId);
         if (skillIds == null || skillIds.Count == 0)
         {
-            // 스킬이 없으면 모든 슬롯 비우기
+            // 스킬이 없으면 모든 슬롯 비우고 끄기
             for (int i = 0; i < skillImages.Length; i++)
             {
                 skillImages[i].sprite = null;
+                skillImages[i].gameObject.SetActive(false);
             }
             return;
         }
 
         // 3) 스킬 슬롯 채우기
-        //    skillImages 길이와 skillIds.Count 중 더 작은 쪽까지만 사용
         int count = Mathf.Min(skillImages.Length, skillIds.Count);
 
         for (int i = 0; i < count; i++)
@@ -182,16 +182,17 @@ public class CharacterDetailPanel : MonoBehaviour
             if (skillData == null)
             {
                 skillImages[i].sprite = null;
+                skillImages[i].gameObject.SetActive(false);
                 continue;
             }
 
-            // ★ 여기를 네 실제 스킬 아이콘 필드명으로 바꿔야 함
-            // 예: skillData.skill_iconName / skill_icon / icon_imageName 등
-            string iconKey = skillData.icon_prefab; // <- 이 줄만 너 필드명에 맞춰 수정
+            // 🔹 네 스킬 아이콘 키 필드명
+            string iconKey = skillData.icon_prefab; // 여기 필드명 맞게 유지
 
             if (string.IsNullOrEmpty(iconKey))
             {
                 skillImages[i].sprite = null;
+                skillImages[i].gameObject.SetActive(false);
                 continue;
             }
 
@@ -200,6 +201,7 @@ public class CharacterDetailPanel : MonoBehaviour
             {
                 Debug.LogWarning($"[CharacterDetailPanel] Skill Texture 로드 실패: {iconKey}");
                 skillImages[i].sprite = null;
+                skillImages[i].gameObject.SetActive(false);
                 continue;
             }
 
@@ -209,11 +211,14 @@ public class CharacterDetailPanel : MonoBehaviour
                 new Vector2(0.5f, 0.5f)
             );
 
-            skillImages[i].sprite = sprite;
             _runtimeSkillSprites[i] = sprite;
+            skillImages[i].sprite = sprite;
+
+            // ✅ 랭크업으로 새 스킬 생길 때 다시 켜주기
+            skillImages[i].gameObject.SetActive(true);
         }
 
-        // 4) 남는 슬롯이 있으면 비워주기
+        // 4) 남는 슬롯은 비우고 끄기
         for (int i = count; i < skillImages.Length; i++)
         {
             skillImages[i].sprite = null;
