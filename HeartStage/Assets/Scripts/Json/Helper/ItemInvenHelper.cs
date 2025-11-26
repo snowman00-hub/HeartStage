@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
 
 public static class ItemInvenHelper
 {
@@ -12,7 +13,7 @@ public static class ItemInvenHelper
         else
             Items[id] = amount;
 
-        SaveLoadManager.Save();
+        SaveLoadManager.SaveToServer().Forget();
         LobbyManager.Instance?.MoneyUISet();
 
     }
@@ -28,7 +29,7 @@ public static class ItemInvenHelper
         if (Items[id] <= 0)
             Items.Remove(id);
 
-        SaveLoadManager.Save();
+        SaveLoadManager.SaveToServer().Forget();
         LobbyManager.Instance?.MoneyUISet();
         return true;
     }

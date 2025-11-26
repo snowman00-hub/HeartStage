@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Cysharp.Threading.Tasks;
+using Newtonsoft.Json;
 using System;
 using System.IO;
 using UnityEngine;
@@ -12,7 +13,7 @@ public class SaveLoadManager
 
     static SaveLoadManager()
     {
-        Load();
+        //Load();
     }
 
     private static readonly string[] SaveFilename =
@@ -30,6 +31,45 @@ public class SaveLoadManager
         Formatting = Formatting.Indented,
         TypeNameHandling = TypeNameHandling.All
     };
+
+    // 서버에서 로드
+    public static async UniTask<bool> LoadFromServer()
+    {
+        string userId = AuthManager.Instance.UserId;
+
+        if (string.IsNullOrEmpty(userId))
+        {
+            Debug.LogError("LoadFromServer: userId 없음");
+            return false;
+        }
+
+        string json = await CloudSaveManager.Instance.LoadAsync(userId);
+
+        if (json == null)
+        {
+            Debug.Log("LoadFromServer: 서버에 데이터 없음");
+            return false;
+        }
+
+        Data = JsonConvert.DeserializeObject<SaveDataV1>(json);
+        return true;
+    }
+
+    // 서버에 저장 SaveLoadManager.SaveToServer().Forget()으로 쓰기
+    // 확실히 저장 해야할때만 await SaveToServer()하기 ex) 앱 종료시?
+    public static async UniTask SaveToServer()
+    {
+        string userId = AuthManager.Instance.UserId;
+
+        if (string.IsNullOrEmpty(userId))
+        {
+            Debug.LogError("SaveToServer: userId 없음, 저장 불가");
+            return;
+        }
+
+        string json = JsonConvert.SerializeObject(Data, Formatting.Indented);
+        await CloudSaveManager.Instance.SaveAsync(userId, json);
+    }
 
     public static bool Save(int slot = 0)
     {
@@ -55,6 +95,7 @@ public class SaveLoadManager
             return false;
         }
     }
+
     public static bool Load(int slot = 0)
     {
         if (slot < 0 || slot > SaveFilename.Length)

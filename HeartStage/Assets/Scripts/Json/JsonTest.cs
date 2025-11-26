@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Cysharp.Threading.Tasks;
+using UnityEngine;
 
 public class JsonTest : MonoBehaviour
 {
@@ -7,7 +8,7 @@ public class JsonTest : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Return))
         {
             Debug.Log("Save");
-            SaveLoadManager.Save();
+            SaveLoadManager.SaveToServer().Forget();
         }
 
         if (Input.GetKeyDown(KeyCode.Space))

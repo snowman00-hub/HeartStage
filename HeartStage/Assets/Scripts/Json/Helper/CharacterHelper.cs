@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
 using UnityEngine;
 
 public static class CharacterHelper
@@ -26,7 +27,7 @@ public static class CharacterHelper
         if (!CharacterExpById.ContainsKey(baseId))
             CharacterExpById[baseId] = 0;
 
-        SaveLoadManager.Save(); // 원하면 즉시 저장
+        SaveLoadManager.SaveToServer().Forget(); // 원하면 즉시 저장
     }
 
     public static void ReplaceOwnedId(int currentId, int nextId, int remainExp)
@@ -55,6 +56,6 @@ public static class CharacterHelper
             CharacterExpById[startId] = remainExp;
         }
 
-        SaveLoadManager.Save(); // 최종 1회 저장
+        SaveLoadManager.SaveToServer().Forget(); // 최종 1회 저장
     }
 }

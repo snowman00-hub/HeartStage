@@ -15,7 +15,7 @@ public class BootStrap : MonoBehaviour
     // Scene Addressable 주소 바꾸지 말기, 그냥 체크만 하기
     private async UniTask Start()
     {
-        // 처음 한번만 로드하기
+        // 처음 한번만 로드하기, 로그 아웃시 다시 BootScene으로 돌아옴
         if (!IsInitialized)
         {
             // Addressables 초기화
@@ -40,8 +40,9 @@ public class BootStrap : MonoBehaviour
 #endif
         // Firebase 로그인 될때까지 대기
         await UniTask.WaitUntil(()=> AuthManager.Instance.IsLoggedIn);
-
-        // 세이브 데이터 로드
+        // 서버에서 데이터 로드
+        await SaveLoadManager.LoadFromServer();
+        // 세이브 비어있으면 기본값 생성
         TryLoad();
 
         await Addressables.LoadSceneAsync(targetScene);
@@ -67,7 +68,7 @@ public class BootStrap : MonoBehaviour
             foreach (var id in ownedBaseIds)
                 SaveLoadManager.Data.ownedIds.Add(id); // List<int>면 이렇게
 
-            SaveLoadManager.Save();
+            SaveLoadManager.SaveToServer().Forget();
         }
     }
 }
