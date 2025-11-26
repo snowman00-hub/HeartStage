@@ -12,9 +12,13 @@ public class TestCharacterDataLaod : MonoBehaviour
     public RectTransform content;     // ScrollView → Viewport → Content
     public DragMe CharacterPrefab;    // DragMe 달려있는 공통 프리팹
 
+    public bool IsReady { get; private set; }
+
     // Start를 async로 써서 Addressables 기다리게 만들자
     private async void Start()
     {
+        IsReady = false;
+
         // 1) 라벨 "CharacterData" 달린 SO들 전부 로드
         AsyncOperationHandle<IList<CharacterData>> handle =
             Addressables.LoadAssetsAsync<CharacterData>(
@@ -46,6 +50,8 @@ public class TestCharacterDataLaod : MonoBehaviour
 
         // 필요하면 나중에 Release (여기선 안 해도 큰 문제는 없음)
         // Addressables.Release(handle);
+
+        IsReady = true;
     }
 
     private void InstantiateCharacters()
