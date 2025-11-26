@@ -231,8 +231,15 @@ public class CharacterDropdownFilter : MonoBehaviour
             var dragMeInstance = Instantiate(characterPrefab, content);
             dragMeInstance.name = characterData.name;
 
-            // DragMe 프리팹에 CharacterData 꽂기 (기존 CharacterDataLoad 방식 그대로)
+            // DragMe 프리팹에 CharacterData 꽂기
             dragMeInstance.characterData = characterData;
+
+            // 여기 추가!
+            var panel = dragMeInstance.GetComponent<CharacterSelectPanel>();
+            if (panel != null)
+            {
+                panel.Init(characterData);
+            }
 
             if (dragMeInstance.transform is RectTransform rect)
             {

@@ -14,6 +14,8 @@ public class SceneLoader : MonoBehaviour
 
     private LoadingUI _loadingUI;
 
+    private float _currentProgress = 0f;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -50,27 +52,31 @@ public class SceneLoader : MonoBehaviour
     private async UniTask InternalLoadScene(string address, LoadSceneMode mode)
     {
         _loadingUI?.Show();
-        _loadingUI?.SetProgress(0f);
+        SetProgressInternal(0f);
 
         var handle = Addressables.LoadSceneAsync(address, mode, activateOnLoad: false);
 
+        // 🔹 Addressables 로딩 단계: 0.0 ~ 0.9까지만 사용
         while (!handle.IsDone)
         {
-            _loadingUI?.SetProgress(handle.PercentComplete);
+            float p = handle.PercentComplete * 0.9f;
+            SetProgressInternal(p);
             await UniTask.Yield();
         }
 
-        SceneInstance sceneInstance = handle.Result;
+        var sceneInstance = handle.Result;
         var activateOp = sceneInstance.ActivateAsync();
 
+        // 🔹 활성화 단계에서는 굳이 계속 만지지 않고,
+        //    최대 0.9까지만 유지 (혹시라도 0.8→0.9 올라갈 수는 있음)
         while (!activateOp.isDone)
         {
-            _loadingUI?.SetProgress(Mathf.Lerp(handle.PercentComplete, 1f, activateOp.progress));
+            float p = 0.9f; // 또는 0.9f까지 부드럽게 보간해도 됨
+            SetProgressInternal(p);
             await UniTask.Yield();
         }
-
-        _loadingUI?.SetProgress(1f);
     }
+
 
     public static void HideLoading()
     {
@@ -83,5 +89,19 @@ public class SceneLoader : MonoBehaviour
         if (Instance == null || Instance._loadingUI == null) return;
         await UniTask.Delay(ms);
         Instance._loadingUI.Hide();
+    }
+
+    private void SetProgressInternal(float value01)
+    {
+        if (_loadingUI == null) return;
+
+        // 0~1 클램프 + "지금까지 값보다 작아지지 않도록" 보장
+        _currentProgress = Mathf.Clamp01(Mathf.Max(_currentProgress, value01));
+        _loadingUI.SetProgress(_currentProgress);
+    }
+    public static void SetProgressExternal(float value01)
+    {
+        if (Instance == null) return;
+        Instance.SetProgressInternal(value01);
     }
 }

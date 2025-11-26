@@ -1,29 +1,38 @@
 ﻿using Cysharp.Threading.Tasks;
 using UnityEngine;
+
 public class StageSceneController : MonoBehaviour
 {
     [Header("세팅이 끝나야 하는 애들")]
     public StageSetupWindow stageSetup;
     public OwnedCharacterSetup ownedSetup;
-    // 필요하면 다른 애도 추가: public SomeOtherSetup otherSetup;
 
     private async void Awake()
     {
         Time.timeScale = 0f;
-        // 참조 들어올 때까지
+
         while (stageSetup == null || ownedSetup == null)
             await UniTask.Yield();
 
-        // 둘 다 준비될 때까지 기다림
-        await UniTask.WaitUntil(() =>
-            stageSetup.IsReady &&
-            ownedSetup.IsReady
-        );
+        float t = 0f;
+        const float fillDuration = 2.0f;
 
-        // 1) 먼저 로딩창 끄기
-        GameSceneManager.NotifySceneReady(SceneType.StageScene, 0);
+        while (!(stageSetup.IsReady && ownedSetup.IsReady))
+        {
+            t += Time.unscaledDeltaTime;
 
-        // 2) 로딩이 완전히 내려가도록 한 프레임 넘기고
-        await UniTask.Yield(PlayerLoopTiming.LastPostLateUpdate);
+            float lerp01 = Mathf.Clamp01(t / fillDuration);
+            float progress = Mathf.Lerp(0.9f, 1.0f, lerp01);
+
+            SceneLoader.SetProgressExternal(progress);
+
+            await UniTask.Yield();
+        }
+
+        SceneLoader.SetProgressExternal(1.0f);
+
+        GameSceneManager.NotifySceneReady(SceneType.StageScene, 100);
+        await UniTask.Yield();
     }
+
 }

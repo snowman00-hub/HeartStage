@@ -27,22 +27,6 @@ public class GoTestScene : MonoBehaviour
 
     private async void OnClickGoTestScene()
     {
-        if (testScene == null || !testScene.RuntimeKeyIsValid())
-        {
-            Debug.LogError("[GoTestScene] testScene Addressable reference is not valid.");
-            return;
-        }
-
-        // Addressables 씬 로드 (Single이면 기존 씬 자동 언로드)
-        var handle = Addressables.LoadSceneAsync(
-            testScene,
-            LoadSceneMode.Single,
-            activateOnLoad: true
-        ); // :contentReference[oaicite:1]{index=1}
-
-        await handle.ToUniTask();
-
-        if (handle.Status != AsyncOperationStatus.Succeeded)
-            Debug.LogError($"[GoTestScene] Load failed: {handle.OperationException}");
+        await GameSceneManager.ChangeScene(SceneType.TestStageScene);
     }
 }

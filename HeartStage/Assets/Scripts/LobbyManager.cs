@@ -40,8 +40,11 @@ public class LobbyManager : MonoBehaviour
     {
         MoneyUISet();
 
+        // 로비 씬 로드 완료 표시 100%
+        SceneLoader.SetProgressExternal(1.0f);
+
         // 로비 씬 준비 완료 알림
-        GameSceneManager.NotifySceneReady(SceneType.LobbyScene, 300);
+        GameSceneManager.NotifySceneReady(SceneType.LobbyScene, 100);
     }
 
     // 외부(스테이지 버튼 등)에서 stageId 넣어 호출하는 표준 진입점

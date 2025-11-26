@@ -50,24 +50,32 @@ public class TestCharacterDataLaod : MonoBehaviour
 
     private void InstantiateCharacters()
     {
+        if (content == null || CharacterPrefab == null)
+        {
+            Debug.LogWarning("[OwnedCharacterSetup] content 또는 CharacterPrefab 미할당");
+            return;
+        }
+
+        // 기존 자식들 정리 (리프레시 가능하게)
+        for (int i = content.childCount - 1; i >= 0; i--)
+        {
+            Destroy(content.GetChild(i).gameObject);
+        }
+
         foreach (var characterData in characters)
         {
-            // 공통 DragMe 프리팹을 Content 밑에 생성
-            DragMe dragMeInstance = Instantiate(CharacterPrefab, content);
-            dragMeInstance.name = characterData.name;  // or characterData.ID.ToString()
+            var dragMeInstance = Instantiate(CharacterPrefab, content);
+            dragMeInstance.name = characterData.char_name;
 
-            // DragMe 쪽에 SO 꽂아주기
-            // 네 DragMe에 RebindCharacter가 있으면 이거 쓰는 걸 추천
-            if (dragMeInstance != null)
-            {
-                // 1) 레지스트리까지 갱신하고 싶으면:
-                //dragMeInstance.RebindCharacter(characterData);
+            // 1) DragMe에 데이터 꽂고
+            dragMeInstance.characterData = characterData;
 
-                // 2) 단순 바인딩만이면:
-                dragMeInstance.characterData = characterData;
-            }
+            // 2) CharacterSelectPanel도 바로 초기화
+            var panel = dragMeInstance.GetComponent<CharacterSelectPanel>();
+            if (panel != null)
+                panel.Init(characterData);
 
-            // RectTransform 초기화 (LayoutGroup이 위치 정리하게)
+            // 3) RectTransform 정리
             if (dragMeInstance.transform is RectTransform rect)
             {
                 rect.localScale = Vector3.one;
