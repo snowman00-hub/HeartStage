@@ -23,6 +23,11 @@ public class LoginUI : MonoBehaviour
     [SerializeField]
     private TextMeshProUGUI errorText;
 
+    private void OnEnable()
+    {
+        errorText.text = string.Empty;
+    }
+
     private async UniTaskVoid Start()
     {
         // 로그인 준비 되기 전엔 버튼 막기
@@ -52,7 +57,7 @@ public class LoginUI : MonoBehaviour
         }
         else
         {
-            ShowError(error);
+            ShowError("로그인 실패");
         }
 
         SetButtonsInteractable(true);
@@ -74,7 +79,7 @@ public class LoginUI : MonoBehaviour
         }
         else
         {
-            ShowError(error);
+            ShowError("회원가입 실패");
         }
 
         SetButtonsInteractable(true);
@@ -93,7 +98,7 @@ public class LoginUI : MonoBehaviour
         }
         else
         {
-            ShowError(error);
+            ShowError("익명 로그인 실패");
         }
 
         SetButtonsInteractable(true);
@@ -118,8 +123,6 @@ public class LoginUI : MonoBehaviour
         {
 
         }
-
-        errorText.text = string.Empty;
     }
 
     // 버튼 상호작용 세팅
