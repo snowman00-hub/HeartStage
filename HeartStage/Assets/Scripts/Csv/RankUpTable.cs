@@ -30,10 +30,6 @@ public class RankUpTable : DataTable
             {
                 table.Add(item.Upgrade_ingrd_C1, item);
             }
-            else
-            {
-                Debug.LogError($"랭크업 ID 중복! Upgrade_ID: {item.Upgrade_ingrd_C1}");
-            }
         }
 
         Addressables.Release(handle);
@@ -43,7 +39,6 @@ public class RankUpTable : DataTable
     {
         if (!table.ContainsKey(rankupId))
         {
-            Debug.LogWarning($"[RankUpTable] Upgrade_ID {rankupId} 없음");
             return null;
         }
 
