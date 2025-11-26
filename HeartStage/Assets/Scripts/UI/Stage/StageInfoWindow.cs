@@ -2,11 +2,16 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 
 public class StageInfoWindow : GenericWindow
 {
     [Header("Reference")]
-    [SerializeField] private WindowManager windowManager;    
+    [SerializeField] private WindowManager windowManager;
+    [SerializeField] private Slider waveProgressSlider;
+
+    [SerializeField] private List<GameObject> waveCircles = new List<GameObject>();
 
     [Header("Button")]
     [SerializeField] private Button closeButton;
@@ -15,6 +20,10 @@ public class StageInfoWindow : GenericWindow
     [Header("UI")]
     [SerializeField] private TextMeshProUGUI stageStepText;
     [SerializeField] private TextMeshProUGUI stageNameText;
+
+    [Header("Wave Progress Colors")]
+    [SerializeField] private Color completedCircleColor = Color.yellow;
+    [SerializeField] private Color defaultCircleColor = Color.white;
 
     [Header("Field")]
     private StageCSVData currentStageData; // 현재 선택된 스테이지 데이터
@@ -25,10 +34,12 @@ public class StageInfoWindow : GenericWindow
         closeButton.onClick.AddListener(() => OnCloseButtonClicked());
         stageStartButton.onClick.AddListener(() => OnStageStartButtonClicked());
     }
+
     public override void Open()
     {
         base.Open();
         UpdateText();
+        UpdateWaveProgress();
     }
 
     public override void Close()
@@ -41,14 +52,27 @@ public class StageInfoWindow : GenericWindow
         Close();
     }
 
+    // 이벤트 구독
+    private void OnEnable()
+    {
+        MonsterSpawner.OnWaveCleared += UpdateWaveProgress; 
+    }
+
+    private void OnDisable()
+    {
+        MonsterSpawner.OnWaveCleared -= UpdateWaveProgress; 
+    }
+
     public void SetStageData(StageCSVData stageData)
     {
         currentStageData = stageData;
-        if(gameObject.activeInHierarchy)
+        if (gameObject.activeInHierarchy)
         {
             UpdateText();
+            UpdateWaveProgress();
         }
     }
+
     private void UpdateText()
     {
         var sb = new StringBuilder();
@@ -59,6 +83,120 @@ public class StageInfoWindow : GenericWindow
         sb.Clear();
         sb.Append($"{currentStageData.stage_name}");
         stageNameText.text = sb.ToString();
+    }
+
+    private void UpdateWaveProgress()
+    {
+        if (currentStageData == null) return;
+
+        // 현재 스테이지의 웨이브 클리어 상태 확인
+        int clearedWaves = GetClearedWaveCount();
+        int totalWaves = GetTotalWaveCount();
+
+        float progressValue = 0f;
+        if (clearedWaves >= 3)
+        {
+            progressValue = 1f;          
+        }
+
+        else if (clearedWaves >= 2)
+        {
+            progressValue = 0.5f;         
+        }
+
+        else if (clearedWaves >= 1)
+        {
+            progressValue = 0f;          
+        }
+
+        else
+        {
+            progressValue = 0f;         
+        }
+
+        waveProgressSlider.value = progressValue;
+
+        // 서클 표시 및 색상 업데이트
+        UpdateCircles(clearedWaves, totalWaves);
+    }
+
+    private int GetClearedWaveCount()
+    {
+        if (currentStageData == null || DataTableManager.StageTable == null) return 0;
+
+        // 현재 스테이지의 웨이브 ID 목록 가져오기
+        var waveIds = DataTableManager.StageTable.GetWaveIds(currentStageData.stage_ID);
+        if (waveIds == null || waveIds.Count == 0) return 0;
+
+        int clearedCount = 0;
+        var clearWaveList = SaveLoadManager.Data.clearWaveList;
+
+        foreach (var waveId in waveIds)
+        {
+            var waveData = DataTableManager.StageWaveTable?.Get(waveId);
+            if (waveData != null)
+            {
+                var rewardData = DataTableManager.RewardTable?.Get(waveData.wave_reward);
+                if (rewardData != null && clearWaveList.Contains(rewardData.reward_id))
+                {
+                    clearedCount++;
+                }
+            }
+        }
+
+        return clearedCount;
+    }
+
+    private int GetTotalWaveCount()
+    {
+        if (currentStageData == null || DataTableManager.StageTable == null)
+        {
+            return GetWaveCountFromStageData(); // CSV 데이터에서 직접 계산
+        }
+
+        var waveIds = DataTableManager.StageTable.GetWaveIds(currentStageData.stage_ID);
+        return waveIds?.Count ?? GetWaveCountFromStageData();
+    }
+
+    // StageCSVData에서 직접 웨이브 개수 계산
+    private int GetWaveCountFromStageData()
+    {
+        if (currentStageData == null) return 3;
+
+        int waveCount = 0;
+        if (currentStageData.wave1_id > 0) waveCount++;
+        if (currentStageData.wave2_id > 0) waveCount++;
+        if (currentStageData.wave3_id > 0) waveCount++;
+        if (currentStageData.wave4_id > 0) waveCount++;
+
+        return waveCount > 0 ? waveCount : 3; // 최소 3개
+    }
+
+    private void UpdateCircles(int clearedWaves, int totalWaves)
+    {
+        // 필요한 만큼만 서클 활성화
+        for (int i = 0; i < waveCircles.Count; i++)
+        {
+            if (waveCircles[i] == null) continue;
+
+            if (i < totalWaves)
+            {
+                // 웨이브가 있는 경우 활성화
+                waveCircles[i].SetActive(true);
+
+                var image = waveCircles[i].GetComponent<Image>();
+                if (image != null)
+                {
+                    // 클리어 여부에 따라 색상 변경
+                    image.color = (i < clearedWaves) ? completedCircleColor : defaultCircleColor;
+                }
+            }
+            else
+            {
+                // 웨이브가 없는 경우 비활성화
+                waveCircles[i].SetActive(false);
+            }
+        }
     }
 
     private void OnStageStartButtonClicked()
@@ -76,6 +214,7 @@ public class StageInfoWindow : GenericWindow
         // 게임 씬으로 전환
         StartStage();
     }
+
     private void SaveSelectedStageData()
     {
         // 선택된 스테이지 정보를 저장
@@ -85,6 +224,18 @@ public class StageInfoWindow : GenericWindow
         PlayerPrefs.SetInt("StartingWave", 1); // 첫 번째 웨이브부터 시작
         PlayerPrefs.Save();
     }
+
+    //private void SaveSelectedStageData()
+    //{
+    //    var gameData = SaveLoadManager.Data;
+    //    gameData.selectedStageID = currentStageData.stage_ID;
+    //    gameData.selectedStageStep1 = currentStageData.stage_step1;
+    //    gameData.selectedStageStep2 = currentStageData.stage_step2;
+    //    gameData.startingWave = 1; // 첫 번째 웨이브부터 시작
+
+    //    SaveLoadManager.SaveToServer().Forget();
+    //}
+
     private void StartStage()
     {
         if (LoadSceneManager.Instance != null)
