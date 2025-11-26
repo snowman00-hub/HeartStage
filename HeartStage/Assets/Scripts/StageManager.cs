@@ -10,6 +10,8 @@ public class StageManager : MonoBehaviour
     [SerializeField] private WindowManager windowManager;
     [SerializeField] private SpriteRenderer backGroundSprite;
 
+    [SerializeField] private GameObject stage; // 옮길 스테이지     
+
     public StageUI StageUI;
     public LevelUpPanel LevelUpPanel;
     public Slider expSlider;

@@ -114,15 +114,13 @@ public class BooingBossSkill : MonoBehaviour, ISkillBehavior
             originalAttackSpeeds[character] = characterData.atk_speed;
         }
 
-        // 새로운 공격속도 적용 (CSV 값 기준으로 느려짐)
+        // 새로운 공격속도 적용
         float newAttackSpeed = originalAttackSpeeds[character] * (1 + value);
         characterData.atk_speed = newAttackSpeed;
 
 
         // 디버프 종료 시간 설정
         debuffEndTimes[character] = Time.time + skillDuration;
-
-        //Debug.Log($"{character.gameObject.name} 공격속도 디버프: {originalAttackSpeeds[character]} → {newAttackSpeed} (+{value * 100}% 느림, {skillDuration}초간)");
     }
 
     /// 디버프 만료 체크 및 해제
