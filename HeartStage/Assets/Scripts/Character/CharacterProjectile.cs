@@ -114,18 +114,39 @@ public class CharacterProjectile : MonoBehaviour
     // 히트이펙트 발동
     private async UniTask HitEffectAsync(Vector3 hitPos)
     {
+        if (PoolManager.Instance == null) 
+            return;
+
         var hitGo = PoolManager.Instance.Get(hitEffectId);
+        if (hitGo == null)
+            return;
+
         hitGo.transform.position = hitPos;
 
         var particle = hitGo.GetComponent<ParticleSystem>();
-        particle.Play();
-
-        await UniTask.WaitUntil(() => particle == null || particle.IsAlive() == false);
-
-        if (hitGo != null)
+        if (particle == null)
         {
             PoolManager.Instance.Release(hitEffectId, hitGo);
+            return;
         }
+
+        particle.Play();
+
+        try
+        {
+            await UniTask.WaitUntil(
+                () => particle == null || particle.IsAlive() == false,
+                PlayerLoopTiming.Update,
+                this.GetCancellationTokenOnDestroy()
+            );
+        }
+        catch
+        {
+            // 씬 전환 or destroy
+        }
+
+        if (PoolManager.Instance != null)
+            PoolManager.Instance.Release(hitEffectId, hitGo);
     }
 
     // 딜레이 후에 오브젝트 풀로 돌아가기
@@ -149,13 +170,12 @@ public class CharacterProjectile : MonoBehaviour
 
         isReleased = true;
 
-        if (PoolManager.Instance != null)
+        if (PoolManager.Instance == null || PoolManager.Instance.Equals(null))
         {
-            PoolManager.Instance.Release(id, gameObject);
+            Destroy(gameObject);
+            return;
         }
-        else
-        {
-            Destroy(gameObject);  // 씬 전환 등 PoolManager 없으면 그냥 제거
-        }
+
+        PoolManager.Instance.Release(id, gameObject);
     }
 }

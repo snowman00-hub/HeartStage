@@ -32,7 +32,7 @@ public class SaveLoadManager
         TypeNameHandling = TypeNameHandling.All
     };
 
-    // 서버에서 로드
+    // 서버에서 로드, BootScene에서 하고 있음 다른 데서 쓰지 말기
     public static async UniTask<bool> LoadFromServer()
     {
         string userId = AuthManager.Instance.UserId;
@@ -71,6 +71,7 @@ public class SaveLoadManager
         await CloudSaveManager.Instance.SaveAsync(userId, json);
     }
 
+    // 지우진 말기, Save() 대신 SaveLoadManager.SaveToServer().Forget()쓰기
     public static bool Save(int slot = 0)
     {
         if (Data == null || slot < 0 || slot > SaveFilename.Length)
