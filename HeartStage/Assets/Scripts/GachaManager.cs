@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UnityEditor.U2D.Animation;
 using UnityEngine;
 public struct GachaResult
 {
@@ -59,7 +60,13 @@ public class GachaManager : MonoBehaviour
             return null;
         }
 
-        bool alreadyOwned = SaveLoadManager.Data.ownedIds.Contains(selectedItem.Gacha_item);
+        var characterData = DataTableManager.CharacterTable.Get(selectedItem.Gacha_item);
+        if (characterData == null)
+        {
+            return null;
+        }
+
+        bool alreadyOwned = SaveLoadManager.Data.unlockedByName.TryGetValue(characterData.char_name, out bool isUnlocked) && isUnlocked;
         if (!alreadyOwned)
         {
             // 캐릭터 획득 처리     
@@ -112,7 +119,8 @@ public class GachaManager : MonoBehaviour
                 var characterData = DataTableManager.CharacterTable.Get(selectedItem.Gacha_item);
                 if (characterData != null)
                 {
-                    bool alreadyOwned = SaveLoadManager.Data.ownedIds.Contains(selectedItem.Gacha_item);
+                    bool alreadyOwned = SaveLoadManager.Data.unlockedByName.TryGetValue(characterData.char_name, out bool isUnlocked) && isUnlocked;
+
                     if (!alreadyOwned)
                     {
                         // 캐릭터 획득 처리     

@@ -366,7 +366,7 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         }
     }
 
-    // 페이드 아웃으로 없어진 후에 시각적 자식 활성화
+    // 페이드 아웃으로 없어진 후에 이미지 활성화
     private void ActivateVisual()
     {
         if (monsterData != null && !string.IsNullOrEmpty(monsterData.prefab1))

@@ -10,8 +10,16 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
     private MonsterBehavior monsterBehavior;
     private SkillCSVData skillData;
     private MonsterData cachedMonsterData;
-    private MonsterSpawner monsterSpawner; 
+    private MonsterSpawner monsterSpawner;
+    private int currentSkillId = 0; // 현재 스킬 ID 저장
 
+
+    public void SetSkillId(int skillId)
+    {
+        currentSkillId = skillId;
+        Debug.Log($"DeceptionBossSkill.SetSkillId 호출됨 - 스킬 ID: {skillId}");
+
+    }
 
     public async UniTask InitializeWithMonsterData(MonsterData monsterData)
     {
@@ -40,7 +48,10 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
     private async UniTask InitializeWithData(MonsterData monsterData)
     {
         // 스킬 ID 결정
-        int skillId = GetSkillIdForBoss(monsterData.id);
+        int skillId = currentSkillId;
+        Debug.Log($"🎯 DeceptionBossSkill 초기화 시작 - 보스 ID: {monsterData.id}, 현재 스킬 ID: {skillId}");
+
+
         if (skillId == 0)
         {
             Debug.LogError($"보스 ID {monsterData.id}에 해당하는 스킬을 찾을 수 없음");
@@ -84,23 +95,10 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
             return;
         }
 
-
-
         await InitializePool();
 
         isInitialized = true; // 초기화 완료 플래그 설정
         Debug.Log($"DeceptionBossSkill 초기화 완료 - 보스: {monsterData.id}, 스킬: {skillId}, 소환몬스터: {poolId}");
-    }
-
-
-    private int GetSkillIdForBoss(int bossId)
-    {
-        return bossId switch
-        {
-            22201 => 31001, // 보스 아이디 22201에 대한 스킬 아이디
-            22214 => 31003, // 보스 아이디 22214에 대한 스킬 아이디
-            _ => 0
-        };
     }
 
     private async UniTask InitializePool()
@@ -133,6 +131,8 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
 
     public void Execute()
     {
+        Debug.Log($"🚀 DeceptionBossSkill.Execute 호출됨 - 스킬 ID: {currentSkillId}");
+
         var bossAddScript = GetComponent<BossAddScript>();
         if (bossAddScript == null || !bossAddScript.IsBossSpawned())
         {

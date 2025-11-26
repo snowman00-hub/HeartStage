@@ -19,6 +19,7 @@ public class MonsterData : ScriptableObject
     // 새로 추가된 필드들
     public int skillId1;
     public int skillId2;
+    public int skillId3; // 이 필드를 추가해야 함
     public int itemId1;
     public int dropCount1;
     public int itemId2;
@@ -48,6 +49,7 @@ public class MonsterData : ScriptableObject
         // 새로운 필드들
         skillId1 = csvData.skill_id1;
         skillId2 = csvData.skill_id2;
+        skillId3 = csvData.skill_id3; // 이 라인도 추가해야 함
         itemId1 = csvData.item_id1;
         dropCount1 = csvData.drop_count1;
         itemId2 = csvData.item_id2;
@@ -101,6 +103,7 @@ public class MonsterData : ScriptableObject
             speed = moveSpeed,
             skill_id1 = skillId1,
             skill_id2 = skillId2,
+            skill_id3 = skillId3,
             min_level = minExp,
             max_level = maxExp,
             item_id1 = itemId1,
