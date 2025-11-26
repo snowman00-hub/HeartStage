@@ -18,6 +18,11 @@ public class StageManager : MonoBehaviour
     private Vector3 stageMidPosition = new Vector3(0f, 0f, 0f);
     private Vector3 stageDownPosition = new Vector3(0f, -7f, 0f);
 
+    private Vector3 fenceUpPosition = new Vector3(0f, 3f, 0f);
+    private Vector3 fenceMid1Position = new Vector3(0f, 4f, 0f);
+    //private Vector3 fenceMid2Position = new Vector3(0f, -4f, 0f);
+    private Vector3 fenceDownPosition = new Vector3(0f, -3f, 0f);
+
     public StageUI StageUI;
     public LevelUpPanel LevelUpPanel;
     public Slider expSlider;
@@ -286,20 +291,16 @@ public class StageManager : MonoBehaviour
         }
 
         Vector3 targetPosition = GetPositionByStagePosition(stageData.stage_position);
-
-        Debug.Log($"스테이지 {stageData.stage_ID} ({stageData.stage_step1}-{stageData.stage_step2}): " +
-                  $"stage_position = {stageData.stage_position}, 목표 위치 = {targetPosition}");
+        Vector3 fencePosition = GetPositionByFencePosition(stageData.stage_position);
 
         if (stage != null)
         {
             stage.transform.position = targetPosition;
-            Debug.Log($"Stage 오브젝트 위치 설정: {stage.transform.position}");
         }
 
         if (characterFence != null)
         {
-            characterFence.transform.position = targetPosition;
-            Debug.Log($"CharacterFence 오브젝트 위치 설정: {characterFence.transform.position}");
+            characterFence.transform.position = fencePosition;
         }
     }
 
@@ -311,6 +312,16 @@ public class StageManager : MonoBehaviour
             2 => stageMidPosition,  
             3 => stageDownPosition,  
             _ => stageDownPosition   // 기본값은 아래
+        };
+    }
+    private Vector3 GetPositionByFencePosition(int stagePosition)
+    {
+        return stagePosition switch
+        {
+            1 => fenceUpPosition,
+            2 => fenceMid1Position,
+            3 => fenceDownPosition,
+            _ => fenceDownPosition   // 기본값은 아래
         };
     }
 
