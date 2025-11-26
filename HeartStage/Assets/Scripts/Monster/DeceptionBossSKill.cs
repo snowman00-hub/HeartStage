@@ -8,9 +8,9 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
     private Dictionary<string, bool> poolsInitialized = new Dictionary<string, bool>();
     private bool isInitialized = false;
     private MonsterBehavior monsterBehavior;
-    private Dictionary<int, SkillCSVData> skillDataDict = new Dictionary<int, SkillCSVData>();
-    private Dictionary<int, MonsterData> cachedMonsterDataDict = new Dictionary<int, MonsterData>();
-    private List<int> registeredSkillIds = new List<int>();
+    private Dictionary<int, SkillCSVData> skillDataDict = new Dictionary<int, SkillCSVData>(); // 스킬 ID별 스킬 데이터
+    private Dictionary<int, MonsterData> cachedMonsterDataDict = new Dictionary<int, MonsterData>(); // 소환 몬스터 데이터 
+    private List<int> registeredSkillIds = new List<int>(); // 등록된 스킬 ID 목록 
     private MonsterSpawner monsterSpawner;
 
     public void SetSkillId(int skillId)
@@ -47,8 +47,6 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
 
     private async UniTask InitializeWithData(MonsterData monsterData)
     {
-        Debug.Log($"DeceptionBossSkill 초기화 시작 - 보스 ID: {monsterData.id}, 등록된 스킬들: [{string.Join(", ", registeredSkillIds)}]");
-
         // 모든 등록된 스킬 데이터 로드
         foreach (int skillId in registeredSkillIds)
         {
@@ -96,7 +94,7 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
                     cachedMonsterData.InitFromCSV(summonType);
                 }
             }
-            catch (System.Exception e)
+            catch
             {
                 return;
             }
