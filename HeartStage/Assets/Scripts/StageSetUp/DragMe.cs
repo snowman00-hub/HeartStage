@@ -109,10 +109,9 @@ public class DragMe : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         WasDragging = false;
         DragJustEnded = false;
 
-        _isDragging = true;
-        ApplyColor();
+        _isDragging = false;
+        IsVerticalDrag = false;
 
-        IsVerticalDrag = false;                        // 새 드래그 시작마다 초기화
         m_StartPointerPos[id] = eventData.position;
         m_Directions[id] = DragDirection.Undecided;
         m_ScrollDragging[id] = false;
@@ -145,6 +144,11 @@ public class DragMe : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
                 // ===== 세로 드래그 확정 =====
                 m_Directions[id] = DragDirection.Vertical;
                 IsVerticalDrag = true;
+
+                // 여기서만 드래그 색 적용
+                _isDragging = true;
+                ApplyColor();
+
                 StartVerticalDrag(eventData);
             }
             else
