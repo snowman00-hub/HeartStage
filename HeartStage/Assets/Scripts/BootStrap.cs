@@ -31,7 +31,14 @@ public class BootStrap : MonoBehaviour
 #else
         Application.targetFrameRate = 60;
 #endif
+        // 세이브 데이터 로드
+        TryLoad();
 
+        await Addressables.LoadSceneAsync(targetScene);
+    }
+
+    private void TryLoad()
+    {
         if (!SaveLoadManager.Load())
         {
             var charTable = DataTableManager.CharacterTable;
@@ -52,10 +59,5 @@ public class BootStrap : MonoBehaviour
 
             SaveLoadManager.Save();
         }
-
-        // 세이브 데이터 로드
-        SaveLoadManager.Load();
-
-        await Addressables.LoadSceneAsync(targetScene);
     }
 }
