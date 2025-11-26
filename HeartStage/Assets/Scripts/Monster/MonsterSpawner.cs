@@ -177,12 +177,12 @@ public class MonsterSpawner : MonoBehaviour
 
                     // 초기 상태 설정
                     monster.SetActive(false);
-                    var renderers = monster.GetComponentsInChildren<Renderer>();
-                    foreach (var renderer in renderers)
-                    {
-                        if (renderer != null)
-                            renderer.enabled = false;
-                    }
+                    //var renderers = monster.GetComponentsInChildren<Renderer>();
+                    //foreach (var renderer in renderers)
+                    //{
+                    //    if (renderer != null)
+                    //        renderer.enabled = false;
+                    //}
 
                     monsterPools[monsterId].Add(monster);
                 }
@@ -391,7 +391,7 @@ public class MonsterSpawner : MonoBehaviour
                     }
 
                     // 렌더러 활성화 및 오브젝트 활성화
-                    var renderers = monster.GetComponentsInChildren<Renderer>();
+                    var renderers = monster.GetComponentsInChildren<Renderer>(true);
                     foreach (var renderer in renderers)
                     {
                         renderer.enabled = true;
@@ -678,7 +678,7 @@ public class MonsterSpawner : MonoBehaviour
                         return false;
                     }
 
-                    var renderers = monster.GetComponentsInChildren<Renderer>();
+                    var renderers = monster.GetComponentsInChildren<Renderer>(true);
                     foreach (var renderer in renderers)
                     {
                         renderer.enabled = true;

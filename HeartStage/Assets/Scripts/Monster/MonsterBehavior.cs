@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Unity.VisualScripting;
+using UnityEngine;
 
 public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 {
@@ -73,6 +74,8 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         }
 
         lastPosition = transform.position;
+
+        ActivateVisual();
 
         SaveOriginalColor();
         ResetFadeState();
@@ -359,6 +362,26 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
             if (spriteRenderers[i] != null)
             {
                 spriteRenderers[i].color = originalSpriteColors[i];
+            }
+        }
+    }
+
+    // 페이드 아웃으로 없어진 후에 시각적 자식 활성화
+    private void ActivateVisual()
+    {
+        if (monsterData != null && !string.IsNullOrEmpty(monsterData.prefab1))
+        {
+            Transform visualChild = transform.Find(monsterData.prefab1);
+            if (visualChild != null)
+            {
+                visualChild.gameObject.SetActive(true);
+
+                // 스프라이트 복원
+                var childRenderers = visualChild.GetComponentsInChildren<SpriteRenderer>();
+                foreach (var renderer in childRenderers)
+                {
+                    renderer.color = Color.gray;
+                }
             }
         }
     }
