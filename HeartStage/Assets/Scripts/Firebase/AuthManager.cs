@@ -1,6 +1,7 @@
 ﻿using Cysharp.Threading.Tasks;
 using Firebase.Auth;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class AuthManager : MonoBehaviour
 {
@@ -21,6 +22,12 @@ public class AuthManager : MonoBehaviour
         if (instance == null)
         {
             instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+            return;
         }
     }
 
@@ -28,8 +35,9 @@ public class AuthManager : MonoBehaviour
     {
         // 초기화 기다리기
         await FirebaseInitializer.Instance.WaitForInitilazationAsync();
-
+                
         auth = FirebaseAuth.DefaultInstance;
+        // Firebase Auth 내부 상태가 바뀔 때 (로그인, 로그아웃, currentUser 내부 값 변경)
         auth.StateChanged += OnAuthStateChanger;
 
         currentUser = auth.CurrentUser;
@@ -54,16 +62,15 @@ public class AuthManager : MonoBehaviour
         }
     }
 
+
+    // 익명 로그인 시도
     public async UniTask<(bool success, string error)> SignInAnonymouslyAsync()
     {
         try
         {
-            Debug.Log("[Auth] 익명 로그인 시도...");
             AuthResult result = await auth.SignInAnonymouslyAsync().AsUniTask();
             currentUser = result.User;
-
             Debug.Log($"[Auth] 익명 로그인 성공: {UserId}");
-
             return (true, null);
         }
         catch (System.Exception ex)
@@ -73,17 +80,17 @@ public class AuthManager : MonoBehaviour
         }
     }
 
+    // 회원가입 시도
     public async UniTask<(bool success, string error)> CreateUserWithEmailAsync(string email, string passwd)
     {
+        // 회원가입 형식 안 맞추면 false
+        // 이메일 형식 맞추기 aaa@bbb.com
+        // 비번은 6자 이상
         try
         {
-            Debug.Log("[Auth] 회원 가입 시도...");
-
             AuthResult result = await auth.CreateUserWithEmailAndPasswordAsync(email, passwd).AsUniTask();
             currentUser = result.User;
-
             Debug.Log($"[Auth] 회원 가입 성공: {UserId}");
-
             return (true, null);
         }
         catch (System.Exception ex)
@@ -93,26 +100,24 @@ public class AuthManager : MonoBehaviour
         }
     }
 
+    // 로그인 시도
     public async UniTask<(bool success, string error)> SignInWithEmailAsync(string email, string passwd)
     {
         try
         {
-            Debug.Log("[Auth] 로그인 시도...");
-
             AuthResult result = await auth.SignInWithEmailAndPasswordAsync(email, passwd).AsUniTask();
             currentUser = result.User;
-
-            Debug.Log($"[Auth] 로그인 성공: {UserId}");
-
+            Debug.Log($"[Auth] 로그인(이메일) 성공: {UserId}");
             return (true, null);
         }
         catch (System.Exception ex)
         {
-            Debug.Log($"[Auth] 로그인 실패: {ex.Message}");
+            Debug.Log($"[Auth] 로그인(이메일) 실패: {ex.Message}");
             return (false, ex.Message);
         }
     }
 
+    // 로그아웃 시도
     public void SignOut()
     {
         if (auth != null && currentUser != null)
@@ -120,6 +125,9 @@ public class AuthManager : MonoBehaviour
             Debug.Log("[Auth] 로그아웃");
             auth.SignOut();
             currentUser = null;
+
+            // 로그아웃 후 BootScene으로 이동
+            SceneManager.LoadScene(0);
         }
     }
 
@@ -140,10 +148,5 @@ public class AuthManager : MonoBehaviour
                 Debug.Log($"[Auth] 이미 로그인됨: {UserId}");
             }
         }
-    }
-
-    private string ParseFirebaseError(string error)
-    {
-        return "";
     }
 }

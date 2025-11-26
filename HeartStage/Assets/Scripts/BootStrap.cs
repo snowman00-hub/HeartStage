@@ -9,8 +9,6 @@ public class BootStrap : MonoBehaviour
 {
     private const string Key = "LastPlayedScenePath";
 
-    public bool isLoadScene = false;
-
     // Scene 새로 복사했으면 Addressable 체크하고 플레이 하기, 등록 안되면 오류 뜸!
     // Scene Addressable 주소 바꾸지 말기, 그냥 체크만 하기
     private async UniTask Start()
@@ -33,12 +31,13 @@ public class BootStrap : MonoBehaviour
 #else
         Application.targetFrameRate = 60;
 #endif
+        // Firebase 로그인 될때까지 대기
+        await UniTask.WaitUntil(()=> AuthManager.Instance.IsLoggedIn);
+
         // 세이브 데이터 로드
         TryLoad();
 
-        // 테스트 할 땐 안넘어가게
-        if (isLoadScene)
-            await Addressables.LoadSceneAsync(targetScene);
+        await Addressables.LoadSceneAsync(targetScene);
     }
 
     private void TryLoad()
