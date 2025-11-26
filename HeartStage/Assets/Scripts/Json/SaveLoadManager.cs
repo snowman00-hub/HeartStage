@@ -96,31 +96,10 @@ public class SaveLoadManager
         }
     }
 
-    public static bool Load(int slot = 0)
+    // 데이터 리셋
+    public static void ResetData()
     {
-        if (slot < 0 || slot > SaveFilename.Length)
-            return false;
-
-        var path = Path.Combine(SaveDirectory, SaveFilename[slot]);
-        if (!File.Exists(path))
-            return false;
-
-        try
-        {
-            var json = File.ReadAllText(path);
-            var dataSave = JsonConvert.DeserializeObject<SaveData>(json, settings);
-            while (dataSave.Version < SaveDataVersion)
-            {
-                dataSave = dataSave.VersionUp();
-            }
-            Data = dataSave as SaveDataVC;
-            return true;
-        }
-        catch (Exception e)
-        {
-            Debug.LogError("Load 예외 발생: " + e);
-            return false;
-        }
+        Data = new SaveDataV1();
     }
 
     //캐릭터 획득 처리

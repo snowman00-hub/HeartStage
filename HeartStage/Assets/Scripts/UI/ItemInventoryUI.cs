@@ -14,7 +14,6 @@ public class ItemInventoryUI : MonoBehaviour
     {
         Instance = this;
         itemSlotList = GetComponentsInChildren<ItemInvenSlot>().ToList();
-        SaveLoadManager.Load();
     }
 
     private void OnEnable()

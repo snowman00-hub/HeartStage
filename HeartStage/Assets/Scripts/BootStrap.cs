@@ -41,21 +41,22 @@ public class BootStrap : MonoBehaviour
         // Firebase 로그인 될때까지 대기
         await UniTask.WaitUntil(()=> AuthManager.Instance.IsLoggedIn);
         // 서버에서 데이터 로드
-        await SaveLoadManager.LoadFromServer();
-        // 세이브 비어있으면 기본값 생성
-        TryLoad();
+        await TryLoad();
 
         await Addressables.LoadSceneAsync(targetScene);
     }
 
-    private void TryLoad()
+    private async UniTask TryLoad()
     {
-        if (!SaveLoadManager.Load())
+        bool loaded = await SaveLoadManager.LoadFromServer();
+
+        if (!loaded)
         {
+            // 기본 세이브 생성
             var charTable = DataTableManager.CharacterTable;
 
             charTable.BuildDefaultSaveDictionaries(
-                new[] { "하나" },                   // 스타터 이름만 여기
+                new[] { "하나" },
                 out var unlockedByName,
                 out var expById,
                 out var ownedBaseIds
@@ -64,11 +65,11 @@ public class BootStrap : MonoBehaviour
             SaveLoadManager.Data.unlockedByName = unlockedByName;
             SaveLoadManager.Data.expById = expById;
 
-            // 네가 current id 리스트/딕셔너리 어디에 들고있냐에 맞춰서
             foreach (var id in ownedBaseIds)
-                SaveLoadManager.Data.ownedIds.Add(id); // List<int>면 이렇게
+                SaveLoadManager.Data.ownedIds.Add(id);
 
-            SaveLoadManager.SaveToServer().Forget();
+            // 첫 저장은 await로 확실하게 보장하는 게 좋다
+            await SaveLoadManager.SaveToServer();
         }
     }
 }

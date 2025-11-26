@@ -30,7 +30,7 @@ public class CloudSaveManager : MonoBehaviour
     // 서버에 저장
     public async UniTask SaveAsync(string userId, string json)
     {
-        await db.Child("users").Child(userId).Child("saveData").SetValueAsync(json);
+        await db.Child("users").Child(userId).Child("saveData").SetRawJsonValueAsync(json);
         Debug.Log("클라우드 세이브 저장 완료");
     }
 
@@ -40,7 +40,7 @@ public class CloudSaveManager : MonoBehaviour
         var snapshot = await db.Child("users").Child(userId).Child("saveData").GetValueAsync();
 
         if (snapshot.Exists)
-            return snapshot.Value.ToString();
+            return snapshot.GetRawJsonValue();
 
         return null;
     }

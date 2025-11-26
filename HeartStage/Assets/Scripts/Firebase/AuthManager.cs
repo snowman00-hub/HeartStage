@@ -126,6 +126,8 @@ public class AuthManager : MonoBehaviour
             auth.SignOut();
             currentUser = null;
 
+            // 세이브 데이터 초기화
+            SaveLoadManager.ResetData();
             // 로그아웃 후 BootScene으로 이동
             SceneManager.LoadScene(0);
         }
