@@ -739,10 +739,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: GachaUI
       objectReference: {fileID: 0}
-    - target: {fileID: 1730546920808709691, guid: 2f4b3ef4955908340bd3b6cd752c30a4, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 2181543593927266181, guid: 2f4b3ef4955908340bd3b6cd752c30a4, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -822,26 +818,6 @@ PrefabInstance:
     - target: {fileID: 2181543593927266181, guid: 2f4b3ef4955908340bd3b6cd752c30a4, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5040128589866839675, guid: 2f4b3ef4955908340bd3b6cd752c30a4, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5040128589866839675, guid: 2f4b3ef4955908340bd3b6cd752c30a4, type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5040128589866839675, guid: 2f4b3ef4955908340bd3b6cd752c30a4, type: 3}
-      propertyPath: m_SizeDelta.x
-      value: 161.09
-      objectReference: {fileID: 0}
-    - target: {fileID: 5040128589866839675, guid: 2f4b3ef4955908340bd3b6cd752c30a4, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 83.769554
-      objectReference: {fileID: 0}
-    - target: {fileID: 5040128589866839675, guid: 2f4b3ef4955908340bd3b6cd752c30a4, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: -25.348206
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2117,7 +2093,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.65764725, y: 0.12900001}
   m_AnchorMax: {x: 0.94581527, y: 0.89000005}
-  m_AnchoredPosition: {x: -4.4312744, y: -0.9999733}
+  m_AnchoredPosition: {x: -4.4312744, y: -0.9999695}
   m_SizeDelta: {x: 10.987671, y: 4}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &259402918
@@ -4638,7 +4614,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7067858709652426586, guid: 8cf7739d0bb3b4b5590532e2c01be682, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -0.8205986
+      value: -0.8206024
       objectReference: {fileID: 0}
     - target: {fileID: 7067858709652426586, guid: 8cf7739d0bb3b4b5590532e2c01be682, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -11840,10 +11816,6 @@ PrefabInstance:
       value: LobbyManager
       objectReference: {fileID: 0}
     - target: {fileID: 6831307780154694614, guid: 167eb62ff04db2f40ad84bf221ef23a0, type: 3}
-      propertyPath: windowList.Array.size
-      value: 7
-      objectReference: {fileID: 0}
-    - target: {fileID: 6831307780154694614, guid: 167eb62ff04db2f40ad84bf221ef23a0, type: 3}
       propertyPath: windowList.Array.data[0].window
       value: 
       objectReference: {fileID: 1988237650}
@@ -11871,10 +11843,6 @@ PrefabInstance:
       propertyPath: windowList.Array.data[6].window
       value: 
       objectReference: {fileID: 1734442928}
-    - target: {fileID: 6831307780154694614, guid: 167eb62ff04db2f40ad84bf221ef23a0, type: 3}
-      propertyPath: windowList.Array.data[6].windowType
-      value: 6
-      objectReference: {fileID: 0}
     - target: {fileID: 9122204888615148877, guid: 167eb62ff04db2f40ad84bf221ef23a0, type: 3}
       propertyPath: heartStickCountText
       value: 
@@ -19378,7 +19346,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1474557256779111476, guid: 8cf7739d0bb3b4b5590532e2c01be682, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0.04943657
+      value: 0.049434662
       objectReference: {fileID: 0}
     - target: {fileID: 3027134763742640928, guid: 8cf7739d0bb3b4b5590532e2c01be682, type: 3}
       propertyPath: m_Enabled
@@ -23255,7 +23223,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7684649655596900542, guid: 22f8ed6abb01a2b4aa4282fa3ea9fd97, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -9.024368
+      value: -9.024353
       objectReference: {fileID: 0}
     - target: {fileID: 7684649655596900542, guid: 22f8ed6abb01a2b4aa4282fa3ea9fd97, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -23839,6 +23807,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2095255705}
     m_Modifications:
+    - target: {fileID: 5315310933595838239, guid: 3c0ca2ba9a057df4c8fc4944699ea1e0, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6665326178985690209, guid: 3c0ca2ba9a057df4c8fc4944699ea1e0, type: 3}
       propertyPath: m_Name
       value: PurchaseConfirmPanel
