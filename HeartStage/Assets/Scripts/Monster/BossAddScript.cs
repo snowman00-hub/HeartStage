@@ -35,7 +35,6 @@ public class BossAddScript : MonoBehaviour
         var monsterBehavior = GetComponent<MonsterBehavior>();
         if (monsterBehavior == null)
         {
-            Debug.LogError("BossAddScript: MonsterBehavior를 찾을 수 없음");
             return;
         }
 
@@ -51,7 +50,6 @@ public class BossAddScript : MonoBehaviour
         var monsterData = monsterBehavior.GetMonsterData();
         if (monsterData == null)
         {
-            Debug.LogError("BossAddScript: MonsterData 초기화 대기 시간 초과");
             return;
         }
 
@@ -68,7 +66,7 @@ public class BossAddScript : MonoBehaviour
             return;
         }
 
-        Debug.Log($"📊 CSV 스킬 등록 - 보스 ID: {bossId}, skill_id1: {csvData.skill_id1}, skill_id2: {csvData.skill_id2}, skill_id3: {csvData.skill_id3}");
+        Debug.Log($"CSV 스킬 등록 - 보스 ID: {bossId}, skill_id1: {csvData.skill_id1}, skill_id2: {csvData.skill_id2}, skill_id3: {csvData.skill_id3}");
 
         var deceptionSkillIds = new List<int>();
         var otherSkillIds = new List<int>();

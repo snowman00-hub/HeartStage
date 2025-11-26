@@ -13,31 +13,6 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
     private List<int> registeredSkillIds = new List<int>();
     private MonsterSpawner monsterSpawner;
 
-    // 자체 쿨타임 관리 제거
-    // private float coolTime = 15f;
-    // private float nextSkillTime = 0f;
-
-    // Update() 메서드 제거 - ActiveSkillManager가 관리
-    /*
-    private void Update()
-    {
-        if (!isInitialized || registeredSkillIds.Count == 0) return;
-
-        var bossAddScript = GetComponent<BossAddScript>();
-        if (bossAddScript == null || !bossAddScript.IsBossSpawned())
-        {
-            return;
-        }
-
-        // 스킬 실행 체크
-        if (Time.time >= nextSkillTime)
-        {
-            Execute();
-            nextSkillTime = Time.time + coolTime;
-        }
-    }
-    */
-
     public void SetSkillId(int skillId)
     {
         if (!registeredSkillIds.Contains(skillId))
@@ -80,7 +55,6 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
             var skillData = DataTableManager.SkillTable.Get(skillId);
             if (skillData == null)
             {
-                Debug.LogError($"스킬 데이터를 찾을 수 없음 - ID: {skillId}");
                 continue;
             }
 
@@ -92,14 +66,8 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
 
         if (skillDataDict.Count == 0)
         {
-            Debug.LogError($"보스 ID {monsterData.id}에 유효한 스킬이 없음");
             return;
         }
-
-        // 쿨타임 설정 제거 - ActiveSkillManager가 관리
-        // var firstSkill = skillDataDict[registeredSkillIds[0]];
-        // coolTime = firstSkill.skill_cool;
-        // nextSkillTime = Time.time + coolTime;
 
         await InitializeAllPools();
 
@@ -107,7 +75,6 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
         Debug.Log($"DeceptionBossSkill 초기화 완료 - 보스: {monsterData.id}, 스킬 수: {skillDataDict.Count}");
     }
 
-    // 나머지 메서드들은 동일...
     private async UniTask LoadMonsterDataForSkill(SkillCSVData skillData)
     {
         int summonType = skillData.summon_type;
@@ -131,7 +98,6 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
             }
             catch (System.Exception e)
             {
-                Debug.LogError($"MonsterData 로드 실패 - ID: {summonType}, Error: {e.Message}");
                 return;
             }
         }
@@ -139,7 +105,6 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
         if (cachedMonsterData != null)
         {
             cachedMonsterDataDict[summonType] = cachedMonsterData;
-            Debug.Log($"MonsterData 로드 완료 - ID: {summonType}");
         }
     }
 

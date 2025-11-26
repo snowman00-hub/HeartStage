@@ -10,7 +10,13 @@ public class StageManager : MonoBehaviour
     [SerializeField] private WindowManager windowManager;
     [SerializeField] private SpriteRenderer backGroundSprite;
 
-    [SerializeField] private GameObject stage; // 옮길 스테이지     
+    [SerializeField] private GameObject stage; // 옮길 스테이지
+    [SerializeField] private GameObject characterFence; // 옮길 펜스
+
+    [Header("StagePosition")]
+    private Vector3 stageUpPosition = new Vector3(0f, 7f, 0f);
+    private Vector3 stageMidPosition = new Vector3(0f, 0f, 0f);
+    private Vector3 stageDownPosition = new Vector3(0f, -7f, 0f);
 
     public StageUI StageUI;
     public LevelUpPanel LevelUpPanel;
@@ -72,15 +78,23 @@ public class StageManager : MonoBehaviour
     private void LoadSelectedStageData()
     {
         int stageID = PlayerPrefs.GetInt("SelectedStageID", -1);
+        Debug.Log($"선택된 스테이지 ID: {stageID}");
+
         if (stageID != -1)
         {
             // DataTableManager를 통해 스테이지 데이터 로드
             var stageData = DataTableManager.StageTable.GetStage(stageID);
+
             if (stageData != null)
             {
+                Debug.Log($"로드된 스테이지 데이터: {stageData.stage_step1}-{stageData.stage_step2}, position: {stageData.stage_position}");
+
+
                 SetCurrentStageData(stageData);
 
                 SetBackgroundByStageData(stageData);
+
+                SetStagePosition(stageData);
 
                 // 현재 웨이브 설정
                 int startingWave = PlayerPrefs.GetInt("StartingWave", 1);
@@ -263,6 +277,43 @@ public class StageManager : MonoBehaviour
             return;
         }
     }
+
+    private void SetStagePosition(StageCSVData stageData)
+    {
+        if (stageData == null)
+        {
+            return;
+        }
+
+        Vector3 targetPosition = GetPositionByStagePosition(stageData.stage_position);
+
+        Debug.Log($"스테이지 {stageData.stage_ID} ({stageData.stage_step1}-{stageData.stage_step2}): " +
+                  $"stage_position = {stageData.stage_position}, 목표 위치 = {targetPosition}");
+
+        if (stage != null)
+        {
+            stage.transform.position = targetPosition;
+            Debug.Log($"Stage 오브젝트 위치 설정: {stage.transform.position}");
+        }
+
+        if (characterFence != null)
+        {
+            characterFence.transform.position = targetPosition;
+            Debug.Log($"CharacterFence 오브젝트 위치 설정: {characterFence.transform.position}");
+        }
+    }
+
+    private Vector3 GetPositionByStagePosition(int stagePosition)
+    {
+        return stagePosition switch
+        {
+            1 => stageUpPosition,    
+            2 => stageMidPosition,  
+            3 => stageDownPosition,  
+            _ => stageDownPosition   // 기본값은 아래
+        };
+    }
+
 
 #if UNITY_EDITOR
     // 테스트 코드
