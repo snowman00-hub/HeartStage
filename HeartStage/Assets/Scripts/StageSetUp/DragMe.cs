@@ -12,11 +12,26 @@ public class DragMe : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
 
     [SerializeField] private float directionThreshold = 10f;
 
-    // 이번 드래그가 “세로 드래그”였는지 여부 (DraggableSlot에서 사용)
+    // ==== 상태 플래그 ====
+    // 이번 드래그가 “세로 드래그”였는지 여부 (DraggableSlot/CharacterInfoTab에서 사용)
     public bool IsVerticalDrag { get; private set; }
     public bool WasDragging { get; private set; }      // 이번 드래그에서 움직임 있었는지
     public bool DragJustEnded { get; private set; }    // "드래그 끝난 다음 프레임" 클릭 무효 처리용
 
+    // 슬롯에 올라간 상태(= 잠금)
+    public bool IsLocked { get; private set; }
+
+    // ==== 색상 ====
+    [Header("색상 설정")]
+    [SerializeField] private Color normalColor = Color.white;
+    // 124 / 124 / 124 / 255
+    [SerializeField] private Color lockedColor = new Color32(124, 124, 124, 255);
+    [SerializeField] private Color draggingColor = new Color32(124, 124, 124, 255);
+
+    private Image _image;
+    private bool _isDragging;
+
+    // ==== 드래그 관련 구조체들 ====
     private readonly Dictionary<int, GameObject> m_DraggingIcons = new();
     private readonly Dictionary<int, RectTransform> m_DraggingPlanes = new();
 
@@ -30,6 +45,8 @@ public class DragMe : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
     void Awake()
     {
         parentScrollRect = FindInParents<ScrollRect>(gameObject);
+        _image = GetComponent<Image>();
+        ApplyColor();
 
         if (characterData != null)
             DragSourceRegistry.Register(characterData, this);
@@ -55,16 +72,46 @@ public class DragMe : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
             DragSourceRegistry.Register(characterData, this);
     }
 
+    // 잠금 상태 변경 (슬롯에서 호출)
+    public void SetLocked(bool locked)
+    {
+        IsLocked = locked;
+        ApplyColor();
+    }
+
+    private void ApplyColor()
+    {
+        if (_image == null) _image = GetComponent<Image>();
+        if (_image == null) return;
+
+        Color target = normalColor;
+
+        if (_isDragging)
+            target = draggingColor;    // 드래그 중
+        else if (IsLocked)
+            target = lockedColor;     // 슬롯에 올라간 상태
+
+        _image.color = target;
+        // 인포탭 클릭을 위해 항상 켜둠
+        _image.raycastTarget = true;
+    }
+
     // ================= DRAG =================
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+        // 슬롯에 올라간 상태면 드래그 금지
+        if (IsLocked)
+            return;
+
         int id = eventData.pointerId;
 
-        WasDragging = false;                // ← 추가
-        DragJustEnded = false;              // ← 안전하게 초기화
+        WasDragging = false;
+        DragJustEnded = false;
 
-        IsVerticalDrag = false;                        // 새 드래그 시작마다 초기화
+        _isDragging = false;
+        IsVerticalDrag = false;
+
         m_StartPointerPos[id] = eventData.position;
         m_Directions[id] = DragDirection.Undecided;
         m_ScrollDragging[id] = false;
@@ -85,7 +132,7 @@ public class DragMe : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
 
             if (delta.sqrMagnitude < directionThreshold * directionThreshold)
             {
-                // ★ 조금이라도 움직였으면 드래그로 취급해서 클릭 방지
+                // 살짝이라도 움직이면 드래그로 간주해서 클릭 방지
                 WasDragging = true;
                 return;
             }
@@ -97,6 +144,11 @@ public class DragMe : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
                 // ===== 세로 드래그 확정 =====
                 m_Directions[id] = DragDirection.Vertical;
                 IsVerticalDrag = true;
+
+                // 여기서만 드래그 색 적용
+                _isDragging = true;
+                ApplyColor();
+
                 StartVerticalDrag(eventData);
             }
             else
@@ -122,7 +174,9 @@ public class DragMe : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         else if (dir == DragDirection.Horizontal)
         {
             // 가로 드래그 중 → ScrollRect 스크롤
-            if (parentScrollRect != null && m_ScrollDragging.TryGetValue(id, out bool started) && started)
+            if (parentScrollRect != null &&
+                m_ScrollDragging.TryGetValue(id, out bool started) &&
+                started)
             {
                 parentScrollRect.OnDrag(eventData);
             }
@@ -213,9 +267,9 @@ public class DragMe : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         m_Directions.Remove(id);
         m_ScrollDragging.Remove(id);
 
-        // IsVerticalDrag는 여기서 굳이 false로 안 돌림
-        // → DraggableSlot.OnDrop에서 이 값 보고 세로 드래그인지 판단
-        // → 다음 OnBeginDrag에서 다시 false로 초기화됨
+        _isDragging = false;
+        ApplyColor();
+
         IsVerticalDrag = false;
         SetDragJustEndedFlag().Forget();
     }

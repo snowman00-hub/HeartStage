@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
-public class CharacterDataLoad : MonoBehaviour
+public class TestCharacterDataLaod : MonoBehaviour
 {
     // Addressables에서 불러온 CharacterData SO들
     private readonly List<CharacterData> characters = new List<CharacterData>();

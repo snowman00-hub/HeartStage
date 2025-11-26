@@ -126,44 +126,40 @@ public class DraggableSlot : MonoBehaviour,
 
     public void OnDrop(PointerEventData data)
     {
-        //if (containerImage != null) containerImage.color = normalColor;
         if (!TryGetDropPayload(data, out var dropSprite, out var droppedCD))
             return;
 
-
         // DragMe(로비 목록)에서 새로 끌어오는 경우에만 제한 걸기
         bool targetEmpty = (characterData == null);
-
         bool fromDragMe = data.pointerDrag != null && data.pointerDrag.GetComponent<DragMe>() != null;
+
         if (fromDragMe && targetEmpty && _window != null && _window.IsDeployLimitReached())
             return;
 
         // (1) DragMe -> Slot 케이스
         if (fromDragMe)
         {
-            // 드랍 들어오기 전에, 슬롯에 이미 들어있던 캐릭터를 잠시 저장
+            // 드랍 들어오기 전에, 슬롯에 이미 들어있던 캐릭터 잠시 저장
             var prevCD = characterData;
 
             // 이전 캐릭터가 있고, 그것과 다른 캐릭터를 올리는 경우 → 먼저 풀어준다
             if (prevCD != null && prevCD != droppedCD)
             {
-                // prevCD의 DragMe 아이콘 다시 사용 가능하게 + 이 슬롯에서 제거
                 ClearSlotAndUnlockSource(prevCD);
             }
 
-            // 이제 새 캐릭터를 이 슬롯에 배치
+            // 새 캐릭터를 이 슬롯에 배치
             if (receivingImage != null && dropSprite != null)
                 receivingImage.sprite = dropSprite;
 
             characterData = droppedCD;
 
-            // 새 캐릭터의 DragMe는 잠궈준다
+            // ★★★ 여기서 DragMe 잠그기 ★★★
             var src = data.pointerDrag.GetComponent<DragMe>();
             if (src != null)
             {
-                var img = src.GetComponent<Image>();
-                if (img) img.raycastTarget = false;
                 DragSourceRegistry.Register(characterData, src);
+                src.SetLocked(true);      // <- 이게 핵심
             }
 
             NotifySlotChanged();
@@ -173,7 +169,7 @@ public class DraggableSlot : MonoBehaviour,
             return;
         }
 
-        // (2) Slot -> Slot 케이스...
+        // (2) Slot -> Slot 케이스 (그대로 사용)
         var sourceSlot = data.pointerDrag != null ? data.pointerDrag.GetComponent<DraggableSlot>() : null;
         if (sourceSlot != null)
         {
@@ -221,6 +217,9 @@ public class DraggableSlot : MonoBehaviour,
         var dragMe = srcObj.GetComponent<DragMe>();
         if (dragMe != null)
         {
+            if (dragMe.IsLocked)
+                return false;
+
             var img = srcObj.GetComponent<Image>();
             if (img != null) sprite = img.sprite;
             cd = dragMe.characterData;
@@ -244,20 +243,16 @@ public class DraggableSlot : MonoBehaviour,
     {
         if (leaving == null) return;
 
-        // 슬롯 비우기
         if (receivingImage) receivingImage.sprite = null;
         if (characterData == leaving) characterData = null;
 
-        // DragMe 해제
         var src = DragSourceRegistry.GetSource(leaving);
         if (src != null)
         {
-            var img = src.GetComponent<Image>();
-            if (img)
-            {
-                img.raycastTarget = true;
-            }
+            // 예전 raycastTarget = true 대신
+            src.SetLocked(false);   // 다시 흰색 + 드래그 가능
         }
+
         NotifySlotChanged();
     }
 
