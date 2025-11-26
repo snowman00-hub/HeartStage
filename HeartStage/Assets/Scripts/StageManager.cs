@@ -14,13 +14,13 @@ public class StageManager : MonoBehaviour
     [SerializeField] private GameObject characterFence; // 옮길 펜스
 
     [Header("StagePosition")]
-    private Vector3 stageUpPosition = new Vector3(0f, 7f, 0f);
+    private Vector3 stageUpPosition = new Vector3(0f, 6f, 0f);
     private Vector3 stageMidPosition = new Vector3(0f, 0f, 0f);
     private Vector3 stageDownPosition = new Vector3(0f, -7f, 0f);
 
-    private Vector3 fenceUpPosition = new Vector3(0f, 3f, 0f);
+    private Vector3 fenceUpPosition = new Vector3(0f, 2f, 0f);
     private Vector3 fenceMid1Position = new Vector3(0f, 4f, 0f);
-    //private Vector3 fenceMid2Position = new Vector3(0f, -4f, 0f);
+    //private Vector3 fenceMid2Position = new Vector3(0f, -4f, 0f); 두번째 팬스 위치
     private Vector3 fenceDownPosition = new Vector3(0f, -3f, 0f);
 
     public StageUI StageUI;
