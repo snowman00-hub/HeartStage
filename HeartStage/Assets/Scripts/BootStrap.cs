@@ -50,8 +50,6 @@ public class BootStrap : MonoBehaviour
             foreach (var id in ownedBaseIds)
                 SaveLoadManager.Data.ownedIds.Add(id); // List<int>면 이렇게
 
-            Debug.Log("새 세이브 데이터 생성");
-
             SaveLoadManager.Save();
         }
 

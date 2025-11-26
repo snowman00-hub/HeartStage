@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -57,6 +56,8 @@ public class CharacterDetailPanel : MonoBehaviour
     private Sprite _runtimeSprite;
     // 런타임에 만든 스킬 스프라이트 누수 방지용
     private Sprite[] _runtimeSkillSprites;
+    // 현재 표시 중인 캐릭터 ID
+    private int _currentCharacterId;
 
     [Header("종료 버튼")]
     [SerializeField] Button ExitButton;
@@ -69,6 +70,8 @@ public class CharacterDetailPanel : MonoBehaviour
             Clear();
             return;
         }
+
+        _currentCharacterId = characterData.char_id;
 
         nameText.text = characterData.char_name;
         rankText.text = $"등급: {characterData.char_rank}";
@@ -84,7 +87,7 @@ public class CharacterDetailPanel : MonoBehaviour
         critDmgText.text = $"섹시: {StatPower.GetSexyPower(characterData.crt_dmg)}";
 
         projectileCountText.text = $"투사체수: {characterData.bullet_count}";
-        skillText.text = $"보유 스킬: {SkillName(characterData.char_id)}";
+        skillText.text = $"{SkillName(characterData.char_id)}";
 
         descriptionText.text = $"캐릭터 정보: {characterData.Info}";
 
@@ -95,8 +98,10 @@ public class CharacterDetailPanel : MonoBehaviour
         ApplySkillImages(characterData.char_id);
 
         // 레벨업 구현 Onclick 리스너 등은 여기서 추가 가능
+        ApplyLevelUpText(characterData.char_id);
 
         // 랭크업 구현 Onclick 리스너 등은 여기서 추가 가능
+        ApplyRankUpText(characterData.char_id);
 
         // 필요 재화 정보도 여기서 설정 가능
 
@@ -218,9 +223,122 @@ public class CharacterDetailPanel : MonoBehaviour
 
     public void ApplyLevelUpText(int charId)
     {
-        var lvdata = DataTableManager.LevelUpTable.Get(charId);
-        levelUpCostText.text = $"트레이닝 포인트: {lvdata.Lvup_ingrd_Itm_count}";
+        if (levelUpButton == null || levelUpCostText == null)
+            return;
 
+        var lvdata = DataTableManager.LevelUpTable.Get(charId);
+        if (lvdata == null)
+        {
+            levelUpCostText.text = "트레이닝 포인트: -";
+            levelUpButton.interactable = false;
+            levelUpButton.onClick.RemoveAllListeners();
+            return;
+        }
+
+        int currentPoint = ItemInvenHelper.GetAmount(lvdata.Lvup_ingrd_Itm);
+        levelUpCostText.text = $"트레이닝 포인트: {currentPoint} / {lvdata.Lvup_ingrd_Itm_count}";
+
+        levelUpButton.onClick.RemoveAllListeners();
+
+        if (currentPoint >= lvdata.Lvup_ingrd_Itm_count)
+        {
+            levelUpButton.interactable = true;
+            levelUpButton.onClick.AddListener(() => OnLevelUpButtonClick(charId));
+        }
+        else
+        {
+            levelUpButton.interactable = false;
+        }
+    }
+
+    public void ApplyRankUpText(int charId)
+    {
+        if (rankUpButton == null || rankUpCostText == null)
+            return;
+
+        var rankdata = DataTableManager.RankUpTable.Get(charId);
+        if (rankdata == null)
+        {
+            rankUpCostText.text = "조각: -";
+            rankUpButton.interactable = false;
+            rankUpButton.onClick.RemoveAllListeners();
+            return;
+        }
+
+        int currentPoint = ItemInvenHelper.GetAmount(rankdata.Upgrade_ingrd_Itm1);
+        rankUpCostText.text = $"{rankdata.Upgrade_ingrd_Itm1} 조각: {currentPoint} / {rankdata.Ingrd_Itm1_amount}";
+
+        rankUpButton.onClick.RemoveAllListeners();
+
+        if (currentPoint >= rankdata.Ingrd_Itm1_amount)
+        {
+            rankUpButton.interactable = true;
+            rankUpButton.onClick.AddListener(() => OnRankUpButtonClick(charId));
+        }
+        else
+        {
+            rankUpButton.interactable = false;
+        }
+    }
+
+    public void OnLevelUpButtonClick(int charId)
+    {
+        var lvdata = DataTableManager.LevelUpTable.Get(charId);
+        if (lvdata == null)
+        {
+            if (levelUpCostText != null)
+                levelUpCostText.text = "트레이닝 포인트: -";
+
+            if (levelUpButton != null)
+            {
+                levelUpButton.interactable = false;
+                levelUpButton.onClick.RemoveAllListeners();
+            }
+            return;
+        }
+
+        if (!ItemInvenHelper.TryConsumeItem(lvdata.Lvup_ingrd_Itm, lvdata.Lvup_ingrd_Itm_count))
+        {
+            ApplyLevelUpText(charId);
+            return;
+        }
+
+        int startId = _currentCharacterId;
+        int finalId = lvdata.Lvup_char;
+
+        CharacterHelper.CommitUpgradeResult(startId, finalId);
+        Debug.Log($"레벨업 완료: {startId} -> {finalId}");
+
+        var nextLevelData = DataTableManager.CharacterTable.Get(finalId);
+        if (nextLevelData != null)
+        {
+            SetCharacter(nextLevelData);
+        }
+        ApplyLevelUpText(finalId);
+        ApplyRankUpText(finalId);
+    }
+
+    public void OnRankUpButtonClick(int charId)
+    {
+        var rankdata = DataTableManager.RankUpTable.Get(charId);
+        if (rankdata == null) return;
+
+        if (ItemInvenHelper.TryConsumeItem(rankdata.Upgrade_ingrd_Itm1, rankdata.Ingrd_Itm1_amount))
+        {
+            int startId = _currentCharacterId;
+            int finalId = rankdata.Upgrade_char;
+
+            CharacterHelper.CommitUpgradeResult(startId, finalId);
+            Debug.Log($"랭크업 완료: {startId} -> {finalId}");
+
+            var nextRankData = DataTableManager.CharacterTable.Get(finalId);
+            rankUpButton.onClick.RemoveAllListeners();
+            SetCharacter(nextRankData);
+
+            // 새 랭크 기준으로 텍스트/버튼 다시 계산
+            ApplyRankUpText(nextRankData.char_id);
+            ApplyLevelUpText(nextRankData.char_id); // 레벨업도 같이 갱신해두면 편함
+        }
     }
 
 

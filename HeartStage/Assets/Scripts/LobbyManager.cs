@@ -90,6 +90,24 @@ public class LobbyManager : MonoBehaviour
         SaveLoadManager.Data = new SaveDataV1();
         SaveLoadManager.Save();
         MoneyUISet();
+
+        var charTable = DataTableManager.CharacterTable;
+
+        charTable.BuildDefaultSaveDictionaries(
+            new[] { "하나" },                   // 스타터 이름만 여기
+            out var unlockedByName,
+            out var expById,
+            out var ownedBaseIds
+        );
+
+        SaveLoadManager.Data.unlockedByName = unlockedByName;
+        SaveLoadManager.Data.expById = expById;
+
+        // 네가 current id 리스트/딕셔너리 어디에 들고있냐에 맞춰서
+        foreach (var id in ownedBaseIds)
+            SaveLoadManager.Data.ownedIds.Add(id); // List<int>면 이렇게
+
+        SaveLoadManager.Save();
     }
     //
 }

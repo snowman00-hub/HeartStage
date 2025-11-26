@@ -17,7 +17,7 @@ public class EncyclopediaWindow : MonoBehaviour
     private bool _initialized;
 
     // 현재 보여줄 후보들/해금여부
-    private List<CharacterData> _candidates = new List<CharacterData>();
+    private List<CharacterCSVData> _candidates = new List<CharacterCSVData>();
     private List<bool> _unlockedList = new List<bool>();
 
     private void Start()
@@ -67,7 +67,9 @@ public class EncyclopediaWindow : MonoBehaviour
         _unlockedList.Clear();
 
         var saveData = SaveLoadManager.Data;
-        var unlockedByName = saveData != null ? saveData.unlockedByName : null;
+        if (saveData == null) return;
+
+        var unlockedByName = saveData.unlockedByName;
         if (unlockedByName == null) return;
 
         foreach (var kvp in unlockedByName)
@@ -75,14 +77,55 @@ public class EncyclopediaWindow : MonoBehaviour
             string name = kvp.Key;
             bool unlocked = kvp.Value;
 
-            // 이름으로 데이터 찾기 (CharacterTable에 GetByName 있어야 함)
-            var data = DataTableManager.CharacterTable.GetByName(name);
+            CharacterCSVData data = null;
+
+
+            if (unlocked)
+            {
+                // 🔹 현재 내가 실제로 들고 있는 이 이름의 캐릭 ID를 ownedIds에서 찾기
+                int id = FindCurrentIdByName(name);
+                if (id > 0)
+                {
+                    data = DataTableManager.CharacterTable.Get(id);
+                }
+
+                // 혹시 못 찾으면(버그나 데이터 꼬임) 기본값으로 폴백
+                if (data == null)
+                {
+                    data = DataTableManager.CharacterTable.GetByName(name);
+                }
+            }
+            else
+            {
+                // 잠금 상태면 그냥 기본 row(보통 1렙)만 보여줌
+                data = DataTableManager.CharacterTable.GetByName(name);
+            }
+
             if (data == null) continue;
 
             _candidates.Add(data);
             _unlockedList.Add(unlocked);
         }
     }
+
+    // 🔸 SaveData.ownedIds에서 이름으로 현재 ID 찾기
+    private int FindCurrentIdByName(string name)
+    {
+        var saveData = SaveLoadManager.Data;
+        if (saveData == null) return -1;
+
+        foreach (var id in saveData.ownedIds)
+        {
+            var row = DataTableManager.CharacterTable.Get(id);
+            if (row == null) continue;
+
+            if (row.char_name == name)
+                return id;
+        }
+
+        return -1;
+    }
+
 
     private void RenderButtons()
     {
@@ -98,8 +141,8 @@ public class EncyclopediaWindow : MonoBehaviour
                 btnView.SetButton(data.char_id);
                 btnView.SetLocked(!unlocked);
 
-                // ✅ 클릭 연결
-                BindClick(btnView, data.char_id);
+                // ✅ 이름으로 묶기
+                BindClick(btnView, data.char_name);
             }
             else
             {
@@ -108,17 +151,16 @@ public class EncyclopediaWindow : MonoBehaviour
         }
     }
 
-    private void BindClick(CharacterButtonView btnView, int charId)
+    private void BindClick(CharacterButtonView btnView, string charName)
     {
-        // CharacterButtonView 안에 Button이 없을 수도 있으니 GetComponent로 안전하게
         var uiButton = btnView.GetComponent<Button>();
         if (uiButton == null) return;
 
         uiButton.onClick.RemoveAllListeners();
-        uiButton.onClick.AddListener(() => OnCharacterSelected(charId));
+        uiButton.onClick.AddListener(() => OnCharacterSelectedByName(charName));
     }
 
-    private void OnCharacterSelected(int charId)
+    private void OnCharacterSelectedByName(string name)
     {
         if (detailPanel == null)
         {
@@ -126,19 +168,29 @@ public class EncyclopediaWindow : MonoBehaviour
             return;
         }
 
-        var csvdata = DataTableManager.CharacterTable.Get(charId);
+        // 🔹 항상 SaveData.ownedIds에서 "지금 갖고 있는" 최신 ID를 찾음
+        int id = FindCurrentIdByName(name);
+        CharacterCSVData csvdata = null;
+
+        if (id > 0)
+            csvdata = DataTableManager.CharacterTable.Get(id);
+
+        // 못 찾으면 기본값 fallback
+        if (csvdata == null)
+            csvdata = DataTableManager.CharacterTable.GetByName(name);
+
         if (csvdata == null)
         {
-            Debug.LogWarning($"[EncyclopediaWindow] CharacterData null: {charId}");
+            Debug.LogWarning($"[EncyclopediaWindow] CharacterData null by name: {name}");
             return;
         }
-        
+
         detailPanel.SetCharacter(csvdata);
         detailPanel.OpenPanel();
     }
 
     // true 먼저 / false 뒤로 + 내부는 드롭다운 정렬
-    private void ApplySort(List<CharacterData> list, List<bool> unlockedList, int sortIndex)
+    private void ApplySort(List<CharacterCSVData> list, List<bool> unlockedList, int sortIndex)
     {
         for (int i = 0; i < list.Count - 1; i++)
         {
@@ -165,8 +217,8 @@ public class EncyclopediaWindow : MonoBehaviour
         }
     }
 
-    private int CompareWithUnlocked(CharacterData A, bool unlockedA,
-                                    CharacterData B, bool unlockedB,
+    private int CompareWithUnlocked(CharacterCSVData A, bool unlockedA,
+                                    CharacterCSVData B, bool unlockedB,
                                     int sortIndex)
     {
         // 1순위: unlocked true 먼저
@@ -177,7 +229,7 @@ public class EncyclopediaWindow : MonoBehaviour
         return CompareData(A, B, sortIndex);
     }
 
-    private int CompareData(CharacterData A, CharacterData B, int sortIndex)
+    private int CompareData(CharacterCSVData A, CharacterCSVData B, int sortIndex)
     {
         string nameA = A.char_name ?? "";
         string nameB = B.char_name ?? "";
