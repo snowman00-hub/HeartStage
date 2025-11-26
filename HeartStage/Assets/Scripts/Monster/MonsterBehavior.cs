@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Unity.VisualScripting;
+using UnityEngine;
 
 public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 {
@@ -50,7 +51,11 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     {
         monsterData = data;
         isDead = false;
-        heartPrefab.SetActive(false);
+
+        if (heartPrefab != null)
+        {
+            heartPrefab.SetActive(false);
+        }
 
         if (selfCollider != null)
         {
@@ -73,6 +78,8 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         }
 
         lastPosition = transform.position;
+
+        ActivateVisual();
 
         SaveOriginalColor();
         ResetFadeState();
@@ -363,6 +370,26 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         }
     }
 
+    // 페이드 아웃으로 없어진 후에 이미지 활성화
+    private void ActivateVisual()
+    {
+        if (monsterData != null && !string.IsNullOrEmpty(monsterData.prefab1))
+        {
+            Transform visualChild = transform.Find(monsterData.prefab1);
+            if (visualChild != null)
+            {
+                visualChild.gameObject.SetActive(true);
+
+                // 스프라이트 복원
+                var childRenderers = visualChild.GetComponentsInChildren<SpriteRenderer>();
+                foreach (var renderer in childRenderers)
+                {
+                    renderer.color = Color.gray;
+                }
+            }
+        }
+    }
+
     // 색상 원래대로 저장
     private void SaveOriginalColor()
     {
@@ -395,6 +422,4 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
             gameObject.SetActive(false);
         }
     }
-
-
 }

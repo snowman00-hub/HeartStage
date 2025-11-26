@@ -33,6 +33,7 @@ public class MonsterCSVData
     public float speed { get; set; }
     public int skill_id1 { get; set; }
     public int skill_id2 { get; set; }
+    public int skill_id3 { get; set; } 
     public int min_level { get; set; }
     public int max_level { get; set; }
     public int item_id1 { get; set; }
@@ -107,12 +108,12 @@ public class MonsterTable : DataTable
 
         var csv = new StringBuilder();
         // 새로운 CSV 헤더
-        csv.AppendLine("mon_id,mon_name,mon_type,atk_type,atk_dmg,atk_speed,atk_range,bullet_speed,hp,speed,skill_id1,skill_id2,min_level,max_level,item_id1,drop_count1,item_id2,drop_count2,prefab1,prefab2");
+        csv.AppendLine("mon_id,mon_name,mon_type,atk_type,atk_dmg,atk_speed,atk_range,bullet_speed,hp,speed,skill_id1,skill_id2,skill_id3,min_level,max_level,item_id1,drop_count1,item_id2,drop_count2,prefab1,prefab2");
 
         // 데이터 행
         foreach (var data in dataList)
         {
-            csv.AppendLine($"{data.mon_id},{data.mon_name},{data.mon_type},{data.atk_type},{data.atk_dmg},{data.atk_speed},{data.atk_range},{data.bullet_speed},{data.hp},{data.speed},{data.skill_id1},{data.skill_id2},{data.min_level},{data.max_level},{data.item_id1},{data.drop_count1},{data.item_id2},{data.drop_count2},{data.prefab1},{data.prefab2}");
+            csv.AppendLine($"{data.mon_id},{data.mon_name},{data.mon_type},{data.atk_type},{data.atk_dmg},{data.atk_speed},{data.atk_range},{data.bullet_speed},{data.hp},{data.speed},{data.skill_id1},{data.skill_id2},{data.skill_id3},{data.min_level},{data.max_level},{data.item_id1},{data.drop_count1},{data.item_id2},{data.drop_count2},{data.prefab1},{data.prefab2}");
         }
 
         File.WriteAllText(filePath, csv.ToString());

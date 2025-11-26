@@ -11,10 +11,12 @@ public class StageCSVData
     public int stage_step1 { get; set; }
     public int stage_step2 { get; set; }
     public int stage_type { get; set; }
+    public int stage_position { get; set; } 
     public int member_count { get; set; }
     public int dispatch_member { get; set; }
     public int debut_stamina { get; set; }
     public int regular_stamina { get; set; }
+    public int level_max { get; set; } 
     public int wave_time { get; set; }
     public int wave1_id { get; set; }
     public int wave2_id { get; set; }

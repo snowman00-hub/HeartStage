@@ -1,10 +1,11 @@
-﻿using UnityEngine;
-using Cysharp.Threading.Tasks;
+﻿using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
+using UnityEngine;
 
 public class BossAddScript : MonoBehaviour
 {
     private bool skillsRegistered = false;
-    private bool bossSpawned = false;   
+    private bool bossSpawned = false;
 
     private async void OnEnable()
     {
@@ -19,37 +20,25 @@ public class BossAddScript : MonoBehaviour
 
     private void OnDisable()
     {
-        // 비활성화될 때 스킬 해제
         bossSpawned = false;
-
         UnregisterSkills();
         skillsRegistered = false;
     }
 
     public bool IsBossSpawned()
     {
-        if (gameObject.activeInHierarchy)
-        {
-            return bossSpawned;
-        }
-        else
-        {
-            return false;
-        }
+        return gameObject.activeInHierarchy && bossSpawned;
     }
 
-    private async UniTask RegisterSkillsAsync() 
+    private async UniTask RegisterSkillsAsync()
     {
-        // MonsterBehavior 초기화 대기
         var monsterBehavior = GetComponent<MonsterBehavior>();
         if (monsterBehavior == null)
         {
-            Debug.LogError("BossAddScript: MonsterBehavior를 찾을 수 없음");
             return;
         }
 
-        // MonsterData가 초기화될 때까지 대기
-        int maxWaitFrames = 60; // 최대 1초 대기 (60fps 기준)
+        int maxWaitFrames = 60;
         int waitFrames = 0;
 
         while (monsterBehavior.GetMonsterData() == null && waitFrames < maxWaitFrames)
@@ -61,64 +50,118 @@ public class BossAddScript : MonoBehaviour
         var monsterData = monsterBehavior.GetMonsterData();
         if (monsterData == null)
         {
-            Debug.LogError("BossAddScript: MonsterData 초기화 대기 시간 초과");
             return;
         }
 
-        // 보스 ID에 따른 스킬 할당
         int bossId = monsterData.id;
         RegisterBossSkills(bossId);
     }
 
     private void RegisterBossSkills(int bossId)
     {
-        switch (bossId)
+        var csvData = DataTableManager.MonsterTable.Get(bossId);
+        if (csvData == null)
         {
-            case 22201: // 치프 스테프
-                RegisterDeceptionSkill(31001); // 대량 현혹 튜토리얼 근접
+            Debug.LogWarning($"몬스터 CSV 데이터를 찾을 수 없음: {bossId}");
+            return;
+        }
 
-                RegisterSpeedBuffSkill(31201); // 단체 강화 테스트
-                RegisterBooingSkill(31101); // 야유 스킬 테스트
+        Debug.Log($"CSV 스킬 등록 - 보스 ID: {bossId}, skill_id1: {csvData.skill_id1}, skill_id2: {csvData.skill_id2}, skill_id3: {csvData.skill_id3}");
+
+        var deceptionSkillIds = new List<int>();
+        var otherSkillIds = new List<int>();
+
+        if (csvData.skill_id1 != 0) ClassifySkill(csvData.skill_id1, deceptionSkillIds, otherSkillIds);
+        if (csvData.skill_id2 != 0) ClassifySkill(csvData.skill_id2, deceptionSkillIds, otherSkillIds);
+        if (csvData.skill_id3 != 0) ClassifySkill(csvData.skill_id3, deceptionSkillIds, otherSkillIds);
+
+        // DeceptionSkill들은 한 번에 등록
+        if (deceptionSkillIds.Count > 0)
+        {
+            RegisterDeceptionSkills(deceptionSkillIds);
+        }
+
+        // 다른 스킬들은 개별 등록
+        foreach (int skillId in otherSkillIds)
+        {
+            RegisterOtherSkill(skillId);
+        }
+    }
+
+    private void ClassifySkill(int skillId, List<int> deceptionSkillIds, List<int> otherSkillIds)
+    {
+        switch (skillId)
+        {
+            case 31001: // 대량 현혹 튜토리얼 근접
+            case 31002: // 대량 현혹 튜토리얼 원거리
+            case 31003: // 대량 현혹 근접
+            case 31004: // 대량 현혹 원거리
+                deceptionSkillIds.Add(skillId);
                 break;
 
-            case 22214: // 사람을 홀리는 악마
-                RegisterDeceptionSkill(31003); // 대량 현혹 근접
-                RegisterSpeedBuffSkill(31201); // 단체 강화
-                RegisterBooingSkill(31101); // 야유 스킬
+            case 31101: // 야유 스킬
+            case 31201: // 단체 강화
+                otherSkillIds.Add(skillId);
                 break;
 
             default:
-                Debug.LogWarning($"정의되지 않은 보스 ID: {bossId}");
+                Debug.LogWarning($"정의되지 않은 스킬 ID: {skillId}");
                 break;
         }
     }
 
-    private void RegisterDeceptionSkill(int skillId)
+    private void RegisterDeceptionSkills(List<int> skillIds)
     {
-        // DeceptionBossSkill 스크립트 할당
-        ScriptAttacher.AttachById(this.gameObject, skillId);
+        // 첫 번째 스킬로 컴포넌트 추가
+        ScriptAttacher.AttachById(this.gameObject, skillIds[0]);
 
         var monsterBehavior = GetComponent<MonsterBehavior>();
         var skillBehavior = GetComponent<DeceptionBossSkill>();
 
         if (skillBehavior != null)
         {
-            // MonsterData가 준비된 후에 스킬 초기화를 수동으로 트리거
+            // 모든 스킬 ID를 전달
+            foreach (int skillId in skillIds)
+            {
+                skillBehavior.SetSkillId(skillId);
+            }
+
+            // 초기화는 한 번만
             skillBehavior.InitializeWithMonsterData(monsterBehavior.GetMonsterData()).Forget();
 
-            ActiveSkillManager.Instance.RegisterSkillBehavior(this.gameObject, skillId, skillBehavior);
-            ActiveSkillManager.Instance.RegisterSkill(this.gameObject, skillId);
-            Debug.Log($"{gameObject.name}에 DeceptionBossSkill (ID: {skillId}) 등록 완료");
+            // ActiveSkillManager에는 첫 번째 스킬만 등록 (대표 스킬)
+            int representativeSkillId = skillIds[0];
+            ActiveSkillManager.Instance.RegisterSkillBehavior(this.gameObject, representativeSkillId, skillBehavior);
+            ActiveSkillManager.Instance.RegisterSkill(this.gameObject, representativeSkillId);
+
+            Debug.Log($"{gameObject.name}에 DeceptionBossSkills ({skillIds.Count}개) 등록 완료");
         }
         else
         {
-            Debug.LogError($"DeceptionBossSkill 컴포넌트를 찾을 수 없음 (스킬 ID: {skillId})");
+            Debug.LogError($"DeceptionBossSkill 컴포넌트를 찾을 수 없음");
+        }
+    }
+
+    private void RegisterOtherSkill(int skillId)
+    {
+        switch (skillId)
+        {
+            case 31101: // 야유 스킬
+                RegisterBooingSkill(skillId);
+                break;
+
+            case 31201: // 단체 강화
+                RegisterSpeedBuffSkill(skillId);
+                break;
+
+            default:
+                Debug.LogWarning($"정의되지 않은 스킬 ID: {skillId}");
+                break;
         }
     }
 
     private void RegisterSpeedBuffSkill(int skillId)
     {
-        // SpeedBuffBossSkill 스크립트 할당
         ScriptAttacher.AttachById(this.gameObject, skillId);
 
         var speedBuffBehavior = GetComponent<SpeedBuffBossSkill>();
@@ -145,14 +188,14 @@ public class BossAddScript : MonoBehaviour
         if (booingSkill != null)
         {
             var skillData = DataTableManager.SkillTable.Get(skillId);
-            booingSkill.Init(skillData); // 여기서 Init 호출
+            booingSkill.Init(skillData);
 
             ActiveSkillManager.Instance.RegisterSkillBehavior(this.gameObject, skillId, booingSkill);
             ActiveSkillManager.Instance.RegisterSkill(this.gameObject, skillId);
         }
     }
 
-    private void UnregisterSkills() // 스킬 해제 
+    private void UnregisterSkills()
     {
         if (ActiveSkillManager.Instance == null) return;
 
@@ -162,31 +205,28 @@ public class BossAddScript : MonoBehaviour
         var monsterData = monsterBehavior.GetMonsterData();
         if (monsterData == null) return;
 
-        // 보스 ID에 따른 스킬 해제
         int bossId = monsterData.id;
-        UnregisterBossSkills(bossId);
-    }
+        var csvData = DataTableManager.MonsterTable.Get(bossId);
+        if (csvData == null) return;
 
-    private void UnregisterBossSkills(int bossId)
-    {
-        switch (bossId)
+        // DeceptionSkill 그룹의 대표 스킬만 등록 해제
+        var deceptionSkillIds = new List<int>();
+        var otherSkillIds = new List<int>();
+
+        if (csvData.skill_id1 != 0) ClassifySkill(csvData.skill_id1, deceptionSkillIds, otherSkillIds);
+        if (csvData.skill_id2 != 0) ClassifySkill(csvData.skill_id2, deceptionSkillIds, otherSkillIds);
+        if (csvData.skill_id3 != 0) ClassifySkill(csvData.skill_id3, deceptionSkillIds, otherSkillIds);
+
+        // DeceptionSkill 그룹의 첫 번째 스킬만 등록 해제
+        if (deceptionSkillIds.Count > 0)
         {
-            case 22201: // 치프 스테프
-                ActiveSkillManager.Instance.UnRegisterSkill(this.gameObject, 31001);
+            ActiveSkillManager.Instance.UnRegisterSkill(this.gameObject, deceptionSkillIds[0]);
+        }
 
-                ActiveSkillManager.Instance.UnRegisterSkill(this.gameObject, 31201); // 단체 강화 해제 추가
-                ActiveSkillManager.Instance.UnRegisterSkill(this.gameObject, 31101); // 야유 스킬 해제 추가
-                break;
-
-            case 22214: // 사람을 홀리는 악마
-                ActiveSkillManager.Instance.UnRegisterSkill(this.gameObject, 31003);
-                ActiveSkillManager.Instance.UnRegisterSkill(this.gameObject, 31201);
-                ActiveSkillManager.Instance.UnRegisterSkill(this.gameObject, 31101); // 야유 스킬 해제 추가
-
-                break;
-
-            default:
-                break;
+        // 다른 스킬들은 개별 등록 해제
+        foreach (int skillId in otherSkillIds)
+        {
+            ActiveSkillManager.Instance.UnRegisterSkill(this.gameObject, skillId);
         }
     }
 

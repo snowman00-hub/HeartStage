@@ -205,6 +205,7 @@ public class MonsterDataTools : EditorWindow
         // 새로운 필드들
         so.skillId1 = data.skill_id1;
         so.skillId2 = data.skill_id2;
+        so.skillId3 = data.skill_id3;
         so.itemId1 = data.item_id1;
         so.dropCount1 = data.drop_count1;
         so.itemId2 = data.item_id2;

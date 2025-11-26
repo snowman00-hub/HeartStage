@@ -13,11 +13,11 @@ public class GachaResultUI : GenericWindow
     [SerializeField] private Button closeButton;
     [SerializeField] private Button reTryButton;
 
-
     private GachaResult gachaResult;
+    private Sprite currentSprite; // 현재 스프라이트 참조 저장
 
     private void Awake()
-    {        
+    {
         closeButton.onClick.AddListener(OnCloseButtonClicked);
         reTryButton.onClick.AddListener(OnRetryButtonClicked);
     }
@@ -26,7 +26,7 @@ public class GachaResultUI : GenericWindow
     {
         base.Open();
 
-        if(GachaUI.gachaResultReciever.HasValue)
+        if (GachaUI.gachaResultReciever.HasValue)
         {
             SetGachaResult(GachaUI.gachaResultReciever.Value);
             GachaUI.gachaResultReciever = null; // 결과 사용 후 초기화
@@ -34,9 +34,11 @@ public class GachaResultUI : GenericWindow
 
         DisPlayResult();
     }
+
     public override void Close()
     {
         base.Close();
+        ClearCurrentSprite(); // 창 닫을 때 스프라이트 정리
     }
 
     public void SetGachaResult(GachaResult result)
@@ -54,57 +56,51 @@ public class GachaResultUI : GenericWindow
         var characterData = gachaResult.characterData;
         var gachaData = gachaResult.gachaData;
 
-        if(gachaData.Gacha_have > 0 && gachaResult.isDuplicate)
+        if (gachaData.Gacha_have > 0 && gachaResult.isDuplicate)
         {
             var itemData = DataTableManager.ItemTable.Get(gachaData.Gacha_have);
+            if (itemData != null)
             {
-                if(itemData != null)
-                {
-                    SetCharacterImageToItem(itemData);
-                    SetCharacterNameText(itemData.item_name);
-                    return;
-                }
+                SetImage(itemData.prefab);
+                SetCharacterNameText(itemData.item_name);
+                return;
             }
         }
 
-        SetCharacterImage(characterData);
+        SetImage(characterData.card_imageName);
         SetCharacterNameText(characterData.char_name);
     }
 
-    private void SetCharacterImage(CharacterCSVData characterCsvData)
+    private void SetImage(string imageName)
     {
-        if (characterImage == null || string.IsNullOrEmpty(characterCsvData.card_imageName))
+        if (characterImage == null || string.IsNullOrEmpty(imageName))
         {
             return;
         }
 
-        var texture = ResourceManager.Instance.Get<Texture2D>(characterCsvData.card_imageName);
+        // 기존 스프라이트 정리
+        ClearCurrentSprite();
+
+        var texture = ResourceManager.Instance.Get<Texture2D>(imageName);
         if (texture != null)
         {
-            characterImage.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+            currentSprite = Sprite.Create(texture,
+                new Rect(0, 0, texture.width, texture.height),
+                new Vector2(0.5f, 0.5f));
+            characterImage.sprite = currentSprite;
         }
         else
         {
-            Debug.LogError($"캐릭터 이미지 로드 실패: {characterCsvData.card_imageName}");
+            Debug.LogWarning($"이미지 로드 실패: {imageName}");
         }
     }
 
-    // 가지고 있으면 아이템 이미지로 
-    private void SetCharacterImageToItem(ItemCSVData itemCsvData)
+    private void ClearCurrentSprite()
     {
-        if (characterImage == null || string.IsNullOrEmpty(itemCsvData.prefab))
+        if (currentSprite != null)
         {
-            return;
-        }
-
-        var texture = ResourceManager.Instance.Get<Texture2D>(itemCsvData.prefab);
-        if (texture != null)
-        {
-            characterImage.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
-        }
-        else
-        {
-            Debug.LogWarning($"아이템 이미지를 로드할 수 없습니다: {itemCsvData.prefab}");
+            DestroyImmediate(currentSprite);
+            currentSprite = null;
         }
     }
 
@@ -116,8 +112,8 @@ public class GachaResultUI : GenericWindow
     private void OnRetryButtonClicked()
     {
         var gachaResult = GachaManager.Instance.DrawGacha(2); // 2는 캐릭터 가챠 타입 
-        
-        if(gachaResult.HasValue)
+
+        if (gachaResult.HasValue)
         {
             SetGachaResult(gachaResult.Value);
             DisPlayResult();
@@ -134,10 +130,13 @@ public class GachaResultUI : GenericWindow
     {
         if (characterNameText != null)
         {
-            var sb = new StringBuilder();
-            sb.Clear();
-            sb.Append(name);
-            characterNameText.text = sb.ToString();
+            characterNameText.text = name; 
         }
+    }
+
+    private void OnDestroy()
+    {
+        // 컴포넌트 파괴시 스프라이트 정리
+        ClearCurrentSprite();
     }
 }

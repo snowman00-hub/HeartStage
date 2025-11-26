@@ -130,6 +130,7 @@ public class MonsterSpawner : MonoBehaviour
                     monsterDataSO.InitFromCSV(monsterId);
                     monsterDataCache[monsterId] = monsterDataSO;
                 }
+
             }
             catch
             {
@@ -144,7 +145,7 @@ public class MonsterSpawner : MonoBehaviour
 
             bool isBoss = MonsterBehavior.IsBossMonster(monsterId);
             var prefab = isBoss ? bossMonsterPrefab : monsterPrefab;
-            int poolCount = isBoss ? 1 : poolSize / monsterDataCache.Count;
+            int poolCount = isBoss ? 5 : poolSize / monsterDataCache.Count; // 보스 풀 사이즈
 
             monsterPools[monsterId] = new List<GameObject>();
 
@@ -156,7 +157,10 @@ public class MonsterSpawner : MonoBehaviour
                     var handle = Addressables.InstantiateAsync(prefab, offScreenPosition, Quaternion.identity);
                     var monster = await handle.Task;
 
-                    if (monster == null) continue;
+                    if (monster == null)
+                    {
+                        continue;
+                    }
 
                     monster.SetActive(false);
                     AddVisualChild(monster, monsterDataSO);
@@ -177,14 +181,8 @@ public class MonsterSpawner : MonoBehaviour
 
                     // 초기 상태 설정
                     monster.SetActive(false);
-                    var renderers = monster.GetComponentsInChildren<Renderer>();
-                    foreach (var renderer in renderers)
-                    {
-                        if (renderer != null)
-                            renderer.enabled = false;
-                    }
-
                     monsterPools[monsterId].Add(monster);
+
                 }
                 catch
                 {
@@ -359,6 +357,8 @@ public class MonsterSpawner : MonoBehaviour
 
     private bool SpawnMonster(int monsterId)
     {
+        bool isBoss = MonsterBehavior.IsBossMonster(monsterId);
+
         if (!monsterPools.TryGetValue(monsterId, out var pool))
         {
             return false;
@@ -369,7 +369,6 @@ public class MonsterSpawner : MonoBehaviour
             if (monster != null && !monster.activeInHierarchy)
             {
                 // 위치 설정
-                bool isBoss = MonsterBehavior.IsBossMonster(monsterId);
                 Vector3? safePos = FindSpawnPosition(isBoss);
 
                 if (safePos.HasValue)
@@ -384,6 +383,10 @@ public class MonsterSpawner : MonoBehaviour
                         {
                             monsterBehavior.Init(monsterData);
                         }
+                        else
+                        {
+                            return false;
+                        }
                     }
                     else
                     {
@@ -391,7 +394,8 @@ public class MonsterSpawner : MonoBehaviour
                     }
 
                     // 렌더러 활성화 및 오브젝트 활성화
-                    var renderers = monster.GetComponentsInChildren<Renderer>();
+                    var renderers = monster.GetComponentsInChildren<Renderer>(true);
+
                     foreach (var renderer in renderers)
                     {
                         renderer.enabled = true;
@@ -407,6 +411,7 @@ public class MonsterSpawner : MonoBehaviour
                 }
             }
         }
+
         return false;
     }
 
@@ -678,7 +683,7 @@ public class MonsterSpawner : MonoBehaviour
                         return false;
                     }
 
-                    var renderers = monster.GetComponentsInChildren<Renderer>();
+                    var renderers = monster.GetComponentsInChildren<Renderer>(true);
                     foreach (var renderer in renderers)
                     {
                         renderer.enabled = true;
