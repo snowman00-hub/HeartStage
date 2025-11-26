@@ -74,9 +74,21 @@ public class StageSetupWindow : MonoBehaviour
     // 준비 완료 플래그
     public bool IsReady { get; private set; }
 
+    // 🔹 이 컴포넌트가 담당할 전역 프로그레스 구간 (85% ~ 99%)
+    private const float GlobalStart = 0.85f;
+    private const float GlobalEnd = 0.99f;
+
+    private void ReportStageProgress(float local01)
+    {
+        float clamped = Mathf.Clamp01(local01);
+        float global = Mathf.Lerp(GlobalStart, GlobalEnd, clamped);
+        SceneLoader.SetProgressExternal(global);
+    }
+
     private async void Start()
     {
         IsReady = false;
+        ReportStageProgress(0.0f);
 
         StageIndexs = new Dictionary<int, int>();
         PassiveIndexs = new Dictionary<int, List<PassiveEffectData>>();
@@ -92,25 +104,42 @@ public class StageSetupWindow : MonoBehaviour
                     DraggableSlots[i].slotIndex = i;
         }
 
+        ReportStageProgress(0.1f);
+
         Time.timeScale = 0f;
         StartButton.onClick.AddListener(StartButtonClick);
 
-        // 여기 추가: 데이터 준비될 때까지 대기
+        // 데이터 준비 + 스테이지 적용
         await WaitAndApplyStage();
+
+        ReportStageProgress(0.6f);
 
         if (synergyPanel != null)
             synergyPanel.BuildAllButtons();
 
+        ReportStageProgress(0.8f);
+
         DraggableSlot.OnAnySlotChanged += HandleSlotChanged;
 
+        // 초기 시너지/배치 카운트도 한 번 갱신
+        UpdateSynergyUI();
+        UpdateDeployCountUI();
+
+        ReportStageProgress(1.0f);
         IsReady = true;
     }
 
     private async UniTask WaitAndApplyStage()
     {
+        ReportStageProgress(0.2f);
+
         // StageManager & currentStageCSVData 준비될 때까지
         while (StageManager.Instance == null || StageManager.Instance.GetCurrentStageData() == null)
+        {
             await UniTask.Delay(10, DelayType.UnscaledDeltaTime);
+        }
+
+        ReportStageProgress(0.4f);
 
         var stageCsv = StageManager.Instance.GetCurrentStageData();
         ApplyStage(stageCsv);
@@ -185,7 +214,7 @@ public class StageSetupWindow : MonoBehaviour
             //SoundManager.Instance.PlaySFX("Ui_error");
             return;
         }
-        if(GetCurrentDeployCount() == 0)
+        if (GetCurrentDeployCount() == 0)
         {
             Debug.LogWarning("[StageSetupWindow] No units deployed!");
             //SoundManager.Instance.PlaySFX("Ui_error");
@@ -257,7 +286,6 @@ public class StageSetupWindow : MonoBehaviour
         }
     }
 
-
     private void ResetPassiveTiles()
     {
         if (DraggableSlots == null) return;
@@ -269,12 +297,11 @@ public class StageSetupWindow : MonoBehaviour
         if (_passiveStackCounts == null || _passiveStackCounts.Length != len)
             _passiveStackCounts = new int[len];
 
-        System.Array.Clear(_passiveTiles, 0, len);
-        System.Array.Clear(_passiveStackCounts, 0, len);
+        Array.Clear(_passiveTiles, 0, len);
+        Array.Clear(_passiveStackCounts, 0, len);
 
         // 색은 ApplyTileColors에서 처리
     }
-
 
     /// 현재 DraggableSlots 상태 + 각 캐릭터의 PassiveType을 기준으로
     /// 바닥 패시브 타일(_passiveTiles) 계산 + 색칠
@@ -357,7 +384,7 @@ public class StageSetupWindow : MonoBehaviour
         if (_previewPassiveTiles == null || _previewPassiveTiles.Length != slotCount)
             _previewPassiveTiles = new bool[slotCount];
 
-        System.Array.Clear(_previewPassiveTiles, 0, _previewPassiveTiles.Length);
+        Array.Clear(_previewPassiveTiles, 0, _previewPassiveTiles.Length);
 
         var skill = DataTableManager.SkillTable.Get(cd.skill_id1);
         PassiveType type = (PassiveType)skill.passive_type;
@@ -373,8 +400,8 @@ public class StageSetupWindow : MonoBehaviour
         }
 
         // 미리보기 색 적용 (겹치면 preview가 우선)
-        int len = Mathf.Min(PassiveImages.Length, _passiveStackCounts != null ? _passiveStackCounts.Length : PassiveImages.Length);
-        for (int i = 0; i < len; i++)
+        int len2 = Mathf.Min(PassiveImages.Length, _passiveStackCounts != null ? _passiveStackCounts.Length : PassiveImages.Length);
+        for (int i = 0; i < len2; i++)
         {
             var img = PassiveImages[i];
             if (img == null) continue;
@@ -424,7 +451,6 @@ public class StageSetupWindow : MonoBehaviour
         var actives = SynergyManager.Evaluate(DraggableSlots);
         synergyPanel.UpdateActiveSynergies(actives);
     }
-
 
     // 스테이지 타일 관련
     public void ApplyStage(StageData stage)
@@ -514,7 +540,7 @@ public class StageSetupWindow : MonoBehaviour
 
     public bool IsDeployLimitReached()
     {
-        if (_maxDeployUnits <= 0) 
+        if (_maxDeployUnits <= 0)
             return false; // 0이면 제한 없음으로 처리
 
         return GetCurrentDeployCount() >= _maxDeployUnits;

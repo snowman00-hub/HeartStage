@@ -12,25 +12,45 @@ public class OwnedCharacterSetup : MonoBehaviour
 
     public bool IsReady { get; private set; }
 
+    // 🔹 이 컴포넌트가 담당할 전역 프로그레스 구간 (60% ~ 85%)
+    private const float GlobalStart = 0.6f;
+    private const float GlobalEnd = 0.85f;
+
+    private void ReportOwnedProgress(float local01)
+    {
+        float clamped = Mathf.Clamp01(local01);
+        float global = Mathf.Lerp(GlobalStart, GlobalEnd, clamped);
+        SceneLoader.SetProgressExternal(global);
+    }
+
     private async void Start()
     {
         IsReady = false;
+
+        // 0단계: 시작
+        ReportOwnedProgress(0.0f);
 
         // 1) 세이브 데이터 / 캐릭터 테이블 준비까지 기다리기
         await UniTask.WaitUntil(() =>
             SaveLoadManager.Data != null &&
             DataTableManager.CharacterTable != null
         );
+        ReportOwnedProgress(0.2f);
 
         // 2) 리스트 + 프리팹 생성
         BuildOwnedCharacterList();
-        InstantiateCharacters();
+        ReportOwnedProgress(0.5f);
 
-        // 3) 레이아웃 강제 재계산 (한 프레임 기다리지 않고 지금 프레임에 자리잡게)
-        await UniTask.Yield(); // LayoutRebuilder 전에 한 프레임 넘기고 싶으면 유지, 아니면 빼도 됨
+        InstantiateCharacters();
+        ReportOwnedProgress(0.8f);
+
+        // 3) 레이아웃 강제 재계산
+        await UniTask.Yield(); // 한 프레임 넘기고
         UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(content);
         Canvas.ForceUpdateCanvases();
 
+        // 4) 완료
+        ReportOwnedProgress(1.0f);
         IsReady = true;
     }
 
@@ -64,7 +84,6 @@ public class OwnedCharacterSetup : MonoBehaviour
             }
 
             // CSV에 있는 data_AssetName 기준으로 SO 로드 (너가 쓰는 패턴)
-            // 예) "C001_Data" 같은 애들
             var so = ResourceManager.Instance.Get<CharacterData>(row.data_AssetName);
             if (so == null)
             {
@@ -75,8 +94,7 @@ public class OwnedCharacterSetup : MonoBehaviour
             _ownedCharacters.Add(so);
         }
 
-        // 정렬 규칙 한 번 잡아주자 (원하면 바꿔도 됨)
-        // 1차: 등급, 2차: 레벨, 3차: 이름 내림차순 정렬
+        // 정렬 규칙 (등급, 레벨, 이름 내림차순)
         _ownedCharacters.Sort((a, b) =>
         {
             int cmp = b.char_rank.CompareTo(a.char_rank);

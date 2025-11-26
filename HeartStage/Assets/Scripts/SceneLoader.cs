@@ -14,7 +14,17 @@ public class SceneLoader : MonoBehaviour
 
     private LoadingUI _loadingUI;
 
-    private float _currentProgress = 0f;
+    // 🔹 다른 스크립트(Owned/Stage/SceneController)가 찍는 "목표 프로그레스"
+    private float _targetProgress = 0f;
+
+    // 🔹 실제로 로딩바에 그리는 값 (이게 서서히 _targetProgress를 따라감)
+    private float _displayProgress = 0f;
+
+    // 🔹 0~60% 구간에서 쓸 속도
+    [SerializeField] private float fastSpeedTo60 = 3.0f;
+
+    // 🔹 60% 이후에서 쓸 속도
+    [SerializeField] private float slowSpeedAfter60 = 1.0f;
 
     private void Awake()
     {
@@ -31,6 +41,29 @@ public class SceneLoader : MonoBehaviour
         {
             _loadingUI = Instantiate(loadingUIPrefab, transform);
             _loadingUI.Hide();
+        }
+    }
+
+    private void Update()
+    {
+        if (_loadingUI == null)
+            return;
+
+        if (_displayProgress < _targetProgress)
+        {
+            // 🔹 현재 표시값이 60% 이전이면 빠르게,
+            //    60% 이후면 느리게
+            float speed = (_displayProgress < 0.6f)
+                ? fastSpeedTo60
+                : slowSpeedAfter60;
+
+            _displayProgress = Mathf.MoveTowards(
+                _displayProgress,
+                _targetProgress,
+                speed * Time.unscaledDeltaTime
+            );
+
+            _loadingUI.SetProgress(_displayProgress);
         }
     }
 
@@ -51,57 +84,77 @@ public class SceneLoader : MonoBehaviour
 
     private async UniTask InternalLoadScene(string address, LoadSceneMode mode)
     {
-        _loadingUI?.Show();
+        if (_loadingUI != null)
+            _loadingUI.Show();
+
+        // 시작할 때 0으로 초기화
+        _targetProgress = 0f;
+        _displayProgress = 0f;
         SetProgressInternal(0f);
+
+        // 🔹 씬 로딩은 전체의 0% ~ 60%만 사용
+        const float sceneLoadStart = 0f;
+        const float sceneLoadEnd = 0.6f;
 
         var handle = Addressables.LoadSceneAsync(address, mode, activateOnLoad: false);
 
-        // 🔹 Addressables 로딩 단계: 0.0 ~ 0.9까지만 사용
         while (!handle.IsDone)
         {
-            float p = handle.PercentComplete * 0.9f;
-            SetProgressInternal(p);
+            float p = handle.PercentComplete; // 0 ~ 1
+            float mapped = Mathf.Lerp(sceneLoadStart, sceneLoadEnd, p);
+            SetProgressInternal(mapped);
             await UniTask.Yield();
         }
 
         var sceneInstance = handle.Result;
         var activateOp = sceneInstance.ActivateAsync();
 
-        // 🔹 활성화 단계에서는 굳이 계속 만지지 않고,
-        //    최대 0.9까지만 유지 (혹시라도 0.8→0.9 올라갈 수는 있음)
+        // 🔹 활성화 단계는 60%까지 채웠다고 가정하고 유지
         while (!activateOp.isDone)
         {
-            float p = 0.9f; // 또는 0.9f까지 부드럽게 보간해도 됨
-            SetProgressInternal(p);
+            SetProgressInternal(sceneLoadEnd);
             await UniTask.Yield();
         }
-    }
 
+        // 나머지 60% ~ 100%는 각 씬 내부 컨트롤러
+        // (OwnedCharacterSetup / StageSetupWindow / StageSceneController)에서
+        // SceneLoader.SetProgressExternal()로 채운다.
+    }
 
     public static void HideLoading()
     {
-        if (Instance == null) return;
-        Instance._loadingUI?.Hide();
+        if (Instance == null || Instance._loadingUI == null)
+            return;
+
+        Instance._loadingUI.Hide();
     }
 
     public static async UniTask HideLoadingWithDelay(int ms = 300)
     {
-        if (Instance == null || Instance._loadingUI == null) return;
+        if (Instance == null || Instance._loadingUI == null)
+            return;
+
         await UniTask.Delay(ms);
         Instance._loadingUI.Hide();
     }
 
+    // 🔹 내부에서 목표 프로그레스만 갱신 (바로 UI를 건드리지 않음)
     private void SetProgressInternal(float value01)
     {
-        if (_loadingUI == null) return;
+        if (_loadingUI == null)
+            return;
 
-        // 0~1 클램프 + "지금까지 값보다 작아지지 않도록" 보장
-        _currentProgress = Mathf.Clamp01(Mathf.Max(_currentProgress, value01));
-        _loadingUI.SetProgress(_currentProgress);
+        // 0~1 클램프 + "지금까지 목표 값보다 작아지지 않도록" 보장
+        float clamped = Mathf.Clamp01(value01);
+        _targetProgress = Mathf.Max(_targetProgress, clamped);
     }
+
+    // 🔹 외부(다른 스크립트)에서 불러쓰는 함수
     public static void SetProgressExternal(float value01)
     {
-        if (Instance == null) return;
+        if (Instance == null)
+            return;
+
         Instance.SetProgressInternal(value01);
     }
 }

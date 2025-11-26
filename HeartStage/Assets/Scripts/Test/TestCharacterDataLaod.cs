@@ -2,92 +2,102 @@
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using Cysharp.Threading.Tasks;
 
 public class TestCharacterDataLaod : MonoBehaviour
 {
-    // Addressables에서 불러온 CharacterData SO들
     private readonly List<CharacterData> characters = new List<CharacterData>();
 
-    [Header("UI 부모 (Scroll View의 Content)")]
-    public RectTransform content;     // ScrollView → Viewport → Content
-    public DragMe CharacterPrefab;    // DragMe 달려있는 공통 프리팹
+    public RectTransform content;
+    public DragMe CharacterPrefab;
 
     public bool IsReady { get; private set; }
 
-    // Start를 async로 써서 Addressables 기다리게 만들자
+    // 이 컴포넌트가 담당할 전역 프로그레스 구간 (예: 60% ~ 85%)
+    private const float GlobalStart = 0.6f;
+    private const float GlobalEnd = 0.85f;
+
+    private void ReportTestProgress(float local01)
+    {
+        float clamped = Mathf.Clamp01(local01);
+        float global = Mathf.Lerp(GlobalStart, GlobalEnd, clamped);
+        SceneLoader.SetProgressExternal(global);
+    }
+
     private async void Start()
     {
         IsReady = false;
+        ReportTestProgress(0.0f);
 
-        // 1) 라벨 "CharacterData" 달린 SO들 전부 로드
-        AsyncOperationHandle<IList<CharacterData>> handle =
+        // 1) Addressables 로드
+        var handle =
             Addressables.LoadAssetsAsync<CharacterData>(
-                "CharacterData",  // 네가 붙인 라벨 이름 (다르면 여기만 바꾸면 됨)
-                null              // 개별 로드 콜백 필요 없으면 null
+                "CharacterData",
+                null
             );
 
         IList<CharacterData> loadedList = await handle.Task;
+        ReportTestProgress(0.3f);
 
         characters.Clear();
         characters.AddRange(loadedList);
 
-        Debug.Log($"[CharacterDataLoad] Loaded {characters.Count} CharacterData SOs.");
-
+        // 정렬 등등 네가 하던 거
         characters.Sort((a, b) =>
         {
-            // 1차: 이름 기준
             int cmp = a.char_name.CompareTo(b.char_name);
-            if (cmp != 0)
-                return cmp;
-
-            // 2차: id 기준
+            if (cmp != 0) return cmp;
             return a.char_id.CompareTo(b.char_id);
         });
+        ReportTestProgress(0.5f);
 
+        // 2) 캐릭 프리팹 Instantiate + 패널 InitAsync 전부 기다리기
+        await InstantiateCharactersAsync();
+        ReportTestProgress(0.9f);
 
-        // 3) UI에 깔기
-        InstantiateCharacters();
-
-        // 필요하면 나중에 Release (여기선 안 해도 큰 문제는 없음)
-        // Addressables.Release(handle);
+        // Addressables.Release(handle); // 필요시
 
         IsReady = true;
+        ReportTestProgress(1.0f);
     }
 
-    private void InstantiateCharacters()
+    private async UniTask InstantiateCharactersAsync()
     {
         if (content == null || CharacterPrefab == null)
         {
-            Debug.LogWarning("[OwnedCharacterSetup] content 또는 CharacterPrefab 미할당");
+            Debug.LogWarning("[TestCharacterDataLaod] content 또는 CharacterPrefab 미할당");
             return;
         }
 
-        // 기존 자식들 정리 (리프레시 가능하게)
+        // 기존 자식 삭제
         for (int i = content.childCount - 1; i >= 0; i--)
-        {
             Destroy(content.GetChild(i).gameObject);
-        }
+
+        var initTasks = new List<UniTask>();
 
         foreach (var characterData in characters)
         {
             var dragMeInstance = Instantiate(CharacterPrefab, content);
             dragMeInstance.name = characterData.char_name;
-
-            // 1) DragMe에 데이터 꽂고
             dragMeInstance.characterData = characterData;
 
-            // 2) CharacterSelectPanel도 바로 초기화
-            var panel = dragMeInstance.GetComponent<CharacterSelectPanel>();
+            var panel = dragMeInstance.GetComponent<CharacterSelectTestPanel>();
             if (panel != null)
-                panel.Init(characterData);
+            {
+                // 🔹 InitAsync의 UniTask를 모아둔다
+                initTasks.Add(panel.InitAsync(characterData));
+            }
 
-            // 3) RectTransform 정리
+            // RectTransform 정리
             if (dragMeInstance.transform is RectTransform rect)
             {
                 rect.localScale = Vector3.one;
                 rect.anchoredPosition3D = Vector3.zero;
             }
         }
+
+        // 🔹 모든 패널의 InitAsync(텍스트 + 카드 이미지 로드)가 끝날 때까지 기다린다
+        if (initTasks.Count > 0)
+            await UniTask.WhenAll(initTasks);
     }
 }
-

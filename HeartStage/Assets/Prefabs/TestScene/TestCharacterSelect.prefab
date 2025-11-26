@@ -167,7 +167,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 27
+  m_fontSize: 18
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -300,7 +300,7 @@ GameObject:
   - component: {fileID: 8615423448630510493}
   - component: {fileID: 3694489605345878268}
   - component: {fileID: 4569702091683550732}
-  - component: {fileID: 5206189787086604211}
+  - component: {fileID: -8905259746546899083}
   - component: {fileID: 8443685910723649286}
   m_Layer: 5
   m_Name: TestCharacterSelect
@@ -347,6 +347,9 @@ MonoBehaviour:
   dragOnSurfaces: 1
   characterData: {fileID: 0}
   directionThreshold: 10
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  lockedColor: {r: 0.4862745, g: 0.4862745, b: 0.4862745, a: 1}
+  draggingColor: {r: 0.4862745, g: 0.4862745, b: 0.4862745, a: 1}
 --- !u!222 &2629622282768252112
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -431,7 +434,7 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
---- !u!114 &5206189787086604211
+--- !u!114 &-8905259746546899083
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -440,7 +443,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 2022152103273600029}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1a22ddd023b3bb246b7c3c9b240928d3, type: 3}
+  m_Script: {fileID: 11500000, guid: 8a01933a5f072984ab66085836620ca0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   rankText: {fileID: 5001737930666862331}
@@ -1671,7 +1674,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 27
+  m_fontSize: 18
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -1931,7 +1934,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 32
+  m_fontSize: 18
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -2532,7 +2535,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 38.45
+  m_fontSize: 18
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
