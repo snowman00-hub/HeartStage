@@ -1,4 +1,5 @@
 ﻿using Cysharp.Threading.Tasks;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -70,8 +71,13 @@ public class StageSetupWindow : MonoBehaviour
     //스폰 캐릭터 리스트 
     private readonly List<GameObject> _spawnedAllies = new();
 
-    private async void OnEnable()
+    // 준비 완료 플래그
+    public bool IsReady { get; private set; }
+
+    private async void Start()
     {
+        IsReady = false;
+
         StageIndexs = new Dictionary<int, int>();
         PassiveIndexs = new Dictionary<int, List<PassiveEffectData>>();
 
@@ -96,6 +102,8 @@ public class StageSetupWindow : MonoBehaviour
             synergyPanel.BuildAllButtons();
 
         DraggableSlot.OnAnySlotChanged += HandleSlotChanged;
+
+        IsReady = true;
     }
 
     private async UniTask WaitAndApplyStage()

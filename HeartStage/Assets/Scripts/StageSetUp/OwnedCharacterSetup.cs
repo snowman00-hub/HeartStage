@@ -1,19 +1,37 @@
-﻿using System.Collections.Generic;
+﻿using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class OwnedCharacterSetup : MonoBehaviour
 {
     [Header("UI 부모 (Scroll View의 Content)")]
-    public RectTransform content;      // ScrollView → Viewport → Content
-    public DragMe characterPrefab;     // DragMe 달려있는 공통 프리팹
+    public RectTransform content;
+    public DragMe characterPrefab;
 
-    // 보유 캐릭터들의 CharacterData SO 캐싱
     private readonly List<CharacterData> _ownedCharacters = new List<CharacterData>();
 
-    private void Start()
+    public bool IsReady { get; private set; }
+
+    private async void Start()
     {
+        IsReady = false;
+
+        // 1) 세이브 데이터 / 캐릭터 테이블 준비까지 기다리기
+        await UniTask.WaitUntil(() =>
+            SaveLoadManager.Data != null &&
+            DataTableManager.CharacterTable != null
+        );
+
+        // 2) 리스트 + 프리팹 생성
         BuildOwnedCharacterList();
         InstantiateCharacters();
+
+        // 3) 레이아웃 강제 재계산 (한 프레임 기다리지 않고 지금 프레임에 자리잡게)
+        await UniTask.Yield(); // LayoutRebuilder 전에 한 프레임 넘기고 싶으면 유지, 아니면 빼도 됨
+        UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(content);
+        Canvas.ForceUpdateCanvases();
+
+        IsReady = true;
     }
 
     /// Save 데이터 기준으로 '보유 중인 캐릭터'만 SO 리스트로 만든다.
@@ -58,16 +76,16 @@ public class OwnedCharacterSetup : MonoBehaviour
         }
 
         // 정렬 규칙 한 번 잡아주자 (원하면 바꿔도 됨)
-        // 1차: 등급 오름차순, 2차: 레벨, 3차: 이름
+        // 1차: 등급, 2차: 레벨, 3차: 이름 내림차순 정렬
         _ownedCharacters.Sort((a, b) =>
         {
-            int cmp = a.char_rank.CompareTo(b.char_rank);
+            int cmp = b.char_rank.CompareTo(a.char_rank);
             if (cmp != 0) return cmp;
 
-            cmp = a.char_lv.CompareTo(b.char_lv);
+            cmp = b.char_lv.CompareTo(a.char_lv);
             if (cmp != 0) return cmp;
 
-            return a.char_name.CompareTo(b.char_name);
+            return b.char_name.CompareTo(a.char_name);
         });
 
         Debug.Log($"[OwnedCharacterSetup] OwnedCharacters = {_ownedCharacters.Count}");
@@ -90,18 +108,18 @@ public class OwnedCharacterSetup : MonoBehaviour
 
         foreach (var characterData in _ownedCharacters)
         {
-            // 공통 DragMe 프리팹을 Content 밑에 생성
-            DragMe dragMeInstance = Instantiate(characterPrefab, content);
-            dragMeInstance.name = characterData.char_name;  // 보기 좋게 이름
+            var dragMeInstance = Instantiate(characterPrefab, content);
+            dragMeInstance.name = characterData.char_name;
 
-            // DragMe 쪽에 SO 꽂아주기 (TestCharacterDataLaod에서 하던 그대로) :contentReference[oaicite:2]{index=2}
-            if (dragMeInstance != null)
-            {
-                // 네 DragMe에 RebindCharacter 같은 함수 있으면 그걸 써도 됨
-                dragMeInstance.characterData = characterData;
-            }
+            // 1) DragMe에 데이터 꽂고
+            dragMeInstance.characterData = characterData;
 
-            // RectTransform 초기화 (LayoutGroup이 위치 정리하게)
+            // 2) CharacterSelectPanel도 바로 초기화
+            var panel = dragMeInstance.GetComponent<CharacterSelectPanel>();
+            if (panel != null)
+                panel.Init(characterData);
+
+            // 3) RectTransform 정리
             if (dragMeInstance.transform is RectTransform rect)
             {
                 rect.localScale = Vector3.one;

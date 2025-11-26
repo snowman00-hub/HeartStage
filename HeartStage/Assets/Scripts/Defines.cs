@@ -55,6 +55,16 @@ public enum WindowType
     CharacterInfo,
 }
 
+public enum SceneType
+{
+    None = -1,
+    TitleScene = 0,
+    LobbyScene = 1,
+    StageScene = 2,
+    TestStageScene = 3,
+
+}
+
 public class SoundName
 {
     public static readonly string SFX_UI_Button_Click = "Ui_click_01";    

@@ -5,10 +5,6 @@ public class LoadSceneManager : MonoBehaviour
 {
     public static LoadSceneManager Instance;
 
-    public static readonly string StageAddress = "Assets/Scenes/Stage.unity";
-    public static readonly string LobbyAddress = "Assets/Scenes/Lobby.unity";
-    public static readonly string TestStageAddress = "Assets/Scenes/StageTestScene.ver1.unity";
-
     private void Awake()
     {
         if(Instance == null)
@@ -26,7 +22,7 @@ public class LoadSceneManager : MonoBehaviour
 
     public void GoStage()
     {
-        Addressables.LoadSceneAsync(StageAddress, UnityEngine.SceneManagement.LoadSceneMode.Single);
+        GameSceneManager.ChangeScene(SceneType.StageScene);
         Time.timeScale = 1.0f;
     }
 
@@ -41,7 +37,7 @@ public class LoadSceneManager : MonoBehaviour
 
     public void GoTestStage()
     {
-        Addressables.LoadSceneAsync(TestStageAddress, UnityEngine.SceneManagement.LoadSceneMode.Single);
+        GameSceneManager.ChangeScene(SceneType.TestStageScene);
     }
 
     public void GoTestStage(int stageId, int startingWave = 1)
@@ -54,6 +50,6 @@ public class LoadSceneManager : MonoBehaviour
 
     public void GoLobby()
     {
-        Addressables.LoadSceneAsync(LobbyAddress, UnityEngine.SceneManagement.LoadSceneMode.Single);
+        GameSceneManager.ChangeScene(SceneType.LobbyScene);
     }
 }

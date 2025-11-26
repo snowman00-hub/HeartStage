@@ -7,7 +7,7 @@ using UnityEditor;
 
 public class BootStrap : MonoBehaviour
 {
-    private const string Key = "LastPlayedScenePath";
+    private const string LastSceneKey = "LastSceneType";
 
     // Scene 새로 복사했으면 Addressable 체크하고 플레이 하기, 등록 안되면 오류 뜸!
     // Scene Addressable 주소 바꾸지 말기, 그냥 체크만 하기
@@ -22,19 +22,29 @@ public class BootStrap : MonoBehaviour
         await DataTableManager.Initialization;
 
 
-        string targetScene = "Assets/Scenes/Lobby.unity";
+        SceneType targetScene = SceneType.LobbyScene;
 
 #if UNITY_EDITOR
-        string lastScene = EditorPrefs.GetString(Key, "");
-        if (!string.IsNullOrEmpty(lastScene) && lastScene != "Assets/Scenes/bootScene.unity")
-            targetScene = lastScene;
+        string lastSceneStr = EditorPrefs.GetString(LastSceneKey, string.Empty);
+        if (!string.IsNullOrEmpty(lastSceneStr) &&
+            System.Enum.TryParse(lastSceneStr, out SceneType lastSceneType))
+        {
+            // 부트/타이틀 같은 애들은 스킵하고 싶으면 여기서 필터
+            if (lastSceneType != SceneType.None &&
+                lastSceneType != SceneType.TitleScene)
+            {
+                targetScene = lastSceneType;
+            }
+        }
 #else
         Application.targetFrameRate = 60;
 #endif
+
         // 세이브 데이터 로드
         TryLoad();
 
-        await Addressables.LoadSceneAsync(targetScene);
+        // 이제는 string이 아니라 SceneType으로 호출
+        await GameSceneManager.ChangeScene(targetScene);
     }
 
     private void TryLoad()

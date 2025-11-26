@@ -8,7 +8,6 @@ public class StageUI : MonoBehaviour
 {
     public TextMeshProUGUI waveCountText;
     public TextMeshProUGUI remainMonsterCountText;
-    public GameObject SelectWindow;
 
     [Header("Button")]
     [SerializeField] private Button BossSkill1Button1;
@@ -33,9 +32,6 @@ public class StageUI : MonoBehaviour
 
         if (BossSkill1Button3 != null)
             BossSkill1Button3.onClick.AddListener(OnBossSkillButton3Clicked);
-
-        // 배치창 꺼져있었으면 키기
-        SelectWindow.SetActive(true);
     }
 
     private void Update()
