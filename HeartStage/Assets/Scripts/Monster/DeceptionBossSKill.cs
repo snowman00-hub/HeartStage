@@ -1,45 +1,70 @@
 ﻿using UnityEngine;
 using Cysharp.Threading.Tasks;
 using UnityEngine.AddressableAssets;
+using System.Collections.Generic;
 
 public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
-{  
-    private string poolId;
-    private bool isPoolInitialized = false;
-    private bool isInitialized = false; // 중복 초기화 방지 플래그 추가
+{
+    private Dictionary<string, bool> poolsInitialized = new Dictionary<string, bool>();
+    private bool isInitialized = false;
     private MonsterBehavior monsterBehavior;
-    private SkillCSVData skillData;
-    private MonsterData cachedMonsterData;
+    private Dictionary<int, SkillCSVData> skillDataDict = new Dictionary<int, SkillCSVData>();
+    private Dictionary<int, MonsterData> cachedMonsterDataDict = new Dictionary<int, MonsterData>();
+    private List<int> registeredSkillIds = new List<int>();
     private MonsterSpawner monsterSpawner;
-    private int currentSkillId = 0; // 현재 스킬 ID 저장
 
+    // 자체 쿨타임 관리 제거
+    // private float coolTime = 15f;
+    // private float nextSkillTime = 0f;
+
+    // Update() 메서드 제거 - ActiveSkillManager가 관리
+    /*
+    private void Update()
+    {
+        if (!isInitialized || registeredSkillIds.Count == 0) return;
+
+        var bossAddScript = GetComponent<BossAddScript>();
+        if (bossAddScript == null || !bossAddScript.IsBossSpawned())
+        {
+            return;
+        }
+
+        // 스킬 실행 체크
+        if (Time.time >= nextSkillTime)
+        {
+            Execute();
+            nextSkillTime = Time.time + coolTime;
+        }
+    }
+    */
 
     public void SetSkillId(int skillId)
     {
-        currentSkillId = skillId;
-        Debug.Log($"DeceptionBossSkill.SetSkillId 호출됨 - 스킬 ID: {skillId}");
-
+        if (!registeredSkillIds.Contains(skillId))
+        {
+            registeredSkillIds.Add(skillId);
+            Debug.Log($"DeceptionBossSkill.SetSkillId 추가됨 - 스킬 ID: {skillId}, 총 {registeredSkillIds.Count}개");
+        }
     }
 
     public async UniTask InitializeWithMonsterData(MonsterData monsterData)
     {
         if (isInitialized) return;
 
-        if (monsterData == null)
+        if (monsterData == null || registeredSkillIds.Count == 0)
         {
             return;
         }
 
         monsterBehavior = GetComponent<MonsterBehavior>();
-
         if (monsterBehavior == null)
         {
             return;
         }
 
-        if(monsterSpawner == null)
+        if (monsterSpawner == null)
         {
-            monsterSpawner = FindFirstObjectByType<MonsterSpawner>(); // FindObject 쓰면 안좋음 변경 하긴 해야함
+            monsterSpawner = FindFirstObjectByType<MonsterSpawner>();
         }
 
         await InitializeWithData(monsterData);
@@ -47,133 +72,182 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
 
     private async UniTask InitializeWithData(MonsterData monsterData)
     {
-        // 스킬 ID 결정
-        int skillId = currentSkillId;
-        Debug.Log($"🎯 DeceptionBossSkill 초기화 시작 - 보스 ID: {monsterData.id}, 현재 스킬 ID: {skillId}");
+        Debug.Log($"DeceptionBossSkill 초기화 시작 - 보스 ID: {monsterData.id}, 등록된 스킬들: [{string.Join(", ", registeredSkillIds)}]");
 
-
-        if (skillId == 0)
+        // 모든 등록된 스킬 데이터 로드
+        foreach (int skillId in registeredSkillIds)
         {
-            Debug.LogError($"보스 ID {monsterData.id}에 해당하는 스킬을 찾을 수 없음");
+            var skillData = DataTableManager.SkillTable.Get(skillId);
+            if (skillData == null)
+            {
+                Debug.LogError($"스킬 데이터를 찾을 수 없음 - ID: {skillId}");
+                continue;
+            }
+
+            skillDataDict[skillId] = skillData;
+
+            // 각 스킬의 소환 몬스터 데이터 로드
+            await LoadMonsterDataForSkill(skillData);
+        }
+
+        if (skillDataDict.Count == 0)
+        {
+            Debug.LogError($"보스 ID {monsterData.id}에 유효한 스킬이 없음");
             return;
         }
 
-        // 스킬 데이터 로드
-        skillData = DataTableManager.SkillTable.Get(skillId);
-        if (skillData == null)
+        // 쿨타임 설정 제거 - ActiveSkillManager가 관리
+        // var firstSkill = skillDataDict[registeredSkillIds[0]];
+        // coolTime = firstSkill.skill_cool;
+        // nextSkillTime = Time.time + coolTime;
+
+        await InitializeAllPools();
+
+        isInitialized = true;
+        Debug.Log($"DeceptionBossSkill 초기화 완료 - 보스: {monsterData.id}, 스킬 수: {skillDataDict.Count}");
+    }
+
+    // 나머지 메서드들은 동일...
+    private async UniTask LoadMonsterDataForSkill(SkillCSVData skillData)
+    {
+        int summonType = skillData.summon_type;
+        if (cachedMonsterDataDict.ContainsKey(summonType))
         {
-            Debug.LogError($"스킬 데이터를 찾을 수 없음 - ID: {skillId}");
-            return;
+            return; // 이미 로드됨
         }
 
-        poolId = skillData.summon_type.ToString();
-
-        // MonsterData 캐시 로드
-        cachedMonsterData = ResourceManager.Instance.Get<MonsterData>($"MonsterData_{skillData.summon_type}");
+        MonsterData cachedMonsterData = ResourceManager.Instance.Get<MonsterData>($"MonsterData_{summonType}");
         if (cachedMonsterData == null)
         {
             try
             {
-                var handle = Addressables.LoadAssetAsync<MonsterData>($"MonsterData_{skillData.summon_type}");
+                var handle = Addressables.LoadAssetAsync<MonsterData>($"MonsterData_{summonType}");
                 cachedMonsterData = await handle.Task;
 
                 if (cachedMonsterData != null)
                 {
-                    cachedMonsterData.InitFromCSV(skillData.summon_type);
+                    cachedMonsterData.InitFromCSV(summonType);
                 }
             }
             catch (System.Exception e)
             {
-                Debug.LogError($"MonsterData 로드 실패 - ID: {skillData.summon_type}, Error: {e.Message}");
+                Debug.LogError($"MonsterData 로드 실패 - ID: {summonType}, Error: {e.Message}");
                 return;
             }
         }
 
-        if (cachedMonsterData == null)
+        if (cachedMonsterData != null)
         {
-            Debug.LogError($"MonsterData를 찾을 수 없음 - ID: {skillData.summon_type}");
-            return;
+            cachedMonsterDataDict[summonType] = cachedMonsterData;
+            Debug.Log($"MonsterData 로드 완료 - ID: {summonType}");
         }
-
-        await InitializePool();
-
-        isInitialized = true; // 초기화 완료 플래그 설정
-        Debug.Log($"DeceptionBossSkill 초기화 완료 - 보스: {monsterData.id}, 스킬: {skillId}, 소환몬스터: {poolId}");
     }
 
-    private async UniTask InitializePool()
+    private async UniTask InitializeAllPools()
     {
-        if (isPoolInitialized || skillData == null) return;
-
-        if (PoolManager.Instance == null)
-        {
-            return;
-        }
+        if (PoolManager.Instance == null) return;
 
         try
         {
-            // 이미 Boot에서 로드된 MonsterPrefab을 사용
             var handle = Addressables.LoadAssetAsync<GameObject>("MonsterPrefab");
             var monsterPrefabGO = await handle.Task;
 
-            if (monsterPrefabGO != null)
+            if (monsterPrefabGO == null) return;
+
+            // 각 스킬별로 필요한 풀 생성
+            foreach (var skillData in skillDataDict.Values)
             {
-                int poolSize = 10;
-                PoolManager.Instance.CreatePool(poolId, monsterPrefabGO, poolSize, poolSize * 2);
-                isPoolInitialized = true;
+                string poolId = skillData.summon_type.ToString();
+
+                if (!poolsInitialized.ContainsKey(poolId) || !poolsInitialized[poolId])
+                {
+                    int poolSize = 10;
+                    PoolManager.Instance.CreatePool(poolId, monsterPrefabGO, poolSize, poolSize * 2);
+                    poolsInitialized[poolId] = true;
+                }
             }
         }
-        catch (System.Exception e)
+        catch
         {
-            Debug.LogError($"풀 초기화 실패 - ID: {poolId}, Error: {e.Message}");
         }
     }
 
     public void Execute()
     {
-        Debug.Log($"🚀 DeceptionBossSkill.Execute 호출됨 - 스킬 ID: {currentSkillId}");
-
-        var bossAddScript = GetComponent<BossAddScript>();
-        if (bossAddScript == null || !bossAddScript.IsBossSpawned())
-        {
-            return; // 로그 없이 조용히 리턴
-        }
-
-        if (!isPoolInitialized || skillData == null || cachedMonsterData == null)
+        if (registeredSkillIds.Count == 0 || skillDataDict.Count == 0)
         {
             return;
         }
 
-        ExecuteSkill().Forget();
+        var bossAddScript = GetComponent<BossAddScript>();
+        if (bossAddScript == null || !bossAddScript.IsBossSpawned())
+        {
+            return;
+        }
+
+        // 모든 등록된 스킬을 동시에 실행
+        ExecuteAllSkills().Forget();
     }
 
-    private async UniTaskVoid ExecuteSkill()
+    private async UniTaskVoid ExecuteAllSkills()
     {
-        int spawnCount = Random.Range(2, 4); // 2~3마리
+        List<UniTask> skillTasks = new List<UniTask>();
 
-        // 보스 주위에 소환
+        // 모든 스킬을 동시에 실행
+        foreach (int skillId in registeredSkillIds)
+        {
+            if (skillDataDict.ContainsKey(skillId))
+            {
+                skillTasks.Add(ExecuteSingleSkill(skillId));
+            }
+        }
+
+        // 모든 스킬이 완료될 때까지 대기
+        await UniTask.WhenAll(skillTasks);
+
+        Debug.Log($"모든 스킬 실행 완료! 총 {skillTasks.Count}개 스킬 동시 실행됨");
+    }
+
+    private async UniTask ExecuteSingleSkill(int skillId)
+    {
+        var skillData = skillDataDict[skillId];
+        int summonType = skillData.summon_type;
+
+        if (!cachedMonsterDataDict.ContainsKey(summonType))
+        {
+            Debug.LogError($"소환 몬스터 데이터가 없음 - summon_type: {summonType}");
+            return;
+        }
+
+        var cachedMonsterData = cachedMonsterDataDict[summonType];
+        string poolId = summonType.ToString();
+
+        // CSV에서 정의된 소환 수 사용 (min~max 범위)
+        int spawnCount = Random.Range(skillData.summon_min, skillData.summon_max + 1);
+
+        Debug.Log($"스킬 {skillId} 실행: {spawnCount}마리 소환 (타입: {summonType})");
+
         for (int i = 0; i < spawnCount; i++)
         {
             var monster = PoolManager.Instance.Get(poolId);
             if (monster != null)
             {
-                SetupSummonedMonster(monster);
+                SetupSummonedMonster(monster, cachedMonsterData);
             }
             else
             {
-                Debug.LogWarning($"풀에서 몬스터를 가져올 수 없음: {i + 1}번째");
+                Debug.LogWarning($"풀에서 몬스터를 가져올 수 없음 - 스킬 {skillId}, {i + 1}번째");
             }
 
-            // 소환 간격 (0.3초)
+            // 소환 간격 (0.2초)
             if (i < spawnCount - 1)
             {
-                await UniTask.Delay(300);
+                await UniTask.Delay(200);
             }
         }
-
     }
 
-    private void SetupSummonedMonster(GameObject monster)
+    private void SetupSummonedMonster(GameObject monster, MonsterData monsterData)
     {
         // 보스 주위 위치 설정
         Vector3 spawnPos = GetRandomSpawnPosition();
@@ -182,14 +256,14 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
 
         monster.tag = Tag.Monster;
 
-        // 순서 변경: 시각적 자식을 먼저 추가
-        AddVisualChild(monster, cachedMonsterData);
+        // 이미지 추가
+        AddVisualChild(monster, monsterData);
 
-        // 그 다음 몬스터 초기화
+        // 몬스터 초기화
         var monsterBehavior = monster.GetComponent<MonsterBehavior>();
         if (monsterBehavior != null)
         {
-            monsterBehavior.Init(cachedMonsterData);
+            monsterBehavior.Init(monsterData);
 
             if (monsterSpawner != null)
             {
@@ -201,13 +275,11 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
         var monsterMovement = monster.GetComponent<MonsterMovement>();
         if (monsterMovement != null)
         {
-            monsterMovement.Init(cachedMonsterData, Vector3.down);
+            monsterMovement.Init(monsterData, Vector3.down);
         }
 
         monster.SetActive(true);
     }
-
-
 
     private void AddVisualChild(GameObject monster, MonsterData monsterData)
     {
@@ -219,20 +291,13 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
                 if (prefabGO != null)
                 {
                     var visualChild = Instantiate(prefabGO, monster.transform);
-
-                    // 로컬 포지션을 (0,0,0)으로 설정하여 부모와 같은 위치에
                     visualChild.transform.localPosition = Vector3.zero;
                     visualChild.transform.localRotation = Quaternion.identity;
                 }
-                else
-                {
-                    Debug.Log($"prefab1을 ResourceManager에서 찾을 수 없음: {monsterData.prefab1}");
-                }
             }
         }
-        catch (System.Exception e)
+        catch
         {
-            Debug.Log($"소환된 Monster {monsterData.id}의 시각적 자식 오브젝트 추가 실패: {e.Message}");
         }
     }
 
@@ -240,19 +305,11 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
     {
         Vector3 bossPosition = transform.position;
 
-        // 보스 주위 소환 범위 
         float sideDistance = Random.Range(2f, 5f);
-        float side = Random.Range(0, 2) == 0 ? -1f : 1f; // 왼쪽 또는 오른쪽
+        float side = Random.Range(0, 2) == 0 ? -1f : 1f;
+        float yOffset = Random.Range(5f, 10f);
 
-        float yOffset = Random.Range(5f, 10f); // 약간 뒤쪽
-
-        Vector3 spawnOffset = new Vector3
-            (
-                side * sideDistance,
-                yOffset,
-                0f
-            );
-
+        Vector3 spawnOffset = new Vector3(side * sideDistance, yOffset, 0f);
         Vector3 spawnPos = bossPosition + spawnOffset;
 
         // 화면 경계 체크

@@ -51,7 +51,7 @@ public class MonsterDataTools : EditorWindow
         }
     }
 
-    private async UniTaskVoid CreateSOFromDataTable()
+    private async void CreateSOFromDataTable()
     {
         if (_isProcessing) return;
 

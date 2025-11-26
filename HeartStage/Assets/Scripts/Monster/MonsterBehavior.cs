@@ -51,7 +51,11 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     {
         monsterData = data;
         isDead = false;
-        heartPrefab.SetActive(false);
+
+        if (heartPrefab != null)
+        {
+            heartPrefab.SetActive(false);
+        }
 
         if (selfCollider != null)
         {
@@ -418,6 +422,4 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
             gameObject.SetActive(false);
         }
     }
-
-
 }
