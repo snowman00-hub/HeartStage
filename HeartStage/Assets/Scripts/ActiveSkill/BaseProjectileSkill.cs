@@ -1,0 +1,121 @@
+﻿using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
+using UnityEngine;
+
+public abstract class BaseProjectileSkill : MonoBehaviour, ISkillBehavior
+{
+    protected SkillData skillData;
+    protected GameObject prefab;
+
+    // 각각 독립적으로 설정 가능
+    protected string prefabName;  // 리소스에서 가져올 프리팹 이름
+    protected string poolId;    // PoolManager에 등록할 고유 이름
+    protected string skillDataName;
+
+    protected PenetrationType penetrationType = PenetrationType.NonPenetrate;
+
+    protected List<(int id, float value, float duration)> debuffList =
+        new List<(int, float, float)>();
+
+    protected virtual void Start()
+    {
+        // SkillData 로드
+        skillData = ResourceManager.Instance.Get<SkillData>(skillDataName);
+        prefab = ResourceManager.Instance.Get<GameObject>(prefabName);
+
+        // 프리팹 복사 + 비활성
+        var clone = Instantiate(prefab);
+        clone.SetActive(false);
+
+        // 콜라이더 설정 (스킬별로 override)
+        SetupCollider(clone);
+
+        // 관통 여부
+        if (skillData.skill_pierce)
+            penetrationType = PenetrationType.Penetrate;
+
+        // 파티클 생성
+        var particleGo = Instantiate(
+            ResourceManager.Instance.Get<GameObject>(skillData.skillprojectile_prefab),
+            clone.transform
+        );
+        SetupParticle(particleGo, clone);
+
+        // 오브젝트 풀 생성
+        PoolManager.Instance.CreatePool(poolId, clone, 10, 30);
+        Destroy(clone);
+
+        // 히트 이펙트 풀 생성
+        var hitEffect = ResourceManager.Instance.Get<GameObject>(skillData.skillhit_prefab);
+        PoolManager.Instance.CreatePool(skillData.skillhit_prefab, hitEffect);
+
+        // SkillManager 등록
+        ActiveSkillManager.Instance.RegisterSkillBehavior(gameObject, skillData.skill_id, this);
+        ActiveSkillManager.Instance.RegisterSkill(gameObject, skillData.skill_id);
+
+        // 디버프 등록
+        TryAddDebuff(skillData.skill_eff1, skillData.skill_eff1_val, skillData.skill_eff1_duration);
+        TryAddDebuff(skillData.skill_eff2, skillData.skill_eff2_val, skillData.skill_eff2_duration);
+        TryAddDebuff(skillData.skill_eff3, skillData.skill_eff3_val, skillData.skill_eff3_duration);
+    }
+
+    private void TryAddDebuff(int id, float val, float duration)
+    {
+        if (id != 0)
+            debuffList.Add((id, val, duration));
+    }
+
+    public virtual void Execute()
+    {
+        var obj = PoolManager.Instance.Get(poolId);
+
+        Vector3 startPos = GetStartPosition();
+        Vector3 dir = GetDirection();
+
+        var proj = obj.GetComponent<CharacterProjectile>();
+        if (proj == null)
+        {
+            PoolManager.Instance.Release(prefabName, obj);
+            return;
+        }
+
+        proj.SetMissile(
+            prefabName,
+            skillData.skillhit_prefab,
+            startPos,
+            dir,
+            skillData.skill_speed,
+            skillData.skill_dmg,
+            penetrationType,
+            false,
+            debuffList
+        );
+
+        // 지속형 스킬(HeartBomb 등)
+        if (skillData.skill_duration > 0f)
+            AutoRelease(obj, skillData.skill_duration).Forget();
+    }
+
+    private async UniTaskVoid AutoRelease(GameObject go, float time)
+    {
+        await UniTask.WaitForSeconds(time);
+        PoolManager.Instance.Release(prefabName, go);
+    }
+
+    // ========== 스킬별로 구현 ==========
+    protected abstract void SetupCollider(GameObject clone);
+    protected abstract Vector3 GetStartPosition();
+    protected abstract Vector3 GetDirection();
+
+    protected virtual void SetupParticle(GameObject particle, GameObject clone)
+    {
+        // 기본: skill_range만큼 비율 확대
+        particle.transform.localScale *= skillData.skill_range;
+    }
+
+    protected virtual void OnDisable()
+    {
+        if (ActiveSkillManager.Instance != null && skillData != null)
+            ActiveSkillManager.Instance.UnRegisterSkill(gameObject, skillData.skill_id);
+    }
+}
