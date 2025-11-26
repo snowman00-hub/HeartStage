@@ -1,4 +1,5 @@
-﻿using TMPro;
+﻿using Cysharp.Threading.Tasks;
+using TMPro;
 using UnityEngine;
 
 public class LobbyManager : MonoBehaviour
@@ -78,7 +79,7 @@ public class LobbyManager : MonoBehaviour
         }
     }
 
-    // 테스트용 치트 함수
+    // 테스트용 함수
     public void GetMoney() // 라이트 스틱, 하트 스틱, 트레이닝 포인트
     {
         ItemInvenHelper.AddItem(ItemID.LightStick, 5000);
@@ -91,7 +92,6 @@ public class LobbyManager : MonoBehaviour
     public void SaveReset()
     {
         SaveLoadManager.Data = new SaveDataV1();
-        SaveLoadManager.Save();
         MoneyUISet();
 
         var charTable = DataTableManager.CharacterTable;
@@ -110,7 +110,11 @@ public class LobbyManager : MonoBehaviour
         foreach (var id in ownedBaseIds)
             SaveLoadManager.Data.ownedIds.Add(id); // List<int>면 이렇게
 
-        SaveLoadManager.Save();
+        SaveLoadManager.SaveToServer().Forget();
+    }
+    public void Logout()
+    {
+        AuthManager.Instance.SignOut();
     }
     //
 }

@@ -223,7 +223,7 @@ public class StageManager : MonoBehaviour
         }
 
         //
-        SaveLoadManager.Save();
+        SaveLoadManager.SaveToServer().Forget();
     }
 
     public void SetBackgroundByStageData(StageCSVData stageData)

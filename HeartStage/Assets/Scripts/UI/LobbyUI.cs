@@ -36,5 +36,4 @@ public class LobbyUI : MonoBehaviour
         windowManager.OpenOverlay(WindowType.Gacha);
         SoundManager.Instance.PlaySFX("Ui_click_01");
     }
-
 }
