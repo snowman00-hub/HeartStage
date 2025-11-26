@@ -1,5 +1,4 @@
-﻿using NUnit.Framework;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 
@@ -50,7 +49,7 @@ public class Gacha5TryResultUI : GenericWindow
 
                 if(prefabUI != null)
                 {
-                    prefabUI.Init(gachaItems.gachaData);
+                    prefabUI.Init(gachaItems);
                 }
                 gachaItemList.Add(item);
             }

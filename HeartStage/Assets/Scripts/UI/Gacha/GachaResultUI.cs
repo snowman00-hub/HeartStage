@@ -1,6 +1,5 @@
 ﻿using System.Text;
 using TMPro;
-using UnityEditor.U2D.Animation;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -53,16 +52,23 @@ public class GachaResultUI : GenericWindow
         }
 
         var characterData = gachaResult.characterData;
+        var gachaData = gachaResult.gachaData;
 
-        if(characterNameText != null)
+        if(gachaData.Gacha_have > 0 && gachaResult.isDuplicate)
         {
-            var sb = new StringBuilder();
-            sb.Clear();
-            sb.Append(characterData.char_name);
-            characterNameText.text = sb.ToString();
+            var itemData = DataTableManager.ItemTable.Get(gachaData.Gacha_have);
+            {
+                if(itemData != null)
+                {
+                    SetCharacterImageToItem(itemData);
+                    SetCharacterNameText(itemData.item_name);
+                    return;
+                }
+            }
         }
 
         SetCharacterImage(characterData);
+        SetCharacterNameText(characterData.char_name);
     }
 
     private void SetCharacterImage(CharacterCSVData characterCsvData)
@@ -80,6 +86,25 @@ public class GachaResultUI : GenericWindow
         else
         {
             Debug.LogError($"캐릭터 이미지 로드 실패: {characterCsvData.card_imageName}");
+        }
+    }
+
+    // 가지고 있으면 아이템 이미지로 
+    private void SetCharacterImageToItem(ItemCSVData itemCsvData)
+    {
+        if (characterImage == null || string.IsNullOrEmpty(itemCsvData.prefab))
+        {
+            return;
+        }
+
+        var texture = ResourceManager.Instance.Get<Texture2D>(itemCsvData.prefab);
+        if (texture != null)
+        {
+            characterImage.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+        }
+        else
+        {
+            Debug.LogWarning($"아이템 이미지를 로드할 수 없습니다: {itemCsvData.prefab}");
         }
     }
 
@@ -103,5 +128,16 @@ public class GachaResultUI : GenericWindow
         }
 
         SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);
+    }
+
+    private void SetCharacterNameText(string name)
+    {
+        if (characterNameText != null)
+        {
+            var sb = new StringBuilder();
+            sb.Clear();
+            sb.Append(name);
+            characterNameText.text = sb.ToString();
+        }
     }
 }

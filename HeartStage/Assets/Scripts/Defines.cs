@@ -43,12 +43,12 @@ public enum WindowType
     None = -1,
     // 로비 윈도우
     LobbyHome = 0,
-    StageSelect,
-    StageInfo,
-    Gacha,
-    GachaPercentage,
-    GachaResult,
-    Gacha5TryResult,
+    StageSelect = 1,
+    StageInfo = 2,
+    Gacha = 3,
+    GachaPercentage = 4,
+    GachaResult = 5,
+    Gacha5TryResult = 6,
 
     // 인게임 윈도우
     VictoryDefeat = 50, // 위에 추가해도 안바뀌게 큰 값으로 해두기
