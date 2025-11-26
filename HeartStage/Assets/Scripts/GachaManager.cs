@@ -42,7 +42,12 @@ public class GachaManager : MonoBehaviour
             return null;
         }
 
-        // 재화 차감 추가해야함       
+        // 재화 차감
+        if(!ItemInvenHelper.TryConsumeItem(ItemID.HeartStick, 50))
+        {
+            Debug.Log("재화가 부족합니다.");
+            return null;
+        }
 
         // 해당 타입의 가챠 아이템들 가져오기
         var gachaItems = GachaTable.GetGachaByType(gachaTypeId);
@@ -102,6 +107,12 @@ public class GachaManager : MonoBehaviour
         var gachaType = DataTableManager.GachaTypeTable.Get(gachaTypeId);
         if (gachaType == null)
         {
+            return result;
+        }
+
+        if (!ItemInvenHelper.TryConsumeItem(ItemID.HeartStick, 250))
+        {
+            Debug.LogError("하트 스틱이 부족합니다. 5회 뽑기에 필요한 하트 스틱: 250개");
             return result;
         }
 
