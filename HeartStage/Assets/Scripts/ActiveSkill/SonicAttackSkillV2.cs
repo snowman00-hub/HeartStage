@@ -1,90 +1,27 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
-// 컴포넌트 장착시 쿨타임마다 윗방향으로 음파 공격 스킬 발사
-public class SonicAttackSkillV2 : MonoBehaviour, ISkillBehavior
+public class SonicAttackSkillV2 : BaseProjectileSkill
 {
-    private SkillData skillData;
-    private GameObject sonicAttackPrefab;
-    private string sonicAttackPrefabName = "SonicAttack";
-    private string poolId = "SonicAttackSkillV2";
-    private string skillDataAssetName = "다재다능한 만능 엔터테이너";
-    private PenetrationType penetrationType = PenetrationType.NonPenetrate;
-
-    // 디버프 모음(몬스터에게 장착시킬) (ID, 수치, 지속시간)
-    private List<(int id, float value, float duration)> debuffList = new List<(int, float, float)>();
-
-    private void Start()
+    private void Awake()
     {
-        skillData = ResourceManager.Instance.Get<SkillData>(skillDataAssetName);
-        sonicAttackPrefab = ResourceManager.Instance.Get<GameObject>(sonicAttackPrefabName);
-
-        var prefabClone = Instantiate(sonicAttackPrefab);
-        prefabClone.SetActive(false);
-        // 스킬 범위 적용
-        var collider = prefabClone.GetComponent<BoxCollider2D>();
-        collider.size = new Vector2(skillData.skill_range, collider.size.y);
-        // 관통 여부 세팅
-        if (skillData.skill_pierce)
-        {
-            penetrationType = PenetrationType.Penetrate;
-        }
-        // 파티클 적용
-        var particleGo = Instantiate(ResourceManager.Instance.Get<GameObject>(skillData.skillprojectile_prefab), prefabClone.transform);
-        var particleScale = particleGo.transform.localScale;
-        particleScale.x *= collider.size.x;
-        particleGo.transform.localScale = particleScale;
-        // 오브젝트 풀 생성
-        PoolManager.Instance.CreatePool(poolId, prefabClone, 10, 30);
-        Destroy(prefabClone);
-        // 히트 이펙트 오브젝트 풀 생성        
-        var hitEffectGo = ResourceManager.Instance.Get<GameObject>(skillData.skillhit_prefab);
-        PoolManager.Instance.CreatePool(skillData.skillhit_prefab, hitEffectGo);
-        // 스킬매니저에 등록
-        ActiveSkillManager.Instance.RegisterSkillBehavior(gameObject, skillData.skill_id, this);
-        ActiveSkillManager.Instance.RegisterSkill(gameObject, skillData.skill_id);
-        // 디버프 등록
-        if (skillData.skill_eff1 != 0)
-        {
-            debuffList.Add((skillData.skill_eff1, skillData.skill_eff1_val, skillData.skill_eff1_duration));
-        }
-        if (skillData.skill_eff2 != 0)
-        {
-            debuffList.Add((skillData.skill_eff2, skillData.skill_eff2_val, skillData.skill_eff2_duration));
-        }
-        if (skillData.skill_eff3 != 0)
-        {
-            debuffList.Add((skillData.skill_eff3, skillData.skill_eff3_val, skillData.skill_eff3_duration));
-        }
+        prefabName = "SonicAttack";
+        poolId = "SonicAttackV2";
+        skillDataName = "다재다능한 만능 엔터테이너";
     }
 
-    // 발사
-    public void Execute()
+    protected override void SetupCollider(GameObject clone)
     {
-        var projectileGo = PoolManager.Instance.Get(poolId);
-
-        Vector3 startPos = transform.position;
-        Vector3 dir = Vector3.up;
-
-        var proj = projectileGo.GetComponent<CharacterProjectile>();
-        if (proj == null)
-        {
-            PoolManager.Instance.Release(poolId, projectileGo);
-            return;
-        }
-
-        float speed = skillData.skill_speed;
-        int damage = skillData.skill_dmg;
-
-        proj.SetMissile(poolId, skillData.skillhit_prefab, startPos, dir, speed, damage,
-            penetrationType, false, debuffList);
+        var col = clone.GetComponent<BoxCollider2D>();
+        col.size = new Vector2(skillData.skill_range, col.size.y);
     }
 
-    private void OnDisable()
+    protected override void SetupParticle(GameObject particle, GameObject clone)
     {
-        if (ActiveSkillManager.Instance != null && skillData != null)
-        {
-            ActiveSkillManager.Instance.UnRegisterSkill(gameObject, skillData.skill_id);
-        }
+        var particleScale = particle.transform.localScale;
+        particleScale.x *= skillData.skill_range;
+        particle.transform.localScale = particleScale;
     }
+
+    protected override Vector3 GetStartPosition() => transform.position;
+    protected override Vector3 GetDirection() => Vector3.up;
 }

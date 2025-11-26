@@ -5,7 +5,7 @@ public class FaceGeniusSkill : BaseProjectileSkill
     private void Awake()
     {
         prefabName = "FaceGenius";
-        poolId = "FaceGeniusSkill";
+        poolId = "FaceGenius";
         skillDataName = "얼굴 천재";
     }
 

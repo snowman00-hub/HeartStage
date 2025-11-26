@@ -5,8 +5,8 @@ public class FaceGeniusSkillV2 : BaseProjectileSkill
     private void Awake()
     {
         prefabName = "FaceGenius";
-        poolId = "FaceGeniusSkillV2";
-        skillDataName = "얼굴 천재";
+        poolId = "FaceGeniusV2";
+        skillDataName = "화려한 얼굴 천재";
     }
 
     protected override void SetupCollider(GameObject clone)
