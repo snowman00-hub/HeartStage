@@ -32,6 +32,8 @@ public class MonsterSpawner : MonoBehaviour
     private int currentStageId;
     [SerializeField] private int spawnedMonsterCount = 3;
 
+    public static System.Action OnWaveCleared; // 웨이브 클리어 이벤트 
+
     // 스테이지 & 웨이브 관리
     private StageWaveCSVData currentWaveData;      // 현재 진행 중인 웨이브 데이터
     private StageCSVData currentStageData;         // 현재 스테이지 데이터
@@ -711,10 +713,13 @@ public class MonsterSpawner : MonoBehaviour
         var rewardData = DataTableManager.RewardTable.Get(waveData.wave_reward);
         // 최초 보상 체크
         var clearWaveList = SaveLoadManager.Data.clearWaveList;
-        if(!clearWaveList.Contains(rewardData.reward_id))
+        bool isFirstClear = false; // 최초 클리어 여부 
+
+        if (!clearWaveList.Contains(rewardData.reward_id))
         {
             clearWaveList.Add(rewardData.reward_id);
             ItemManager.Instance.AcquireItem(rewardData.first_clear, rewardData.first_clear_a);
+            isFirstClear = true; // 최초 클리어
         }
         // 팬 보상
         StageManager.Instance.fanReward += rewardData.user_fan_amount;
@@ -730,6 +735,12 @@ public class MonsterSpawner : MonoBehaviour
         if (rewardData.normal_clear3 != 0)
         {
             ItemManager.Instance.AcquireItem(rewardData.normal_clear3, rewardData.normal_clear3_a);
+        }
+
+        if (isFirstClear)
+        {
+            SaveLoadManager.SaveToServer().Forget(); // 최초 클리어일 때만 저장
+            OnWaveCleared?.Invoke(); //이벤트 발생
         }
     }
 }
