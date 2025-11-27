@@ -18,21 +18,4 @@ public class HeartBombSkill : BaseProjectileSkill
     protected override Vector3 GetStartPosition() => GetCenterInMonsters();
     protected override Vector3 GetDirection() => Vector3.zero;
 
-    private Vector3 GetCenterInMonsters()
-    {
-        var objs = GameObject.FindGameObjectsWithTag(Tag.Monster);
-        if (objs.Length == 0) return Vector3.zero;
-
-        Vector3 sum = Vector3.zero;
-        int count = 0;
-        foreach (var obj in objs)
-        {
-            if (obj.transform.position.y <= 10f)
-            {
-                sum += obj.transform.position;
-                count++;
-            }
-        }
-        return count == 0 ? Vector3.zero : sum / count;
-    }
 }

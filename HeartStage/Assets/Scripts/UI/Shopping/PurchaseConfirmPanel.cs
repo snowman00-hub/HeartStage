@@ -149,4 +149,9 @@ public class PurchaseConfirmPanel : MonoBehaviour
         obj.SetActive(false);
         rt.localScale = Vector3.one; // 원상복구
     }
+
+    public void Close()
+    {
+        wholePanel.SetActive(false);    
+    }
 }

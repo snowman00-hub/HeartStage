@@ -71,6 +71,8 @@ public class DailyShop : MonoBehaviour
         {
             dailyItemSlots[i].Init(randIds[i], false);
         }
+        // 구매 확인 창이 열려 있는 도중 바뀌는 경우 대처
+        PurchaseConfirmPanel.Instance.Close();
     }
 
     private void UpdateUI()

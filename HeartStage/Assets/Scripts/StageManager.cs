@@ -150,6 +150,8 @@ public class StageManager : MonoBehaviour
 
             if (StageUI != null)
                 StageUI.SetWaveCount(stageNumber, waveOrder);
+
+            expSlider.maxValue = stageData.level_max;
         }
     }
 
