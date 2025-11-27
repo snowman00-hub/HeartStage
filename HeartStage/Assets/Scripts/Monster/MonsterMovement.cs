@@ -5,6 +5,7 @@ public class MonsterMovement : MonoBehaviour
 {
     private MonsterData monsterData;
     private bool isInitialized = false;
+    private Vector3 moveDirection = Vector3.down; // 이동 방향
 
     [SerializeField] private float separationRadius = 1.2f;   // 분리 반경
     [SerializeField] private float separationForce = 3f;      // 분리 힘
@@ -36,6 +37,9 @@ public class MonsterMovement : MonoBehaviour
         {
             allActiveMonsters.Add(this);
         }
+
+        SetMoveDirectionStageType();
+
     }
 
     private void OnDisable()
@@ -60,12 +64,61 @@ public class MonsterMovement : MonoBehaviour
         // 이동 처리
         if (!isNearWall && !isFrontBlocked)
         {
-            MoveWithSeparation(Vector3.down * monsterData.moveSpeed * Time.deltaTime);
+            MoveWithSeparation(moveDirection * monsterData.moveSpeed * Time.deltaTime);
         }
 
         else if (!isNearWall && isFrontBlocked)
         {
             MoveWithSeparation(Vector3.zero);
+        }
+    }
+
+    private void SetMoveDirectionStageType()
+    {
+        if(StageManager.Instance == null)
+        {
+            moveDirection = Vector3.down;
+            return;
+        }
+
+        var currantStageData = StageManager.Instance.GetCurrentStageData();
+        if(currantStageData == null)
+        {
+            moveDirection = Vector3.down;
+            return;
+        }
+
+        switch (currantStageData.stage_position)
+        {
+            case 1: 
+                // 상단
+                moveDirection = Vector3.up;
+                break;
+            case 2:
+                SetDirectionToCenter();
+                break;
+            case 3:
+                moveDirection = Vector3.down;
+                break;
+            default:
+                moveDirection = Vector3.down;
+                break;
+        }
+
+    }
+
+    private void SetDirectionToCenter()
+    {
+        float currentY = transform.position.y;
+        float centerY = 0f; // 화면 중앙 y좌표
+
+        if (currentY > centerY)
+        {
+            moveDirection = Vector3.down; // 위쪽에서 스폰된 경우 아래로
+        }
+        else
+        {
+            moveDirection = Vector3.up;   // 아래쪽에서 스폰된 경우 위로
         }
     }
 
@@ -106,6 +159,8 @@ public class MonsterMovement : MonoBehaviour
     {
         monsterData = data;
         isInitialized = true;
+
+        SetMoveDirectionStageType();    
     }
 
     // 화면 경계 초기화
@@ -129,7 +184,7 @@ public class MonsterMovement : MonoBehaviour
         != null;
     }
 
-    // 앞줄 막힘 확인
+    // 이동 방향에 따라 앞줄 막힘 확인
     private void CheckFrontBlocked()
     {
         isFrontBlocked = false;
@@ -141,16 +196,32 @@ public class MonsterMovement : MonoBehaviour
                 continue;
             }
 
-            if (other.transform.position.y < transform.position.y)
-            {
-                float dx = Mathf.Abs(other.transform.position.x - transform.position.x);
-                float dy = transform.position.y - other.transform.position.y;
+            // 이동 방향
+            bool isInFront = false;
+            float dx = Mathf.Abs(other.transform.position.x - transform.position.x);
+            float dy = 0f;
 
-                if (dx < minDistance && dy < frontCheckDistance)
+            if (moveDirection.y > 0) // 위로 이동하는 경우
+            {
+                if (other.transform.position.y > transform.position.y)
                 {
-                    isFrontBlocked = true;
-                    break;
+                    dy = other.transform.position.y - transform.position.y;
+                    isInFront = true;
                 }
+            }
+            else if (moveDirection.y < 0) // 아래로 이동하는 경우
+            {
+                if (other.transform.position.y < transform.position.y)
+                {
+                    dy = transform.position.y - other.transform.position.y;
+                    isInFront = true;
+                }
+            }
+
+            if (isInFront && dx < minDistance && dy < frontCheckDistance)
+            {
+                isFrontBlocked = true;
+                break;
             }
         }
     }

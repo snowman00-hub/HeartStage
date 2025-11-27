@@ -285,7 +285,7 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
             animator.SetTrigger(attack);
         }
 
-        Vector3 direction = Vector3.down;
+        Vector3 direction = GetAttackDirectionStageType();
 
         var projectileObj = PoolManager.Instance.Get(MonsterProjectilePoolId);
         if (projectileObj != null)
@@ -300,6 +300,51 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
             }
 
             projectileObj.SetActive(true);
+        }
+    }
+
+    private Vector3 GetAttackDirectionStageType()
+    {
+        if (StageManager.Instance == null)
+        {
+            return Vector3.down; // 기본값
+        }
+
+        var currentStageData = StageManager.Instance.GetCurrentStageData();
+        if (currentStageData == null)
+        {
+            return Vector3.down; // 기본값
+        }
+
+        // 스테이지 포지션에 따라 공격 방향 결정
+        switch (currentStageData.stage_position)
+        {
+            case 1: 
+                return Vector3.up;
+            case 2: 
+                return ToCenterAttack();
+
+            case 3:
+                return Vector3.down;
+
+            default:
+                return Vector3.down;
+        }
+    }
+
+    // 중앙일때 공격 방향
+    private Vector3 ToCenterAttack()
+    {
+        float currentY = transform.position.y;
+        float centerY = 0f; 
+
+        if (currentY > centerY)
+        {
+            return Vector3.down; 
+        }
+        else
+        {
+            return Vector3.up;  
         }
     }
 

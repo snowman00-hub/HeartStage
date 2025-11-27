@@ -504,7 +504,7 @@ public class MonsterSpawner : MonoBehaviour
         switch (currentStageData.stage_position)
         {
             case 1:
-                spawnY = UnityEngine.Random.Range(-17f, -12f);
+                spawnY = UnityEngine.Random.Range(-20f, -15f);
                 break;
             case 2:
                 if (UnityEngine.Random.Range(0f, 1f) > 0.5f)
@@ -513,7 +513,7 @@ public class MonsterSpawner : MonoBehaviour
                 }
                 else
                 {
-                    spawnY = UnityEngine.Random.Range(-17f, -12f); // 아래쪽
+                    spawnY = UnityEngine.Random.Range(-20f, -15f); // 아래쪽
                 }
                 break;
             case 3:
