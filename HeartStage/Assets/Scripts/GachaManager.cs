@@ -42,7 +42,7 @@ public class GachaManager : MonoBehaviour
         }
 
         // 재화 차감
-        if(!ItemInvenHelper.TryConsumeItem(ItemID.HeartStick, 50))
+        if (!ItemInvenHelper.TryConsumeItem(ItemID.HeartStick, 50))
         {
             Debug.Log("재화가 부족합니다.");
             return null;
@@ -75,6 +75,8 @@ public class GachaManager : MonoBehaviour
         {
             // 캐릭터 획득 처리     
             SaveLoadManager.AcquireCharacter(selectedItem.Gacha_item, DataTableManager.CharacterTable);
+
+            // 뽑기 퀘스트 완료 처리
             QuestManager.Instance.OnGachaDraw();
         }
         else
@@ -85,6 +87,9 @@ public class GachaManager : MonoBehaviour
                 if (itemData != null)
                 {
                     ItemInvenHelper.AddItem(selectedItem.Gacha_have, 1); // 중복 보상 아이템 추가
+
+                    //뽑기 퀘스트 완료 처리
+                    QuestManager.Instance.OnGachaDraw();
                     Debug.Log($"중복 보상 아이템 획득: {itemData.item_name}");
                 }
             }
@@ -136,6 +141,9 @@ public class GachaManager : MonoBehaviour
                     {
                         // 캐릭터 획득 처리     
                         SaveLoadManager.AcquireCharacter(selectedItem.Gacha_item, DataTableManager.CharacterTable);
+
+                        // 뽑기 퀘스트 완료 처리
+                        QuestManager.Instance.OnGachaDraw();
                     }
                     else
                     {
@@ -145,7 +153,11 @@ public class GachaManager : MonoBehaviour
                             if (itemData != null)
                             {
                                 ItemInvenHelper.AddItem(selectedItem.Gacha_have, 1); // 중복 보상 아이템 추가
+
+                                //뽑기 퀘스트 완료 처리
+                                QuestManager.Instance.OnGachaDraw();
                                 Debug.Log($"중복 보상 아이템 획득: {itemData.item_name}");
+
                             }
                         }
                     }

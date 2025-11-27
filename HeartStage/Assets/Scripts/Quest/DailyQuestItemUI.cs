@@ -140,25 +140,24 @@ public class DailyQuestItemUI : MonoBehaviour
 
     private void OnClickComplete()
     {
-        if (owner == null || questData == null) return;
-
-        // 이미 보상 수령 완료라면 무시
-        if (isCompleted) return;
-
-        // 조건이 아직 안 채워졌으면 막기
-        if (QuestManager.Instance == null)
-        {
-            Debug.LogWarning("[DailyQuestItemUI] QuestManager.Instance 가 없습니다.");
+        if (owner == null || questData == null)
             return;
-        }
 
-        if (!QuestManager.Instance.IsDailyQuestCleared(questData.Quest_ID))
+        // 이미 보상까지 받은 상태면 무시
+        if (isCompleted)
+            return;
+
+        // 아직 조건이 안 채워진 상태면 막기
+        //  → 이건 SaveData + 외부 이벤트로 SetState(cleared, ...)에서 들어온 값만 믿는다.
+        if (!isCleared)
         {
             Debug.Log("[DailyQuestItemUI] 아직 클리어 조건을 만족하지 않은 퀘스트입니다.");
             return;
         }
 
-        // 여기까지 왔다면: 조건은 이미 만족했고, 아직 보상은 안 받음
+        // 여기까지 왔으면:
+        // - 조건은 이미 충족(cleared == true)
+        // - 아직 보상은 안 받음(completed == false)
         owner.OnQuestItemClickedComplete(questData, this);
     }
 }

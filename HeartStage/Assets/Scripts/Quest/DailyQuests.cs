@@ -113,18 +113,17 @@ public class DailyQuests : MonoBehaviour
     }
     private void OnEnable()
     {
-        if (QuestManager.Instance != null)
-        {
-            QuestManager.DailyQuestCompleted += OnDailyQuestClearedExternally;
-        }
+        QuestManager.DailyQuestCompleted -= OnDailyQuestClearedExternally; // 중복 방지용
+        QuestManager.DailyQuestCompleted += OnDailyQuestClearedExternally;
+
+        RefreshAllItemStatesFromSave();
     }
 
     private void OnDisable()
     {
-        if (QuestManager.Instance != null)
-        {
-            QuestManager.DailyQuestCompleted -= OnDailyQuestClearedExternally;
-        }
+
+        QuestManager.DailyQuestCompleted -= OnDailyQuestClearedExternally;
+
     }
 
     #endregion
@@ -158,7 +157,29 @@ public class DailyQuests : MonoBehaviour
     {
         await SaveLoadManager.SaveToServer();
     }
+    private void RefreshAllItemStatesFromSave()
+    {
+        if (_questItems == null || _questItems.Count == 0)
+            return;
 
+        if (State.clearedQuestIds == null)
+            State.clearedQuestIds = new List<int>();
+        if (State.completedQuestIds == null)
+            State.completedQuestIds = new List<int>();
+
+        foreach (var item in _questItems)
+        {
+            if (item == null)
+                continue;
+
+            int id = item.QuestId;
+
+            bool completed = State.completedQuestIds.Contains(id);
+            bool cleared = completed || State.clearedQuestIds.Contains(id);
+
+            item.SetState(cleared, completed);
+        }
+    }
     #endregion
 
     #region Daily 퀘스트 목록 만들기 (Quest_type == Daily 자동 수집)
