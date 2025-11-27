@@ -6008,18 +6008,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: QuestWindow
       objectReference: {fileID: 0}
+    - target: {fileID: 2579527684237818291, guid: 6a5ad623a0074eb48a24c00b3dad24a3, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3160256076225213981, guid: 6a5ad623a0074eb48a24c00b3dad24a3, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5093080770329852203, guid: 6a5ad623a0074eb48a24c00b3dad24a3, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 0
+      value: -790.40576
       objectReference: {fileID: 0}
     - target: {fileID: 5093080770329852203, guid: 6a5ad623a0074eb48a24c00b3dad24a3, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 0
+      value: -939.2
       objectReference: {fileID: 0}
+    - target: {fileID: 6062967690781414831, guid: 6a5ad623a0074eb48a24c00b3dad24a3, type: 3}
+      propertyPath: dailyQuestsComponent
+      value: 
+      objectReference: {fileID: 1897083883}
     - target: {fileID: 8170319225641165927, guid: 6a5ad623a0074eb48a24c00b3dad24a3, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -7129,6 +7137,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1897083883 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7080887004048427183, guid: 6a5ad623a0074eb48a24c00b3dad24a3, type: 3}
+  m_PrefabInstance: {fileID: 1615453342}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b93ef1971215566409daa6fa0eaf373e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &1988237649 stripped

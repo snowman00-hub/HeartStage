@@ -4,11 +4,18 @@ using UnityEngine.UI;
 public class QuestWindow : GenericWindow
 {
     [Header("퀘스트 UI 총괄 창")]
-    [SerializeField]private GameObject questWindow;
+    [SerializeField] private GameObject questWindow;
+
     [Header("일일 / 주간 / 업적 퀘스트 창")]
     [SerializeField] private GameObject dailyQuests;
     [SerializeField] private GameObject weeklyQuests;
     [SerializeField] private GameObject achievementQuests;
+
+    [Header("각 탭의 스크립트 (Daily/Weekly/업적)")]
+    [SerializeField] private DailyQuests dailyQuestsComponent;
+    // TODO: 나중에 WeeklyQuests, AchievementQuests 스크립트 만들면 여기에도 추가
+    // [SerializeField] private WeeklyQuests weeklyQuestsComponent;
+    // [SerializeField] private AchievementQuests achievementQuestsComponent;
 
     [Header("종료 버튼")]
     [SerializeField] private Button ExitButton;
@@ -30,7 +37,7 @@ public class QuestWindow : GenericWindow
         AllReceiveButton.onClick.AddListener(AllReceiveButtonFunction);
 
         // 기본적으로 일일 퀘스트 창을 엽니다.
-        //버튼도 눌린 상태로 유지해줍니다.
+        // 버튼도 눌린 상태로 유지해줍니다.
         DailyButton.Select();
         OpenDailyQuests();
     }
@@ -41,7 +48,7 @@ public class QuestWindow : GenericWindow
     }
 
     public void OpenDailyQuests()
-    { 
+    {
         dailyQuests.SetActive(true);
         weeklyQuests.SetActive(false);
         achievementQuests.SetActive(false);
@@ -50,6 +57,7 @@ public class QuestWindow : GenericWindow
         WeeklyButton.interactable = true;
         AchievementButton.interactable = true;
     }
+
     public void OpenWeeklyQuests()
     {
         dailyQuests.SetActive(false);
@@ -74,7 +82,18 @@ public class QuestWindow : GenericWindow
 
     public void AllReceiveButtonFunction()
     {
-        // Implement the functionality for receiving all rewards
+        // 일단 Daily 탭부터 지원
+        if (dailyQuests.activeSelf && dailyQuestsComponent != null)
+        {
+            dailyQuestsComponent.ClaimAllAvailableRewards();
+        }
+
+        // TODO:
+        // if (weeklyQuests.activeSelf && weeklyQuestsComponent != null)
+        //     weeklyQuestsComponent.ClaimAllAvailableRewards();
+        //
+        // if (achievementQuests.activeSelf && achievementQuestsComponent != null)
+        //     achievementQuestsComponent.ClaimAllAvailableRewards();
     }
 
     public void OnDisable()
@@ -88,5 +107,5 @@ public class QuestWindow : GenericWindow
         AchievementButton.onClick.RemoveListener(OpenAchievementQuests);
         AllReceiveButton.onClick.RemoveListener(AllReceiveButtonFunction);
     }
-
 }
+

@@ -103,6 +103,22 @@ public class DailyQuestItemUI : MonoBehaviour
         if (isCompleted) return;
         if (owner == null || questData == null) return;
 
+        // ★ 아직 QuestManager에서 완료 처리 안 된 퀘스트면 그냥 막아버림
+        if (QuestManager.Instance == null)
+        {
+            Debug.LogWarning("[DailyQuestItemUI] QuestManager.Instance 가 없습니다.");
+            return;
+        }
+
+        // QuestManager 기준으로 아직 클리어 안 되었으면 UI에서 강제 완료 금지
+        if (!QuestManager.Instance.IsDailyQuestCompleted(questData.Quest_ID))
+        {
+            Debug.Log("[DailyQuestItemUI] 아직 클리어 조건을 만족하지 않은 퀘스트입니다.");
+            // TODO: 여기서 토스트 팝업 / 안내창 띄우면 됨.
+            return;
+        }
+
+        // 여기까지 왔다는 건 정말로 완료된 퀘스트 → UI에서 '완료 처리'만 한다.
         owner.OnQuestItemClickedComplete(questData, this);
     }
 }
