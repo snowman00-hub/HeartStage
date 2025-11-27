@@ -28,7 +28,6 @@ public class MonsterSkillTester : MonoBehaviour
         {
             ActiveSkillManager.Instance.RegisterSkillBehavior(this.gameObject, 9991, deceptionSkill);
             ActiveSkillManager.Instance.RegisterSkill(this.gameObject, 9991);
-            Debug.Log($"{gameObject.name}에 DeceptionBossSkill 등록 완료");
         }
 
         // SpeedBuffBossSkill이 붙어있으면 등록
@@ -37,7 +36,6 @@ public class MonsterSkillTester : MonoBehaviour
         {
             ActiveSkillManager.Instance.RegisterSkillBehavior(this.gameObject, 9992, speedBuffSkill);
             ActiveSkillManager.Instance.RegisterSkill(this.gameObject, 9992);
-            Debug.Log($"{gameObject.name}에 SpeedBuffBossSkill 등록 완료");
         }
     }
     private void OnDestroy()
