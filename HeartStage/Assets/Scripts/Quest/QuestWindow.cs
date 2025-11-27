@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-public class QuestWindow : MonoBehaviour
+public class QuestWindow : GenericWindow
 {
     [Header("퀘스트 UI 총괄 창")]
     [SerializeField]private GameObject questWindow;

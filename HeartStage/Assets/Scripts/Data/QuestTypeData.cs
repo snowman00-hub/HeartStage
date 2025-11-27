@@ -2,10 +2,10 @@
 
 public class QuestTypeData
 {
-    public int Quest_Type { get; set; }
-    public string Quest_Type_Name { get; set; }
-    public int Quest_Reset { get; set; }
-    public string Quest_Reset_Time { get; set; }
+    public int Quest_type { get; set; }
+    public string Quest_type_name { get; set; }
+    public bool Quest_reset { get; set; }
+    public string Quest_reset_time { get; set; }
 }
 
 

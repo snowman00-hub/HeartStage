@@ -26,9 +26,9 @@ public class QuestTypeTable : DataTable
 
         foreach (var item in list)
         {
-            if (!table.ContainsKey(item.Quest_Type))
+            if (!table.ContainsKey(item.Quest_type))
             {
-                table.Add(item.Quest_Type, item);
+                table.Add(item.Quest_type, item);
             }
         }
 
@@ -51,6 +51,6 @@ public class QuestTypeTable : DataTable
         var cur = Get(currentId);
         if (cur == null)
             return false;
-        return table.TryGetValue(cur.Quest_Type, out next);
+        return table.TryGetValue(cur.Quest_type, out next);
     }
 }

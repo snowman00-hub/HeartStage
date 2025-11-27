@@ -23,6 +23,11 @@ public static class DataTableIds
     public static string Shop => "ShopTable";
     public static string RankUp => "RankUpTable";
     public static string LevelUp => "LevelUpTable";
+    public static string Quest => "QuestTable";
+    public static string QuestType => "QuestTypeTable";
+    public static string QuestProgress => "QuestProgressTable";
+
+
 }
 
 public class Tag
@@ -49,6 +54,7 @@ public enum WindowType
     GachaPercentage = 4,
     GachaResult = 5,
     Gacha5TryResult = 6,
+    Quest = 7,
 
     // 인게임 윈도우
     VictoryDefeat = 50, // 위에 추가해도 안바뀌게 큰 값으로 해두기
