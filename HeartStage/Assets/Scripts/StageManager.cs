@@ -70,6 +70,8 @@ public class StageManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+
+        CharacterFence.ResetStaticHP();
     }
 
     private async void Start()

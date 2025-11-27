@@ -79,6 +79,12 @@ public class CharacterFence : MonoBehaviour, IDamageable
         UpdateAllFencesHpText();
     }
 
+    public static void ResetStaticHP()
+    {
+        maxHp = 0;
+        hp = 0;
+    }
+
     public void SetHpText()
     {
         currentHPText.text = $"HP: {hp} / {maxHp}";
