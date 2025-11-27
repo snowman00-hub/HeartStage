@@ -45,6 +45,8 @@ public class BootStrap : MonoBehaviour
 #endif
         // Firebase 로그인 될때까지 대기
         await UniTask.WaitUntil(()=> AuthManager.Instance.IsLoggedIn);
+        // 서버 시간 가져오는 클래스 초기화, Firebase Initialization 이후에 실행하기
+        FirebaseTime.Initialize(); 
         // 서버에서 데이터 로드
         await TryLoad();
 
