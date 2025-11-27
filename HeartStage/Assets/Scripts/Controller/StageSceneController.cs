@@ -17,7 +17,7 @@ public class StageSceneController : MonoBehaviour
             await UniTask.Yield();
 
         // 2) 둘 다 IsReady 될 때까지 대기
-        while (!(stageSetup.IsReady && ownedSetup.IsReady))
+        while (!(stageSetup.IsReady && ownedSetup.IsReady && PoolManager.Instance.IsSpawned))
             await UniTask.Yield();
 
         // 3) 진짜로 둘 다 준비 끝난 시점에서만 100% 찍기
