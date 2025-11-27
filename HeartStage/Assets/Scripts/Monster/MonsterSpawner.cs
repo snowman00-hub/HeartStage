@@ -1,4 +1,5 @@
 ﻿using Cysharp.Threading.Tasks;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -38,7 +39,8 @@ public class MonsterSpawner : MonoBehaviour
     private StageWaveCSVData currentWaveData;      // 현재 진행 중인 웨이브 데이터
     private StageCSVData currentStageData;         // 현재 스테이지 데이터
     private List<int> stageWaveIds = new List<int>();  // 현재 스테이지의 모든 웨이브 ID 목록
-    private int currentWaveIndex = 0;              
+    private int currentWaveIndex = 0;
+
 
     // 웨이브 몬스터 추적
     private List<WaveMonsterInfo> waveMonstersToSpawn = new List<WaveMonsterInfo>(); // 현재 웨이브에서 스폰할 몬스터들의 정보
@@ -496,9 +498,34 @@ public class MonsterSpawner : MonoBehaviour
     }
     private Vector3 GetRandomSpawnPosition()
     {
-        float randomX = Random.Range(-4f, 4f);
-        float randomY = Random.Range(12f, 17f);
-        return new Vector3(randomX, randomY, 0);
+        float randomX = UnityEngine.Random.Range(-4f, 4f);
+        float spawnY;
+
+        switch (currentStageData.stage_position)
+        {
+            case 1:
+                spawnY = UnityEngine.Random.Range(-17f, -12f);
+                break;
+            case 2:
+                if (UnityEngine.Random.Range(0f, 1f) > 0.5f)
+                {
+                    spawnY = UnityEngine.Random.Range(12f, 17f); // 위쪽
+                }
+                else
+                {
+                    spawnY = UnityEngine.Random.Range(-17f, -12f); // 아래쪽
+                }
+                break;
+            case 3:
+                spawnY = UnityEngine.Random.Range(12f, 17f);
+                break;
+
+            default:
+                spawnY = UnityEngine.Random.Range(12f, 17f);
+                break;
+        }
+
+        return new Vector3(randomX, spawnY, 0);
     }
 
     // 보스 스폰 위치 계산
@@ -547,7 +574,7 @@ public class MonsterSpawner : MonoBehaviour
     // 스테이지 표시 정보 계산
     private (int stageNumber, int waveOrder) GetStageDisplayInfo(int stageId, int waveIndex)
     {
-        return (currentStageData?.stage_step1 ?? 1, waveIndex); 
+        return (currentStageData?.stage_step1 ?? 1, waveIndex);
     }
 
     // 몬스터 사망 처리
@@ -706,7 +733,7 @@ public class MonsterSpawner : MonoBehaviour
         spawnQueue.Clear();
         isProcessingQueue = false;
     }
-    
+
     // 보상 주기
     private void GiveWaveReward(StageWaveCSVData waveData)
     {
@@ -724,7 +751,7 @@ public class MonsterSpawner : MonoBehaviour
         // 팬 보상
         StageManager.Instance.fanReward += rewardData.user_fan_amount;
         // 아이템 보상 주기
-        if(rewardData.normal_clear1 != 0)
+        if (rewardData.normal_clear1 != 0)
         {
             ItemManager.Instance.AcquireItem(rewardData.normal_clear1, rewardData.normal_clear1_a);
         }
