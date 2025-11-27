@@ -8,7 +8,7 @@ public class MonsterMovement : MonoBehaviour
     private Vector3 moveDirection = Vector3.down; // 이동 방향
 
     private float separationRadius = 2.5f;   // 분리 반경
-    private float separationForce = 3f;      // 분리 힘
+    private float separationForce = 1f;      // 분리 힘
     private float minDistance = 0.6f;        // 최소 거리 유지
     private float frontCheckDistance = 1f; // 앞줄 체크 거리
 

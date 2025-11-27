@@ -266,8 +266,6 @@ public class MonsterSpawner : MonoBehaviour
                 waveMonstersToSpawn.Add(waveMonster);
             }
         }
-        Debug.Log($"[MonsterSpawner] 총 {GetRemainingMonsterCount()}마리 스폰 예정");
-
     }
 
     // 웨이브 남은 몬스터 수 계산
