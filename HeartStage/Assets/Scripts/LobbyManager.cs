@@ -39,9 +39,6 @@ public class LobbyManager : MonoBehaviour
     private void Start()
     {
         MoneyUISet();
-
-        // 로비 씬 준비 완료 알림
-        GameSceneManager.NotifySceneReady(SceneType.LobbyScene, 300);
     }
 
     // 외부(스테이지 버튼 등)에서 stageId 넣어 호출하는 표준 진입점

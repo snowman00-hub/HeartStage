@@ -30,10 +30,6 @@ public class LevelUpTable : DataTable
             {
                 table.Add(item.Lvup_ingrd_C1, item);
             }
-            else
-            {
-                Debug.LogError($"레벨업 ID 중복! Upgrade_ID: {item.Lvup_ingrd_C1}");
-            }
         }
 
         Addressables.Release(handle);
@@ -43,7 +39,6 @@ public class LevelUpTable : DataTable
     {
         if (!table.ContainsKey(levelUpId))
         {
-            Debug.LogWarning($"[LevelUpTable] levelUp_ID {levelUpId} 없음");
             return null;
         }
 

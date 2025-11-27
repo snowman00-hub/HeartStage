@@ -68,7 +68,7 @@ public class GameSceneManager : MonoBehaviour
     /// 새 씬에서 준비가 끝났음을 알려줄 때 사용.
     /// (필요하면 type 체크해서 잘못된 호출 방지도 가능)
     /// </summary>
-    public static void NotifySceneReady(SceneType sceneType, int hideDelayMs = 300)
+    public static void NotifySceneReady(SceneType sceneType, int hideDelayMs = 100)
     {
         if (Instance == null)
             return;
