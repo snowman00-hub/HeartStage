@@ -107,8 +107,9 @@ public class VictoryDefeatPanel : GenericWindow
         if(nextStage != null)
         {
             // 다음 스테이지 ID를 저장
-            PlayerPrefs.SetInt("SelectedStageID", nextStage.stage_ID);
-            PlayerPrefs.Save();
+            var gameData = SaveLoadManager.Data;
+            gameData.selectedStageID = nextStage.stage_ID;
+            SaveLoadManager.SaveToServer().Forget();
 
             // 스테이지 변경
             LoadSceneManager.Instance.GoStage();

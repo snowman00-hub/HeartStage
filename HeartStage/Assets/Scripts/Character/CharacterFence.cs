@@ -1,4 +1,5 @@
 ﻿using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
 using System.Threading;
 using TMPro;
 using UnityEngine;
@@ -6,12 +7,13 @@ using UnityEngine;
 public class CharacterFence : MonoBehaviour, IDamageable
 {
     public static CharacterFence Instance;
+    public static List<CharacterFence> allFences = new List<CharacterFence>(); // 모든 펜스 관리 중앙 팬스 추가 떄문에 사용
 
     public TextMeshProUGUI currentHPText;
     public Transform imageGo;
 
-    private int maxHp = 0;
-    private int hp = 0;
+    private static int maxHp = 0;
+    private static int hp = 0;
 
     // 흔들기 효과
     public float shakeDuration = 0.2f;
@@ -23,6 +25,11 @@ public class CharacterFence : MonoBehaviour, IDamageable
     private void Awake()
     {
         Instance = this;
+
+        if(!allFences.Contains(this))
+        {
+            allFences.Add(this);
+        }
     }
 
     private void OnDestroy()
@@ -30,6 +37,12 @@ public class CharacterFence : MonoBehaviour, IDamageable
         shakeCts?.Cancel();
         shakeCts?.Dispose();
         shakeCts = null;
+
+        allFences.Remove(this);
+        if (Instance == this)
+        {
+            Instance = allFences.Count > 0 ? allFences[0] : null;
+        }
     }
 
     public void Init()
@@ -63,7 +76,13 @@ public class CharacterFence : MonoBehaviour, IDamageable
         if (hp > maxHp)
             hp = maxHp;
 
-        SetHpText();
+        UpdateAllFencesHpText();
+    }
+
+    public static void ResetStaticHP()
+    {
+        maxHp = 0;
+        hp = 0;
     }
 
     public void SetHpText()
@@ -71,10 +90,21 @@ public class CharacterFence : MonoBehaviour, IDamageable
         currentHPText.text = $"HP: {hp} / {maxHp}";
     }
 
+    private static void UpdateAllFencesHpText()
+    {
+        foreach (var fence in allFences)
+        {
+            if (fence != null)
+            {
+                fence.SetHpText();
+            }
+        }
+    }
+
     public void OnDamage(int damage, bool isCritical = false)
     {
         hp -= damage;
-        SetHpText();
+        UpdateAllFencesHpText();
         StartShake();
 
         if (hp <= 0)
