@@ -59,10 +59,37 @@ public class DailyQuests : MonoBehaviour
     private readonly List<QuestData> _dailyQuestList = new List<QuestData>();
     private readonly List<DailyQuestItemUI> _questItems = new List<DailyQuestItemUI>();
 
+    // 이미 초기화했는지 플래그
+    public bool IsInitialized { get; private set; }
+
+
     #region Unity Lifecycle
 
     private async void Start()
     {
+        await InitializeAsync();
+    }
+    private void OnEnable()
+    {
+        QuestManager.DailyQuestCompleted -= OnDailyQuestClearedExternally; // 중복 방지용
+        QuestManager.DailyQuestCompleted += OnDailyQuestClearedExternally;
+
+        RefreshAllItemStatesFromSave();
+    }
+
+    private void OnDisable()
+    {
+
+        QuestManager.DailyQuestCompleted -= OnDailyQuestClearedExternally;
+
+    }
+
+    #endregion
+    public async UniTask InitializeAsync()
+    {
+        if (IsInitialized)
+            return;
+        
         InitStateStructure();
 
         // 1) 서버 기준 오늘 날짜 문자열
@@ -109,28 +136,13 @@ public class DailyQuests : MonoBehaviour
         CreateDailyQuestItems();
         ApplyCompletedStateToItems();
 
-        Debug.Log($"[DailyQuests] date={State.date}, progress={State.progress}, completed={State.completedQuestIds.Count}");
-    }
-    private void OnEnable()
-    {
-        QuestManager.DailyQuestCompleted -= OnDailyQuestClearedExternally; // 중복 방지용
-        QuestManager.DailyQuestCompleted += OnDailyQuestClearedExternally;
-
-        RefreshAllItemStatesFromSave();
+        IsInitialized = true;
+        Debug.Log($"[DailyQuests] Initialized. date={State.date}, progress={State.progress}, completed={State.completedQuestIds.Count}");
     }
 
-    private void OnDisable()
-    {
+#region DailyQuestState 초기화 / 리셋 / 저장
 
-        QuestManager.DailyQuestCompleted -= OnDailyQuestClearedExternally;
-
-    }
-
-    #endregion
-
-    #region DailyQuestState 초기화 / 리셋 / 저장
-
-    private void InitStateStructure()
+private void InitStateStructure()
     {
         if (SaveLoadManager.Data.dailyQuest == null)
             SaveLoadManager.Data.dailyQuest = new DailyQuestState();

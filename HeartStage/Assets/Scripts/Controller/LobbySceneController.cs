@@ -3,25 +3,52 @@ using UnityEngine;
 
 public class LobbySceneController : MonoBehaviour
 {
-    [Header("필요하면 인스펙터에 LobbyManager 끼워넣기")]
-    public LobbyManager lobbyManager;
+    [Header("로비에 있는 DailyQuests 컴포넌트")]
+    public DailyQuests dailyQuestsComponent;
 
     private async void Awake()
     {
-        // 로비에서는 게임 멈출 필요 없으면 그냥 1 유지
+        // 로비에서는 멈출 일 없으면 그냥 1 유지
         Time.timeScale = 1f;
 
-        // 1) LobbyManager 참조 들어올 때까지 대기
-        while (lobbyManager == null)
-            await UniTask.Yield();
+        // 1) 퀘스트 매니저 로직 초기화 (SaveLoad 끝난 상태라고 가정)
+        if (QuestManager.Instance != null)
+        {
+            QuestManager.Instance.Initialize();
+        }
 
-        // 혹시 Start()에서 MoneyUISet까지 끝나길 한 프레임 정도 기다리고 싶으면
+        // --- 여기서 분기 포인트 ---
+        bool needInitDaily = dailyQuestsComponent != null &&
+                             !dailyQuestsComponent.IsInitialized;
+
+        if (needInitDaily)
+        {
+            // 아직 한 번도 안 초기화된 상태라면 → 진짜 로딩
+            var go = dailyQuestsComponent.gameObject;
+            bool wasActive = go.activeSelf;
+
+            go.SetActive(true); // 로딩창 뒤에서 몰래 켜기
+            await dailyQuestsComponent.InitializeAsync(); // 카드/아이콘 전부 생성
+            go.SetActive(wasActive); // 다시 원래 상태(false)로 돌려두기
+        }
+        else
+        {
+            // 이미 초기화 된 상태라면 여기선 아무것도 안 해도 됨
+            Debug.Log("[LobbySceneController] DailyQuests 이미 초기화됨. 로딩 스킵");
+        }
+
+        // 여기까지 오면
+        // - needInitDaily == true 면 방금 로딩 끝난 상태
+        // - needInitDaily == false 면 이미 끝난 상태였음
+
+        // 한 프레임 정도 양보해서 로비 UI Start()들(MoneyUISet 같은거) 한 번 돌리게 함
         await UniTask.Yield();
 
-        // 2) 0.6 → 1.0까지 부드럽게 채우기 (로비 전용 연출 구간)
-        const float start = 0.6f;   // 씬 로딩이 0~0.6 쓰고 있으니까
+        // --- 공통: 0.6 → 1.0까지 0.7초 동안 부드럽게 채우기 ---
+
+        const float start = 0.6f;     // 씬 로딩이 0~0.6 쓰고 있다고 가정한 값
         const float end = 1.0f;
-        const float duration = 0.7f; // 0.7초 동안 쭉 채우기 (원하면 조절)
+        const float duration = 0.7f;  // 0.7초 동안 쭉 채우기
 
         float t = 0f;
         while (t < duration)
