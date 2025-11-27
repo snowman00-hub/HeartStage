@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Cysharp.Threading.Tasks;
+using UnityEngine;
 using UnityEngine.AddressableAssets;
 
 public class LoadSceneManager : MonoBehaviour
@@ -26,12 +27,12 @@ public class LoadSceneManager : MonoBehaviour
         Time.timeScale = 1.0f;
     }
 
-    // 새로 추가: PlayerPrefs에 StageID 저장 후 Stage 씬 로드
     public void GoStage(int stageId, int startingWave = 1)
     {
-        PlayerPrefs.SetInt("SelectedStageID", stageId);
-        PlayerPrefs.SetInt("StartingWave", startingWave);
-        PlayerPrefs.Save();
+        var gameData = SaveLoadManager.Data;
+        gameData.selectedStageID = stageId;
+        gameData.startingWave = startingWave;
+        SaveLoadManager.SaveToServer().Forget();
         GoStage();
     }
 

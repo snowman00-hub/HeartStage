@@ -18,6 +18,11 @@ public class SaveDataV1 : SaveData
     public Dictionary<string, bool> unlockedByName = new Dictionary<string, bool>(); // 해금 여부를 Name별로 저장
     public Dictionary<int, int> expById = new Dictionary<int, int>(); // 경험치를 ID별로 저장
 
+    public int selectedStageID = -1;
+    public int selectedStageStep1 = -1;
+    public int selectedStageStep2 = -1;
+    public int startingWave = 1;
+
     public SaveDataV1()
     {
         Version = 1;

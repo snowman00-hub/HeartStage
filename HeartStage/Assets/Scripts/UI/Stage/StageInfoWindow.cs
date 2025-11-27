@@ -215,26 +215,26 @@ public class StageInfoWindow : GenericWindow
         StartStage();
     }
 
-    private void SaveSelectedStageData()
-    {
-        // 선택된 스테이지 정보를 저장
-        PlayerPrefs.SetInt("SelectedStageID", currentStageData.stage_ID);
-        PlayerPrefs.SetInt("SelectedStageStep1", currentStageData.stage_step1);
-        PlayerPrefs.SetInt("SelectedStageStep2", currentStageData.stage_step2);
-        PlayerPrefs.SetInt("StartingWave", 1); // 첫 번째 웨이브부터 시작
-        PlayerPrefs.Save();
-    }
-
     //private void SaveSelectedStageData()
     //{
-    //    var gameData = SaveLoadManager.Data;
-    //    gameData.selectedStageID = currentStageData.stage_ID;
-    //    gameData.selectedStageStep1 = currentStageData.stage_step1;
-    //    gameData.selectedStageStep2 = currentStageData.stage_step2;
-    //    gameData.startingWave = 1; // 첫 번째 웨이브부터 시작
-
-    //    SaveLoadManager.SaveToServer().Forget();
+    //    // 선택된 스테이지 정보를 저장
+    //    PlayerPrefs.SetInt("SelectedStageID", currentStageData.stage_ID);
+    //    PlayerPrefs.SetInt("SelectedStageStep1", currentStageData.stage_step1);
+    //    PlayerPrefs.SetInt("SelectedStageStep2", currentStageData.stage_step2);
+    //    PlayerPrefs.SetInt("StartingWave", 1); // 첫 번째 웨이브부터 시작
+    //    PlayerPrefs.Save();
     //}
+
+    private void SaveSelectedStageData()
+    {
+        var gameData = SaveLoadManager.Data;
+        gameData.selectedStageID = currentStageData.stage_ID;
+        gameData.selectedStageStep1 = currentStageData.stage_step1;
+        gameData.selectedStageStep2 = currentStageData.stage_step2;
+        gameData.startingWave = 1; // 첫 번째 웨이브부터 시작
+
+        SaveLoadManager.SaveToServer().Forget();
+    }
 
     private void StartStage()
     {

@@ -83,7 +83,8 @@ public class StageManager : MonoBehaviour
 
     private void LoadSelectedStageData()
     {
-        int stageID = PlayerPrefs.GetInt("SelectedStageID", -1);
+        var gameData = SaveLoadManager.Data;
+        int stageID = gameData.selectedStageID;
         Debug.Log($"선택된 스테이지 ID: {stageID}");
 
         if (stageID != -1)
@@ -103,7 +104,7 @@ public class StageManager : MonoBehaviour
                 SetStagePosition(stageData);
 
                 // 현재 웨이브 설정
-                int startingWave = PlayerPrefs.GetInt("StartingWave", 1);
+                int startingWave = gameData.startingWave;
                 SetWaveInfo(stageData.stage_step1, startingWave);
             }
         }
