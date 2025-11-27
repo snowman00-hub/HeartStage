@@ -101,6 +101,14 @@ public abstract class BaseProjectileSkill : MonoBehaviour, ISkillBehavior
     private async UniTaskVoid AutoRelease(GameObject go, float time)
     {
         await UniTask.WaitForSeconds(time);
+
+        if (go == null) 
+            return;         
+        if (PoolManager.Instance == null)
+            return;         
+        if (string.IsNullOrEmpty(prefabName)) 
+            return;    
+
         PoolManager.Instance.Release(prefabName, go);
     }
 
