@@ -17,6 +17,7 @@ public class SaveDataV1 : SaveData
     public List<int> ownedIds = new List<int>(); // 보유 캐릭터 아이디 집합 (중복 방지)
     public Dictionary<string, bool> unlockedByName = new Dictionary<string, bool>(); // 해금 여부를 Name별로 저장
     public Dictionary<int, int> expById = new Dictionary<int, int>(); // 경험치를 ID별로 저장
+    public List<DailyShopSlot> dailyShopSlotList = new List<DailyShopSlot>(); // 데일리 샵 슬롯 3개 정보 (상점테이블ID,구매여부)
 
     public SaveDataV1()
     {

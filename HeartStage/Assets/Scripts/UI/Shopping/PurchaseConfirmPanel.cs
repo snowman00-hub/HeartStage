@@ -112,6 +112,12 @@ public class PurchaseConfirmPanel : MonoBehaviour
         if(currentSlot != null)
         {
             currentSlot.MarkAsPurchased();
+
+            // 만약 DailyShop 슬롯이면 SaveData 업데이트
+            if (currentSlot.isDailyShopSlot)
+            {
+                UpdateDailyShopPurchase(currentSlot.shopTableID);
+            }
         }
     }
 
@@ -153,5 +159,22 @@ public class PurchaseConfirmPanel : MonoBehaviour
     public void Close()
     {
         wholePanel.SetActive(false);    
+    }
+
+    // 데일리 샵의 아이템을 샀으면 구매 여부 저장
+    private void UpdateDailyShopPurchase(int tableID)
+    {
+        var list = SaveLoadManager.Data.dailyShopSlotList;
+
+        foreach (var slot in list)
+        {
+            if (slot.id == tableID)
+            {
+                slot.purchased = true;
+                break;
+            }
+        }
+
+        SaveLoadManager.SaveToServer().Forget();
     }
 }

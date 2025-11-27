@@ -5,6 +5,7 @@ using UnityEngine.UI;
 public class ShopItemSlot : MonoBehaviour
 {
     public int shopTableID = 0;
+    public bool isDailyShopSlot = false;
 
     [SerializeField] private Image backgroundImage; // 나중에 변경할 수도?
     [SerializeField] private TextMeshProUGUI itemNameText;
