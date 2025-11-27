@@ -12,6 +12,7 @@ public class StageManager : MonoBehaviour
 
     [SerializeField] private GameObject stage; // 옮길 스테이지
     [SerializeField] private GameObject characterFence; // 옮길 펜스
+    [SerializeField] private GameObject characterFence2; // 두번째 펜스
 
     [Header("StagePosition")]
     private Vector3 stageUpPosition = new Vector3(0f, 6f, 0f);
@@ -20,7 +21,7 @@ public class StageManager : MonoBehaviour
 
     private Vector3 fenceUpPosition = new Vector3(0f, 2f, 0f);
     private Vector3 fenceMid1Position = new Vector3(0f, 4f, 0f);
-    //private Vector3 fenceMid2Position = new Vector3(0f, -4f, 0f); 두번째 팬스 위치
+    private Vector3 fenceMid2Position = new Vector3(0f, -4f, 0f); //두번째 팬스 위치
     private Vector3 fenceDownPosition = new Vector3(0f, -3f, 0f);
 
     public StageUI StageUI;
@@ -301,6 +302,19 @@ public class StageManager : MonoBehaviour
         if (characterFence != null)
         {
             characterFence.transform.position = fencePosition;
+        }
+
+        if (characterFence2 != null)
+        {
+            if (stageData.stage_position == 2)
+            {
+                characterFence2.gameObject.SetActive(true);
+                characterFence2.transform.position = fenceMid2Position;
+            }
+            else
+            {
+                characterFence2.SetActive(false); // 다른 포지션에서는 비활성화
+            }
         }
     }
 
