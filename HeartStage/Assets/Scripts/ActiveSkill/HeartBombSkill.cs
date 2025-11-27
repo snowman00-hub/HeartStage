@@ -6,7 +6,7 @@ public class HeartBombSkill : BaseProjectileSkill
     {
         prefabName = "HeartBomb";
         poolId = "HeartBomb";
-        skillDataName = "섹시 다이너마이트";
+        skillId = 31208;
     }
 
     protected override void SetupCollider(GameObject clone)

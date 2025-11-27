@@ -6,7 +6,7 @@ public class SonicAttackSkillV2 : BaseProjectileSkill
     {
         prefabName = "SonicAttack";
         poolId = "SonicAttackV2";
-        skillDataName = "다재다능한 만능 엔터테이너";
+        skillId = 31205;
     }
 
     protected override void SetupCollider(GameObject clone)
@@ -23,5 +23,4 @@ public class SonicAttackSkillV2 : BaseProjectileSkill
     }
 
     protected override Vector3 GetStartPosition() => transform.position;
-    protected override Vector3 GetDirection() => Vector3.up;
 }

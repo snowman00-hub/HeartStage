@@ -10,6 +10,7 @@ public abstract class BaseProjectileSkill : MonoBehaviour, ISkillBehavior
     // 각각 독립적으로 설정 가능
     protected string prefabName;  // 리소스에서 가져올 프리팹 이름
     protected string poolId;    // PoolManager에 등록할 고유 이름
+    protected int skillId; // 스킬 ID
     protected string skillDataName;
 
     protected PenetrationType penetrationType = PenetrationType.NonPenetrate;
@@ -20,6 +21,7 @@ public abstract class BaseProjectileSkill : MonoBehaviour, ISkillBehavior
     protected virtual void Start()
     {
         // SkillData 로드
+        skillDataName = DataTableManager.SkillTable.Get(skillId).skill_name; // 스킬 이름이 SO 이름
         skillData = ResourceManager.Instance.Get<SkillData>(skillDataName);
         prefab = ResourceManager.Instance.Get<GameObject>(prefabName);
 
@@ -105,12 +107,61 @@ public abstract class BaseProjectileSkill : MonoBehaviour, ISkillBehavior
     // ========== 스킬별로 구현 ==========
     protected abstract void SetupCollider(GameObject clone);
     protected abstract Vector3 GetStartPosition();
-    protected abstract Vector3 GetDirection();
 
     protected virtual void SetupParticle(GameObject particle, GameObject clone)
     {
         // 기본: skill_range만큼 비율 확대
         particle.transform.localScale *= skillData.skill_range;
+    }
+
+    protected virtual Vector3 GetDirection()
+    {
+        var objs = GameObject.FindGameObjectsWithTag(Tag.Monster);
+        if (objs.Length == 0)
+            return Vector3.up;
+
+        int upCount = 0;
+        int downCount = 0;
+        float myY = transform.position.y;
+
+        foreach (var obj in objs)
+        {
+            if (obj.transform.position.y > myY)
+                upCount++;
+            else
+                downCount++;
+        }
+
+        if (upCount > downCount)
+            return Vector3.up;
+        else if (downCount > upCount)
+            return Vector3.down;
+        else
+        {
+            // 같은 경우 → 가까운 몬스터 방향
+            var nearest = GetNearestMonster(objs);
+            return nearest != null
+                ? (nearest.transform.position - transform.position).normalized
+                : Vector3.up;
+        }
+    }
+
+    // 가까운 몬스터
+    private GameObject GetNearestMonster(GameObject[] objs)
+    {
+        GameObject nearest = null;
+        float minDist = float.MaxValue;
+
+        foreach (var obj in objs)
+        {
+            float dist = (obj.transform.position - transform.position).sqrMagnitude;
+            if (dist < minDist)
+            {
+                minDist = dist;
+                nearest = obj;
+            }
+        }
+        return nearest;
     }
 
     protected virtual void OnDisable()

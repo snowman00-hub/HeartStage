@@ -6,7 +6,7 @@ public class ReverseCharmSkill : BaseProjectileSkill
     {
         prefabName = "ReverseCharm";
         poolId = "ReverseCharm";
-        skillDataName = "반전매력";
+        skillId = 31206;
     }
 
     protected override void SetupCollider(GameObject clone)
@@ -16,5 +16,4 @@ public class ReverseCharmSkill : BaseProjectileSkill
     }
 
     protected override Vector3 GetStartPosition() => transform.position;
-    protected override Vector3 GetDirection() => Vector3.up;
 }

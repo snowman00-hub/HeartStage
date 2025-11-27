@@ -6,7 +6,7 @@ public class FaceGeniusSkillV2 : BaseProjectileSkill
     {
         prefabName = "FaceGenius";
         poolId = "FaceGeniusV2";
-        skillDataName = "화려한 얼굴 천재";
+        skillId = 31203;
     }
 
     protected override void SetupCollider(GameObject clone)
@@ -16,5 +16,4 @@ public class FaceGeniusSkillV2 : BaseProjectileSkill
     }
 
     protected override Vector3 GetStartPosition() => transform.position;
-    protected override Vector3 GetDirection() => Vector3.up;
 }
