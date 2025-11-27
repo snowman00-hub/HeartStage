@@ -75,6 +75,7 @@ public class GachaManager : MonoBehaviour
         {
             // 캐릭터 획득 처리     
             SaveLoadManager.AcquireCharacter(selectedItem.Gacha_item, DataTableManager.CharacterTable);
+            QuestManager.Instance.OnGachaDraw();
         }
         else
         {

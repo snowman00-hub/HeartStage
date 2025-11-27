@@ -587,6 +587,9 @@ public class MonsterSpawner : MonoBehaviour
             {
                 monsterInfo.remainMonster--;
                 waveMonstersToSpawn[i] = monsterInfo;
+
+                // 몬스터 킬 퀘스트 알림
+                QuestManager.Instance.OnMonsterKilled(monsterId);
                 break;
             }
         }
@@ -738,6 +741,7 @@ public class MonsterSpawner : MonoBehaviour
     private void GiveWaveReward(StageWaveCSVData waveData)
     {
         var rewardData = DataTableManager.RewardTable.Get(waveData.wave_reward);
+
         // 최초 보상 체크
         var clearWaveList = SaveLoadManager.Data.clearWaveList;
         bool isFirstClear = false; // 최초 클리어 여부 

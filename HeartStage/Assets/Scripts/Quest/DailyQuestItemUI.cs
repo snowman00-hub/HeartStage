@@ -27,15 +27,17 @@ public class DailyQuestItemUI : MonoBehaviour
 
     private DailyQuests owner;
     private QuestData questData;
-    private bool isCompleted;
 
-    public void Init(DailyQuests owner, QuestData data, bool completed)
+    private bool isCleared;   // 조건 충족 여부
+    private bool isCompleted; // 보상 수령 여부
+
+    public void Init(DailyQuests owner, QuestData data, bool cleared, bool completed)
     {
         this.owner = owner;
         this.questData = data;
 
         if (InfoText != null)
-            InfoText.text = data.Quest_info; // CSV의 Quest_info를 제목/설명으로 사용
+            InfoText.text = data.Quest_info;
 
         if (useIconAddressable && iconImage != null && !string.IsNullOrEmpty(data.Icon_image))
         {
@@ -48,10 +50,49 @@ public class DailyQuestItemUI : MonoBehaviour
             completeButton.onClick.AddListener(OnClickComplete);
         }
 
-        // 처음 생성될 때도 완료 상태 반영
-        SetCompleted(completed);
+        SetState(cleared, completed);
     }
 
+    /// 퀘스트 상태 UI 반영
+    /// - cleared=false, completed=false : 미완료 (조건 미충족)
+    /// - cleared=true,  completed=false : 완료 (보상 수령 가능, 버튼 활성)
+    /// - cleared=true,  completed=true  : 완료 (보상 수령 완료, 버튼 비활성 + 체크)
+    public void SetState(bool cleared, bool completed)
+    {
+        isCleared = cleared;
+        isCompleted = completed;
+
+        if (completedMark != null)
+            completedMark.SetActive(completed);
+
+        if (completeButton != null)
+        {
+            if (!cleared)
+            {
+                completeButton.interactable = false;
+            }
+            else
+            {
+                // 완료 상태든 수령 전이든, 조건만 충족되면 버튼은 한 번은 눌러볼 수 있음
+                completeButton.interactable = !completed;
+            }
+
+            var targetGraphic = completeButton.targetGraphic as Image;
+            if (targetGraphic != null)
+            {
+                if (completed)
+                    targetGraphic.color = completedButtonColor;
+                else
+                    targetGraphic.color = normalButtonColor;
+            }
+        }
+
+        if (stateText != null)
+        {
+            // 텍스트는 cleared 기준으로만 "완료"/"미완료" 표시
+            stateText.text = cleared ? "완료" : "미완료";
+        }
+    }
     private async void LoadIconAsync(string key)
     {
         try
@@ -83,7 +124,6 @@ public class DailyQuestItemUI : MonoBehaviour
         {
             completeButton.interactable = !completed;
 
-            // 버튼 배경 색 변경 (Button의 targetGraphic을 기준으로)
             var targetGraphic = completeButton.targetGraphic as Image;
             if (targetGraphic != null)
             {
@@ -91,7 +131,7 @@ public class DailyQuestItemUI : MonoBehaviour
             }
         }
 
-        // 상태 텍스트 갱신
+        // ★ 여기
         if (stateText != null)
         {
             stateText.text = completed ? "완료" : "미완료";
@@ -100,25 +140,25 @@ public class DailyQuestItemUI : MonoBehaviour
 
     private void OnClickComplete()
     {
-        if (isCompleted) return;
         if (owner == null || questData == null) return;
 
-        // ★ 아직 QuestManager에서 완료 처리 안 된 퀘스트면 그냥 막아버림
+        // 이미 보상 수령 완료라면 무시
+        if (isCompleted) return;
+
+        // 조건이 아직 안 채워졌으면 막기
         if (QuestManager.Instance == null)
         {
             Debug.LogWarning("[DailyQuestItemUI] QuestManager.Instance 가 없습니다.");
             return;
         }
 
-        // QuestManager 기준으로 아직 클리어 안 되었으면 UI에서 강제 완료 금지
-        if (!QuestManager.Instance.IsDailyQuestCompleted(questData.Quest_ID))
+        if (!QuestManager.Instance.IsDailyQuestCleared(questData.Quest_ID))
         {
             Debug.Log("[DailyQuestItemUI] 아직 클리어 조건을 만족하지 않은 퀘스트입니다.");
-            // TODO: 여기서 토스트 팝업 / 안내창 띄우면 됨.
             return;
         }
 
-        // 여기까지 왔다는 건 정말로 완료된 퀘스트 → UI에서 '완료 처리'만 한다.
+        // 여기까지 왔다면: 조건은 이미 만족했고, 아직 보상은 안 받음
         owner.OnQuestItemClickedComplete(questData, this);
     }
 }

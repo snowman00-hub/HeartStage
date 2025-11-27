@@ -69,6 +69,8 @@ public class BootStrap : MonoBehaviour
         {
             // ex) 일일 로그인 보상 주기
 
+            // 출석 퀘스트 처리
+            QuestManager.Instance.OnAttendance();
         }
 
         // 이벤트 처리 후, 현재 시간으로 마지막 접속 시간 업데이트 // 나중에 앱 종료할때도 해야할듯?
@@ -101,6 +103,10 @@ public class BootStrap : MonoBehaviour
             // 처음에 드림에너지 100개 주기
             ItemInvenHelper.AddItem(ItemID.DreamEnergy, 100);
             // 첫 저장은 await로 확실하게 보장하는 게 좋다
+
+            // 처음에 출석 퀘스트 처리
+            QuestManager.Instance.OnAttendance();
+
             await SaveLoadManager.SaveToServer();
         }
     }

@@ -111,6 +111,21 @@ public class DailyQuests : MonoBehaviour
 
         Debug.Log($"[DailyQuests] date={State.date}, progress={State.progress}, completed={State.completedQuestIds.Count}");
     }
+    private void OnEnable()
+    {
+        if (QuestManager.Instance != null)
+        {
+            QuestManager.DailyQuestCompleted += OnDailyQuestClearedExternally;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (QuestManager.Instance != null)
+        {
+            QuestManager.DailyQuestCompleted -= OnDailyQuestClearedExternally;
+        }
+    }
 
     #endregion
 
@@ -417,30 +432,34 @@ public class DailyQuests : MonoBehaviour
             return;
         }
 
-        foreach (var data in _dailyQuestList)
+        for (int i = 0; i < _dailyQuestList.Count; i++)
         {
-            bool completed = false;
+            var data = _dailyQuestList[i];
+            int id = data.Quest_ID;
 
-            // SaveData 기준
-            if (State.completedQuestIds != null &&
-                State.completedQuestIds.Contains(data.Quest_ID))
+            bool completed = State.completedQuestIds != null &&
+                             State.completedQuestIds.Contains(id);
+
+            bool cleared = false;
+
+            // SaveData 기준으로 조건 충족 여부
+            if (State.clearedQuestIds != null &&
+                State.clearedQuestIds.Contains(id))
             {
-                completed = true;
+                cleared = true;
             }
 
-            // QuestManager 런타임 캐시 기준 (둘 중 하나라도 true면 완료)
-            if (QuestManager.Instance != null &&
-                QuestManager.Instance.IsDailyQuestCompleted(data.Quest_ID))
-            {
-                completed = true;
-            }
+            // 이미 보상까지 받은 퀘스트면 당연히 cleared도 true
+            if (completed)
+                cleared = true;
 
             var item = Instantiate(questItemPrefab, questListContent);
-            item.Init(this, data, completed);
+            item.Init(this, data, cleared, completed);
 
             _questItems.Add(item);
         }
     }
+
 
     private void ApplyCompletedStateToItems()
     {
@@ -459,26 +478,48 @@ public class DailyQuests : MonoBehaviour
 
     /// <summary>
     /// UI에서 "완료" 버튼 눌렀을 때 호출됨.
-    /// 지금은 조건 체크 없이 바로 완료 처리하고,
-    /// progress_type / progress_amount 기준으로 진행도 올림.
+    /// - 조건은 이미 QuestManager 에서 만족된 상태라고 가정.
+    /// - 여기서 보상 지급 + 진행도 증가 + completed 목록에 등록.
     /// </summary>
     public async void OnQuestItemClickedComplete(QuestData questData, DailyQuestItemUI itemUI)
     {
         if (questData == null || itemUI == null)
             return;
 
-        // ★ 여기서는 SaveData 구조는 건드리지 말고,
-        //    QuestManager에서 이미 완료 반영된 상태라고 가정하고 UI만 갱신해주자.
-        itemUI.SetCompleted(true);
+        if (State.completedQuestIds == null)
+            State.completedQuestIds = new List<int>();
 
-        // 혹시라도 UI 상태를 저장하고 싶으면 그냥 저장만 수행
-        await SaveDailyStateAsync();
+        int id = questData.Quest_ID;
+        bool alreadyCompleted = State.completedQuestIds.Contains(id);
+
+        if (!alreadyCompleted)
+        {
+            State.completedQuestIds.Add(id);
+
+            // TODO: 여기서 퀘스트 개별 보상 지급(Quest_reward1~3)도 처리하면 됨.
+            // ex) ItemManager.AddItem(questData.Quest_reward1, questData.Quest_reward1_A);
+
+            // 진행도 타입이 현재 Daily 진행도 타입과 일치하면 progress 증가
+            if (questData.progress_type == (int)progressType &&
+                questData.progress_amount > 0)
+            {
+                AddProgress(questData.progress_amount);
+                // AddProgress 안에서 SaveDailyStateAsync 호출함
+            }
+            else
+            {
+                await SaveDailyStateAsync();
+            }
+        }
+
+        // UI는 무조건 "조건 충족 + 보상 수령 완료" 상태로 맞춰준다
+        itemUI.SetState(cleared: true, completed: true);
     }
 
     /// <summary>
-    /// 전투/로비 등 외부 시스템에서 퀘스트 완료를 알려줄 때 사용.
+    /// 전투/로비 등 외부 시스템에서 "조건을 만족했다"는 신호를 받을 때 호출됨.
     /// </summary>
-    public void OnDailyQuestCompletedExternally(QuestData questData)
+    public void OnDailyQuestClearedExternally(QuestData questData)
     {
         if (questData == null)
             return;
@@ -486,29 +527,29 @@ public class DailyQuests : MonoBehaviour
         if (questData.Quest_type != QuestType.Daily)
             return;
 
-        if (State.completedQuestIds != null &&
-            State.completedQuestIds.Contains(questData.Quest_ID))
-            return;
+        int id = questData.Quest_ID;
 
-        var ui = _questItems.Find(x => x.QuestId == questData.Quest_ID);
+        if (State.clearedQuestIds == null)
+            State.clearedQuestIds = new List<int>();
+
+        if (!State.clearedQuestIds.Contains(id))
+            State.clearedQuestIds.Add(id);
+
+        var ui = _questItems.Find(x => x.QuestId == id);
         if (ui != null)
         {
-            OnQuestItemClickedComplete(questData, ui);
+            bool completed = State.completedQuestIds != null &&
+                             State.completedQuestIds.Contains(id);
+
+            ui.SetState(cleared: true, completed: completed);
         }
-        else
-        {
-            // 리스트에는 없지만 진행도를 올려야 하는 경우
-            if (questData.progress_type == (int)progressType &&
-                questData.progress_amount > 0)
-            {
-                AddProgress(questData.progress_amount);
-            }
-        }
+
+        // 조건 충족 상태는 저장해두는 편이 좋음 (앱 껐다 켜도 유지)
+        SaveDailyStateAsync().Forget();
     }
 
     #endregion
 }
-
 public class DailyQuestState
 {
     // 마지막으로 갱신된 날짜 (서버 기준) "yyyyMMdd"
@@ -520,6 +561,9 @@ public class DailyQuestState
     // 진행도 보상 5개 수령 여부
     public bool[] claimed = new bool[5];
 
-    // 오늘 완료한 데일리 퀘스트 ID 목록
+    // 오늘 조건을 만족한(클리어된) 데일리 퀘스트 ID 목록 (보상은 아직 안 받았을 수 있음)
+    public List<int> clearedQuestIds = new List<int>();
+
+    // 오늘 보상까지 받은 데일리 퀘스트 ID 목록
     public List<int> completedQuestIds = new List<int>();
 }

@@ -17,6 +17,9 @@ public class QuestManager : MonoBehaviour
 
     public static QuestManager Instance { get; private set; }
 
+    // Daily 퀘스트 완료 이벤트
+    public static event Action<QuestData> DailyQuestCompleted;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -65,11 +68,12 @@ public class QuestManager : MonoBehaviour
     private QuestProgressTable QuestProgressTable => DataTableManager.Get<QuestProgressTable>(DataTableIds.QuestProgress);
     private QuestTypeTable QuestTypeTable => DataTableManager.Get<QuestTypeTable>(DataTableIds.QuestType);
 
-    // 내부 캐시: 오늘 활성화된 Daily 퀘스트 리스트
-    private readonly List<QuestData> _dailyQuestList = new List<QuestData>();
-    private readonly HashSet<int> _completedDailyQuestIds = new HashSet<int>();
 
+    private readonly List<QuestData> _dailyQuestList = new List<QuestData>();
+    // 오늘 조건을 만족한 Daily 퀘스트 모음
+    private readonly HashSet<int> _clearedDailyQuestIds = new HashSet<int>();
     private bool _initializedDaily;
+
 
     /// <summary>
     /// BootStrap에서:
@@ -98,8 +102,8 @@ public class QuestManager : MonoBehaviour
     /// <summary>오늘 일일 진행도 (0~100)</summary>
     public int DailyProgress => DailyState.progress;
 
-    /// <summary>해당 Quest_ID가 오늘 이미 완료되었는지?</summary>
-    public bool IsDailyQuestCompleted(int questId) => _completedDailyQuestIds.Contains(questId);
+    /// <summary>해당 Quest_ID가 오늘 "조건을 만족했는지?" (보상 수령 여부와 무관)</summary>
+    public bool IsDailyQuestCleared(int questId) => _clearedDailyQuestIds.Contains(questId);
 
     /// <summary>오늘 활성화된 Daily 퀘스트 정의 리스트 (UI에서 사용)</summary>
     public IReadOnlyList<QuestData> DailyQuests => _dailyQuestList;
@@ -124,11 +128,13 @@ public class QuestManager : MonoBehaviour
 
     private void InitDailyStateAndDate()
     {
-        // 구조 보장
         var state = DailyState;
 
         if (state.claimed == null || state.claimed.Length == 0)
             state.claimed = new bool[5];
+
+        if (state.clearedQuestIds == null)
+            state.clearedQuestIds = new List<int>();
 
         if (state.completedQuestIds == null)
             state.completedQuestIds = new List<int>();
@@ -166,8 +172,9 @@ public class QuestManager : MonoBehaviour
 
         Array.Clear(state.claimed, 0, state.claimed.Length);
 
+        state.clearedQuestIds.Clear();
         state.completedQuestIds.Clear();
-        _completedDailyQuestIds.Clear();
+        _clearedDailyQuestIds.Clear();
 
         Debug.Log($"[QuestManager] DailyQuest 리셋. date={todayKey}");
     }
@@ -198,16 +205,16 @@ public class QuestManager : MonoBehaviour
 
     private void SyncDailyCompletedSet()
     {
-        _completedDailyQuestIds.Clear();
+        _clearedDailyQuestIds.Clear();
 
         var state = DailyState;
 
-        if (state.completedQuestIds == null)
-            state.completedQuestIds = new List<int>();
+        if (state.clearedQuestIds == null)
+            state.clearedQuestIds = new List<int>();
 
-        foreach (int id in state.completedQuestIds)
+        foreach (int id in state.clearedQuestIds)
         {
-            _completedDailyQuestIds.Add(id);
+            _clearedDailyQuestIds.Add(id);
         }
     }
 
@@ -232,7 +239,7 @@ public class QuestManager : MonoBehaviour
     }
 
     // 스테이지 클리어 시점(StageManager 등)에서 호출
-    public void OnStageClear(int stageId)
+    public void OnStageClear(int stageId = 0)
     {
         EnsureDailyInitialized();
         // 필요하면 stageId로 특정 스테이지만 인정하는 조건 추가 가능
@@ -248,7 +255,7 @@ public class QuestManager : MonoBehaviour
     }
 
     // 가챠 결과 확정 시점에서 호출 (count: 1회/10회 등)
-    public void OnGachaDraw(int count)
+    public void OnGachaDraw(int count = 0)
     {
         EnsureDailyInitialized();
         // 10연차 1번도 인정이면 그냥 1번만 호출, count 로 세분화하려면 나중에 로직 추가
@@ -256,7 +263,7 @@ public class QuestManager : MonoBehaviour
     }
 
     // 상점 구매 성공 시점에서 호출 (shopItemId: 상점 상품 id)
-    public void OnShopPurchase(int shopItemId)
+    public void OnShopPurchase(int shopItemId = 0)
     {
         EnsureDailyInitialized();
         // 특정 상품만 인정이면 shopItemId 체크해서 필터 가능
@@ -298,36 +305,32 @@ public class QuestManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 실제 Daily 퀘스트 완료 + 진행도 증가 + 세이브 저장
+    /// 실제 Daily 퀘스트 "조건 충족" 처리 (보상/진행도는 여기서 건드리지 않음)
     /// </summary>
     private void CompleteDailyQuestInternal(QuestData quest)
     {
         var state = DailyState;
-
         int id = quest.Quest_ID;
 
-        if (_completedDailyQuestIds.Contains(id))
+        // 이미 오늘 조건 충족된 퀘스트면 무시
+        if (_clearedDailyQuestIds.Contains(id))
         {
-            // 이미 완료된 퀘스트
             return;
         }
 
-        _completedDailyQuestIds.Add(id);
+        _clearedDailyQuestIds.Add(id);
 
-        if (!state.completedQuestIds.Contains(id))
-            state.completedQuestIds.Add(id);
+        if (!state.clearedQuestIds.Contains(id))
+            state.clearedQuestIds.Add(id);
 
-        // QuestData.Progress_Amount 만큼 진행도 증가 (0~100 clamp)
-        int delta = quest.progress_amount;
-        if (delta != 0)
-        {
-            int next = Mathf.Clamp(state.progress + delta, 0, 100);
-            state.progress = next;
-        }
+        // 여기서는 progress / completedQuestIds / 보상 전혀 건드리지 않는다.
 
         SaveLoadManager.SaveToServer().Forget();
 
-        Debug.Log($"[QuestManager] Daily Quest 완료: id={id}, info={quest.Quest_info}, progress={state.progress}");
+        Debug.Log($"[QuestManager] Daily Quest 조건 충족: id={id}, info={quest.Quest_info}");
+
+        // UI에게 "이 퀘스트는 이제 완료 버튼을 눌러서 보상을 받을 수 있다" 를 알림
+        DailyQuestCompleted?.Invoke(quest);
     }
 
     #endregion
