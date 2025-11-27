@@ -13,7 +13,6 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     public bool isDead = false;
 
     private readonly string attack = "Attack";
-    private readonly string run = "Run"; // 이동 상태 파라미터 추가
     private bool wasMoving = false; // 클래스 상단에 추가
 
     [SerializeField] private GameObject heartPrefab;
@@ -140,11 +139,6 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         if (animator == null || animator.runtimeAnimatorController == null) return;
 
         bool isCurrentlyMoving = Vector3.Distance(transform.position, lastPosition) > 0.01f;
-
-        if (isCurrentlyMoving && !wasMoving)
-        {
-            animator.SetTrigger(run);
-        }
 
         wasMoving = isCurrentlyMoving;
         lastPosition = transform.position;
@@ -385,7 +379,6 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         }
     }
 
-
     public static bool IsBossMonster(int id)
     {
         if (DataTableManager.MonsterTable != null)
@@ -397,7 +390,7 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
             }
         }
 
-        return id == 22201 || id == 22214; // 보스 id
+        return id == 22201 || id == 22214 || id == 22224; // 보스 id
     }
 
     private void ResetFadeState()

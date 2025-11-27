@@ -116,28 +116,38 @@ public class MonsterSpawner : MonoBehaviour
             var waveData = DataTableManager.StageWaveTable.Get(waveId);
             if (waveData != null)
             {
+                Debug.Log($"[MonsterSpawner] 웨이브 {waveId}: EnemyID1={waveData.EnemyID1}, EnemyID2={waveData.EnemyID2}, EnemyID3={waveData.EnemyID3}");
+
+
                 if (waveData.EnemyID1 > 0) monsterIds.Add(waveData.EnemyID1);
                 if (waveData.EnemyID2 > 0) monsterIds.Add(waveData.EnemyID2);
                 if (waveData.EnemyID3 > 0) monsterIds.Add(waveData.EnemyID3);
             }
         }
+        Debug.Log($"[MonsterSpawner] 로딩할 몬스터 ID들: {string.Join(", ", monsterIds)}");
 
         // MonsterData 캐시 로드
         foreach (var monsterId in monsterIds)
         {
             try
             {
+                Debug.Log($"[MonsterSpawner] MonsterData_{monsterId} 로딩 시도...");
                 var handle = Addressables.LoadAssetAsync<MonsterData>($"MonsterData_{monsterId}");
                 var monsterDataSO = await handle.Task;
                 if (monsterDataSO != null)
                 {
                     monsterDataSO.InitFromCSV(monsterId);
                     monsterDataCache[monsterId] = monsterDataSO;
+                    Debug.Log($"[MonsterSpawner] MonsterData_{monsterId} 로딩 성공!");
                 }
-
+                else
+                {
+                    Debug.LogError($"[MonsterSpawner] MonsterData_{monsterId} 로딩 실패 - SO가 null");
+                }
             }
-            catch
+            catch (System.Exception e)
             {
+                Debug.LogError($"[MonsterSpawner] MonsterData_{monsterId} 로딩 예외: {e.Message}");
             }
         }
 
@@ -208,20 +218,33 @@ public class MonsterSpawner : MonoBehaviour
             return;
         }
 
+        Debug.Log($"[MonsterSpawner] StartWaveProgression 시작. 총 {stageWaveIds.Count}개 웨이브");
+
         // 스테이지의 모든 웨이브 진행
         for (currentWaveIndex = 0; currentWaveIndex < stageWaveIds.Count; currentWaveIndex++)
         {
+            Debug.Log($"[MonsterSpawner] === 웨이브 {currentWaveIndex + 1}/{stageWaveIds.Count} 시작 ===");
+
             LoadCurrentWave();
             if (currentWaveData != null)
             {
                 await StartWaveSpawning();
                 await WaitForWaveCompletion();
 
+                Debug.Log($"[MonsterSpawner] 웨이브 {currentWaveIndex + 1} 완료!");
+
                 // 마지막 웨이브가 아니면 잠시 대기
                 if (currentWaveIndex < stageWaveIds.Count - 1)
                 {
+                    Debug.Log($"[MonsterSpawner] 다음 웨이브를 위해 2초 대기...");
                     await UniTask.Delay(2000);
+                    Debug.Log($"[MonsterSpawner] 대기 완료. 다음 웨이브로 진행");
                 }
+            }
+            else
+            {
+                Debug.LogError($"[MonsterSpawner] currentWaveData가 null입니다! 웨이브 진행 중단");
+                break;
             }
         }
 
@@ -234,12 +257,15 @@ public class MonsterSpawner : MonoBehaviour
     {
         int currentWaveId = stageWaveIds[currentWaveIndex];
         currentWaveData = DataTableManager.StageWaveTable.Get(currentWaveId);
+        Debug.Log($"[MonsterSpawner] 웨이브 {currentWaveIndex + 1} 로드 중... WaveID: {currentWaveId}");
 
         if (currentWaveData == null)
         {
             Debug.LogError($"웨이브 데이터를 찾을 수 없음: {currentWaveId}");
             return;
         }
+
+        Debug.Log($"[MonsterSpawner] 웨이브 데이터 로드 성공: {currentWaveData.wave_name}");
 
         SetUpWaveMonster();
         UpdateStageUI();
@@ -257,6 +283,7 @@ public class MonsterSpawner : MonoBehaviour
             (currentWaveData.EnemyID2, currentWaveData.EnemyCount2),
             (currentWaveData.EnemyID3, currentWaveData.EnemyCount3)
         };
+        Debug.Log($"[MonsterSpawner] 웨이브 몬스터 설정:");
 
         foreach (var (enemyId, enemyCount) in enemies)
         {
@@ -266,6 +293,8 @@ public class MonsterSpawner : MonoBehaviour
                 waveMonstersToSpawn.Add(waveMonster);
             }
         }
+        Debug.Log($"[MonsterSpawner] 총 {GetRemainingMonsterCount()}마리 스폰 예정");
+
     }
 
     // 웨이브 남은 몬스터 수 계산
@@ -312,11 +341,14 @@ public class MonsterSpawner : MonoBehaviour
     // 웨이브 완료까지 대기
     private async UniTask WaitForWaveCompletion()
     {
+        Debug.Log($"[MonsterSpawner] 웨이브 완료 대기 중... 남은 몬스터: {GetRemainingMonsterCount()}");
+
         // 웨이브의 모든 몬스터가 처치될 때까지 대기
         while (GetRemainingMonsterCount() > 0)
         {
             await UniTask.Delay(100);
         }
+        Debug.Log($"[MonsterSpawner] 웨이브 완료! 보상 지급 중...");
 
         ClearSpawnQueue();
         // 웨이브 클리어 보상 주기
@@ -587,9 +619,15 @@ public class MonsterSpawner : MonoBehaviour
             {
                 monsterInfo.remainMonster--;
                 waveMonstersToSpawn[i] = monsterInfo;
+                Debug.Log($"[MonsterSpawner] 몬스터 {monsterId} 사망. 남은 개체: {monsterInfo.remainMonster}");
+
                 break;
             }
         }
+
+        int totalRemaining = GetRemainingMonsterCount();
+        Debug.Log($"[MonsterSpawner] 전체 남은 몬스터 수: {totalRemaining}");
+
         UpdateStageUI();
     }
 
@@ -738,6 +776,14 @@ public class MonsterSpawner : MonoBehaviour
     private void GiveWaveReward(StageWaveCSVData waveData)
     {
         var rewardData = DataTableManager.RewardTable.Get(waveData.wave_reward);
+
+        if (rewardData == null)
+        {
+            Debug.LogWarning($"[MonsterSpawner] RewardData가 null입니다! RewardID: {waveData.wave_reward} - 보상 없이 진행");
+            OnWaveCleared?.Invoke(); //이벤트는 발생시켜서 UI 업데이트
+            return; // 리워드 데이터에 데이터가 없으면 보상 없이 그냥 진행하기 위함
+        }
+
         // 최초 보상 체크
         var clearWaveList = SaveLoadManager.Data.clearWaveList;
         bool isFirstClear = false; // 최초 클리어 여부 
@@ -748,8 +794,10 @@ public class MonsterSpawner : MonoBehaviour
             ItemManager.Instance.AcquireItem(rewardData.first_clear, rewardData.first_clear_a);
             isFirstClear = true; // 최초 클리어
         }
+
         // 팬 보상
         StageManager.Instance.fanReward += rewardData.user_fan_amount;
+
         // 아이템 보상 주기
         if (rewardData.normal_clear1 != 0)
         {
