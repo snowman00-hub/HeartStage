@@ -59,7 +59,7 @@ public class CharacterProjectile : MonoBehaviour
     {
         transform.position += dir * moveSpeed * Time.deltaTime;
 
-        if (transform.position.y > 10f)
+        if (transform.position.y > 10f || transform.position.y <= 10f)
         {
             ReleaseToPool();
         }
