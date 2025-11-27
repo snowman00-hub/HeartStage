@@ -43,9 +43,10 @@ public class LoadSceneManager : MonoBehaviour
 
     public void GoTestStage(int stageId, int startingWave = 1)
     {
-        PlayerPrefs.SetInt("SelectedStageID", stageId);
-        PlayerPrefs.SetInt("StartingWave", startingWave);
-        PlayerPrefs.Save();
+        var gameData = SaveLoadManager.Data;
+        gameData.selectedStageID = stageId;
+        gameData.startingWave = startingWave;
+        SaveLoadManager.SaveToServer().Forget();
         GoTestStage();
     }
 

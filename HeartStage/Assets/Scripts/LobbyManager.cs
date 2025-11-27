@@ -59,13 +59,6 @@ public class LobbyManager : MonoBehaviour
         LoadSceneManager.Instance.GoStage(stageId, 1);
     }
 
-    // “마지막 선택 스테이지로 가기” 버튼용
-    public void GoStage()
-    {
-        int last = PlayerPrefs.GetInt("SelectedStageID", 601);
-        LoadSceneManager.Instance.GoStage(last, 1);
-    }
-
     public void MoneyUISet()
     {
         var itemList = SaveLoadManager.Data.itemList;

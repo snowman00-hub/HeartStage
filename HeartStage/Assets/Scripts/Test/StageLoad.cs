@@ -23,7 +23,7 @@ public class StageLoad : MonoBehaviour
             await UniTask.Delay(50, DelayType.UnscaledDeltaTime);
 
         // ✅ 1) "현재 스테이지 id"로 stageId 갱신
-        stageId = ResolveCurrentStageId();
+        ResolveCurrentStageId();
 
         // ✅ 2) Dropdown 만들고 현재 id로 동기화
         BuildStageDropdown();
@@ -36,6 +36,8 @@ public class StageLoad : MonoBehaviour
         stageInput.onEndEdit.AddListener(OnInputChanged);
 
         stageLoadButton.onClick.AddListener(OnClickLoadStage);
+
+        LoadMassage.text = $"현재 스테이지 ID: {stageId}";
     }
 
     private void OnDestroy()
@@ -45,23 +47,16 @@ public class StageLoad : MonoBehaviour
         stageDropdown.onValueChanged.RemoveListener(OnDropdownChanged);
     }
 
-    // ✅ 현재 스테이지 id 찾기 (StageManager → Prefs → fallback)
-    private int ResolveCurrentStageId()
+    // ✅ 현재 스테이지 id 찾기
+    private void ResolveCurrentStageId()
     {
-        int fromStageManager =
-            StageManager.Instance != null &&
-            StageManager.Instance.GetCurrentStageData() != null
-                ? StageManager.Instance.GetCurrentStageData().stage_ID
-                : -1;
+        var gameData = SaveLoadManager.Data;
+        stageId = gameData.selectedStageID;
 
-        if (fromStageManager > 0)
-            return fromStageManager;
-
-        int fromPrefs = PlayerPrefs.GetInt("SelectedStageID", -1);
-        if (fromPrefs > 0)
-            return fromPrefs;
-
-        return stageId > 0 ? stageId : 601;
+        if (stageId <= 0)
+        {
+            stageId = 601;
+        }
     }
 
     private void BuildStageDropdown()
