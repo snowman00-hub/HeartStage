@@ -8,6 +8,7 @@ public class LobbyManager : MonoBehaviour
 
     public TextMeshProUGUI lightStickCountText;
     public TextMeshProUGUI heartStickCountText;
+    public TextMeshProUGUI dreamEnergyCountText;
 
     private int lightStickCount = 0;
     public int LightStickCount
@@ -28,6 +29,17 @@ public class LobbyManager : MonoBehaviour
         {
             heartStickCount = value;
             heartStickCountText.text = $"{heartStickCount}";
+        }
+    }
+
+    private int dreamEnergyCount = 0;
+    public int DreamEnergyCount
+    {
+        get { return dreamEnergyCount; }
+        set
+        {
+            dreamEnergyCount = value;
+            dreamEnergyCountText.text = $"{value}/100";            
         }
     }
 
@@ -74,6 +86,15 @@ public class LobbyManager : MonoBehaviour
         {
             HeartStickCount = 0;
         }
+
+        if (itemList.ContainsKey(ItemID.DreamEnergy))
+        {
+            DreamEnergyCount = itemList[ItemID.DreamEnergy];
+        }
+        else
+        {
+            DreamEnergyCount = 0;
+        }
     }
 
     // 테스트용 함수
@@ -107,8 +128,12 @@ public class LobbyManager : MonoBehaviour
         foreach (var id in ownedBaseIds)
             SaveLoadManager.Data.ownedIds.Add(id); // List<int>면 이렇게
 
+        // 처음에 드림에너지 100개 주기
+        ItemInvenHelper.AddItem(ItemID.DreamEnergy, 100);
+
         SaveLoadManager.SaveToServer().Forget();
     }
+
     public void Logout()
     {
         AuthManager.Instance.SignOut();

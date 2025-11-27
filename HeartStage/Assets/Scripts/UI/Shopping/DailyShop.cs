@@ -22,9 +22,7 @@ public class DailyShop : MonoBehaviour
     public TextMeshProUGUI remainTimeText;
     public List<ShopItemSlot> dailyItemSlots;
 
-    [Header("Reset Interval (seconds)")]
-    public int resetIntervalSeconds = 86400;
-    // 테스트: 10초 → 10
+    private int resetIntervalSeconds = 86400;
     // 실제: 24시간 → 86400
 
     // 다음에 상점이 리셋될 남은 시간

@@ -12,6 +12,10 @@ public abstract class SaveData
 [Serializable]
 public class SaveDataV1 : SaveData
 {
+    // 마지막으로 접속했던 시간 (년,월,일,시,분,초) 저장
+    // LastLoginTime 프로퍼티로 시간 받기
+    public long lastLoginBinary; 
+
     public Dictionary<int, int> itemList = new Dictionary<int, int>(); // 아이템 ID와 수량을 저장, ItemInvenHelper.cs 사용 추천
     public List<int> clearWaveList = new List<int>(); // 클리어한 웨이브 ID를 저장 -> 최초 보상 체크
     public List<int> ownedIds = new List<int>(); // 보유 캐릭터 아이디 집합 (중복 방지)
@@ -28,4 +32,7 @@ public class SaveDataV1 : SaveData
     {
         throw new NotImplementedException();
     }
+
+    // FirebaseTime.GetServerTime()과 비교해서 시간 이벤트 주기
+    public DateTime LastLoginTime => DateTime.FromBinary(lastLoginBinary);
 }

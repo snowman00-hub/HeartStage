@@ -15,7 +15,6 @@ public static class ItemInvenHelper
 
         SaveLoadManager.SaveToServer().Forget();
         LobbyManager.Instance?.MoneyUISet();
-
     }
 
     // 아이템 소비 시도, 보유 개수보다 적으면 실패

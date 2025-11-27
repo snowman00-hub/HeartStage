@@ -1,6 +1,10 @@
 ﻿using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using System;
+using UnityEditor.Overlays;
+
+
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -49,9 +53,27 @@ public class BootStrap : MonoBehaviour
         FirebaseTime.Initialize(); 
         // 서버에서 데이터 로드
         await TryLoad();
-
+        // 유저가 마지막으로 접속한 시간 갱신, 로그인 보상 주기
+        await UpdateLastLoginTime();
         // 이제는 string이 아니라 SceneType으로 호출
         await GameSceneManager.ChangeScene(targetScene);
+    }
+
+    private async UniTask UpdateLastLoginTime()
+    {
+        DateTime now = FirebaseTime.GetServerTime();
+        DateTime last = SaveLoadManager.Data.LastLoginTime;
+
+        // 시간에 따라 이벤트 처리하기
+        if (last.Date != now.Date) //
+        {
+            // ex) 일일 로그인 보상 주기
+
+        }
+
+        // 이벤트 처리 후, 현재 시간으로 마지막 접속 시간 업데이트 // 나중에 앱 종료할때도 해야할듯?
+        SaveLoadManager.Data.lastLoginBinary = FirebaseTime.GetServerTime().ToBinary();
+        await SaveLoadManager.SaveToServer();
     }
 
     private async UniTask TryLoad()
@@ -76,6 +98,8 @@ public class BootStrap : MonoBehaviour
             foreach (var id in ownedBaseIds)
                 SaveLoadManager.Data.ownedIds.Add(id);
 
+            // 처음에 드림에너지 100개 주기
+            ItemInvenHelper.AddItem(ItemID.DreamEnergy, 100);
             // 첫 저장은 await로 확실하게 보장하는 게 좋다
             await SaveLoadManager.SaveToServer();
         }
