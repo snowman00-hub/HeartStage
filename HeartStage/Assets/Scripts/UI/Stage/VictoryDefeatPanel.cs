@@ -117,6 +117,10 @@ public class VictoryDefeatPanel : GenericWindow
             Time.timeScale = 1f; 
             Close();
         }
+        else
+        {
+            WindowManager.Instance.OpenOverlay(WindowType.LastStageNotice);
+        }
     }
 
     private void OnGoStageChoiceButtonClicked()
