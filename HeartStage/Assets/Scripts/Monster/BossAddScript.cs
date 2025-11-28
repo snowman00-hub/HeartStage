@@ -7,23 +7,49 @@ public class BossAddScript : MonoBehaviour
     private bool skillsRegistered = false;
     private bool bossSpawned = false;
 
+    public bool IsReady { get; private set; }
+
+    private static int s_PendingBossInitCount = 0;
+    public static bool AllBossSkillsReady => s_PendingBossInitCount <= 0;
+
     private async void OnEnable()
     {
         bossSpawned = true;
+        IsReady = false;
 
+        // 이미 이 인스턴스에서 스킬 초기화가 끝났다면 다시 할 필요 없음
         if (!skillsRegistered)
         {
-            await RegisterSkillsAsync();
-            skillsRegistered = true;
+            s_PendingBossInitCount++;   // 전역 초기화 대기 카운트 +1
+            try
+            {
+                await RegisterSkillsAsync();
+                skillsRegistered = true;
+            }
+            finally
+            {
+                s_PendingBossInitCount--; // 끝나면 -1
+            }
         }
+
+        IsReady = true;
     }
 
     private void OnDisable()
     {
         bossSpawned = false;
-        UnregisterSkills();
+
+        // 여기서는 UnregisterSkills / skillsRegistered 초기화 하지 말기
+        // 풀 초기화 시점에서도 SetActive(false)가 호출되기 때문에,
+        // 여기서 스킬을 지워버리면 prewarm이 전부 무효화됨.
+    }
+
+    private void OnDestroy()
+    {
+        UnregisterSkills();  // 여기서만 ActiveSkillManager 정리
         skillsRegistered = false;
     }
+
 
     public bool IsBossSpawned()
     {
@@ -38,13 +64,9 @@ public class BossAddScript : MonoBehaviour
             return;
         }
 
-        int maxWaitFrames = 60;
-        int waitFrames = 0;
-
-        while (monsterBehavior.GetMonsterData() == null && waitFrames < maxWaitFrames)
+        while (monsterBehavior.GetMonsterData() == null)
         {
             await UniTask.NextFrame();
-            waitFrames++;
         }
 
         var monsterData = monsterBehavior.GetMonsterData();
@@ -228,10 +250,5 @@ public class BossAddScript : MonoBehaviour
         {
             ActiveSkillManager.Instance.UnRegisterSkill(this.gameObject, skillId);
         }
-    }
-
-    private void OnDestroy()
-    {
-        UnregisterSkills();
     }
 }

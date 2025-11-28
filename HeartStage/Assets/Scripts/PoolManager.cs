@@ -8,8 +8,6 @@ public class PoolManager : MonoBehaviour
 
     private Dictionary<string, IObjectPool<GameObject>> poolDict = new Dictionary<string, IObjectPool<GameObject>>();
 
-    public bool IsSpawned { get; private set; }
-
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -32,8 +30,6 @@ public class PoolManager : MonoBehaviour
     {
         if (poolDict.ContainsKey(id))
             return;
-
-        IsSpawned = false;
 
         var parentGo = new GameObject();
         parentGo.name = id;
@@ -62,7 +58,6 @@ public class PoolManager : MonoBehaviour
         poolDict.Add(id, pool);
         WarmUp(id, defaultCapacity);
 
-        IsSpawned = true;
     }
 
     // 가져가기

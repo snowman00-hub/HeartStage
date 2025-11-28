@@ -125,7 +125,7 @@ public class StageSetupWindow : MonoBehaviour
         UpdateSynergyUI();
         UpdateDeployCountUI();
 
-        ReportStageProgress(1.0f);
+        ReportStageProgress(0.9f);
         IsReady = true;
     }
 
