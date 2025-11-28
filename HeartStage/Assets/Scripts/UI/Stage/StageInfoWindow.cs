@@ -28,6 +28,8 @@ public class StageInfoWindow : GenericWindow
     [Header("Field")]
     private StageCSVData currentStageData; // 현재 선택된 스테이지 데이터
 
+    public TextMeshProUGUI energyLackText; // 에너지 부족시 텍스트
+
     private void Awake()
     {
         isOverlayWindow = true; // 오버레이 창으로 설정
@@ -201,10 +203,13 @@ public class StageInfoWindow : GenericWindow
 
     private void OnStageStartButtonClicked()
     {
-        // 드림 에너지 소모
-
         if (currentStageData == null)
+            return;
+
+        // 드림 에너지 소모
+        if (!ItemInvenHelper.TryConsumeItem(ItemID.DreamEnergy, currentStageData.debut_stamina))
         {
+            ShowEnergyLackTextAsync().Forget();
             return;
         }
 
@@ -214,16 +219,6 @@ public class StageInfoWindow : GenericWindow
         // 게임 씬으로 전환
         StartStage();
     }
-
-    //private void SaveSelectedStageData()
-    //{
-    //    // 선택된 스테이지 정보를 저장
-    //    PlayerPrefs.SetInt("SelectedStageID", currentStageData.stage_ID);
-    //    PlayerPrefs.SetInt("SelectedStageStep1", currentStageData.stage_step1);
-    //    PlayerPrefs.SetInt("SelectedStageStep2", currentStageData.stage_step2);
-    //    PlayerPrefs.SetInt("StartingWave", 1); // 첫 번째 웨이브부터 시작
-    //    PlayerPrefs.Save();
-    //}
 
     private void SaveSelectedStageData()
     {
@@ -242,5 +237,41 @@ public class StageInfoWindow : GenericWindow
         {
             LoadSceneManager.Instance.GoStage();
         }
+    }
+
+    // 임시로 에너지 부족시 텍스트 띄우기
+    private async UniTaskVoid ShowEnergyLackTextAsync()
+    {
+        var obj = energyLackText.gameObject;
+        var rt = energyLackText.rectTransform;
+
+        if (obj.activeSelf)
+            return;
+
+        obj.SetActive(true);
+
+        float duration = 0.6f;
+        float peakScale = 1.2f;
+
+        // 1 -> 1.2
+        for (float t = 0; t < duration; t += Time.deltaTime)
+        {
+            float p = t / duration;
+            float scale = Mathf.Lerp(1f, peakScale, p);
+            rt.localScale = Vector3.one * scale;
+            await UniTask.Yield();
+        }
+
+        // 1.2 -> 1
+        for (float t = 0; t < duration; t += Time.deltaTime)
+        {
+            float p = t / duration;
+            float scale = Mathf.Lerp(peakScale, 1f, p);
+            rt.localScale = Vector3.one * scale;
+            await UniTask.Yield();
+        }
+
+        obj.SetActive(false);
+        rt.localScale = Vector3.one; // 원상복구
     }
 }
