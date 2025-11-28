@@ -7,13 +7,12 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
 /// <summary>
-/// 데일리 퀘스트 전체 관리:
-/// - 오늘 날짜 기준 dailyQuest 리셋/유지
-/// - QuestTable에서 Quest_type == Daily 인 퀘스트 자동 수집
+/// 데일리 퀘스트 UI 탭
+/// - QuestManager에서 준비해 둔 DailyQuests 리스트를 사용해서 UI 생성
 /// - 진행도(progress) / 진행도 보상(QuestProgressTable) / 완료 상태 저장
 /// - SaveLoadManager.Data.dailyQuest 사용
 /// </summary>
-public class DailyQuests : MonoBehaviour
+public class DailyQuests : QuestTabBase<DailyQuestItemUI>, IQuestItemOwner
 {
     #region 내부 클래스 - 진행도 보상 슬롯
 
@@ -42,26 +41,17 @@ public class DailyQuests : MonoBehaviour
     [Header("진행도 보상 버튼 슬롯들 (5개)")]
     [SerializeField] private RewardButtonSlot[] rewardSlots = new RewardButtonSlot[5];
 
-    [Header("데일리 퀘스트 리스트 (ScrollView Content)")]
-    [SerializeField] private Transform questListContent;       // ScrollView/Viewport/Content
-    [SerializeField] private DailyQuestItemUI questItemPrefab; // 프리팹
-
     [Header("이 진행도는 어떤 타입인가? (Daily 추천)")]
     [SerializeField] private ProgressType progressType = ProgressType.Daily;
 
-    // DataTableManager 통해 접근 (BootStrap에서 Initialization 끝난 상태라고 가정)
-    private QuestTable QuestTable => DataTableManager.QuestTable;
+    // DataTableManager 통해 접근
     private QuestProgressTable QuestProgressTable => DataTableManager.QuestProgressTable;
 
     // SaveDataV1 안에 있는 DailyQuestState
     private DailyQuestState State => SaveLoadManager.Data.dailyQuest;
 
-    private readonly List<QuestData> _dailyQuestList = new List<QuestData>();
-    private readonly List<DailyQuestItemUI> _questItems = new List<DailyQuestItemUI>();
-
-    // 이미 초기화했는지 플래그
-    public bool IsInitialized { get; private set; }
-
+    // 이미 초기화했는지 플래그 (베이스의 IsInitialized 사용)
+    // public bool IsInitialized => base.IsInitialized;
 
     #region Unity Lifecycle
 
@@ -69,80 +59,79 @@ public class DailyQuests : MonoBehaviour
     {
         await InitializeAsync();
     }
-    private void OnEnable()
+
+    protected override void OnEnable()
     {
-        QuestManager.DailyQuestCompleted -= OnDailyQuestClearedExternally; // 중복 방지용
+        // Daily 퀘스트 완료 이벤트 등록
+        QuestManager.DailyQuestCompleted -= OnDailyQuestClearedExternally; // 중복 방지
         QuestManager.DailyQuestCompleted += OnDailyQuestClearedExternally;
 
-        RefreshAllItemStatesFromSave();
+        base.OnEnable(); // Save 기준으로 상태 다시 뿌리기
     }
 
     private void OnDisable()
     {
-
         QuestManager.DailyQuestCompleted -= OnDailyQuestClearedExternally;
-
     }
 
     #endregion
+
+    /// <summary>
+    /// Daily 탭 초기화:
+    /// - QuestManager Daily 초기화(날짜/리스트/cleared 셋업)
+    /// - 진행도 슬라이더 세팅
+    /// - 진행도 보상 버튼 + 아이콘 로드
+    /// - 스크롤 리스트 생성 + 상태 반영
+    /// </summary>
     public async UniTask InitializeAsync()
     {
         if (IsInitialized)
             return;
-        
-        InitStateStructure();
 
-        // 1) 서버 기준 오늘 날짜 문자열
-        DateTime serverNow;
-        try
+        // 0) QuestManager가 Daily 상태/리스트를 한번 초기화해두도록 요청
+        if (QuestManager.Instance != null)
         {
-            serverNow = FirebaseTime.GetServerTime();
-        }
-        catch
-        {
-            serverNow = DateTime.Now;
+            QuestManager.Instance.Initialize();
         }
 
-        string todayKey = serverNow.ToString("yyyyMMdd");
+        InitStateStructureForUI();
 
-        // 2) 날짜 다르면 → 새 날로 간주하고 리셋
-        if (State.date != todayKey)
-        {
-            ResetDailyState(todayKey);
-            await SaveDailyStateAsync();
-        }
-
-        // 3) 슬라이더 세팅
+        // 1) 진행도 슬라이더 세팅 (QuestManager의 DailyProgress 사용)
         if (progressSlider != null)
         {
+            int progress = QuestManager.Instance != null
+                ? QuestManager.Instance.DailyProgress
+                : State.progress;
+
             progressSlider.minValue = 0;
             progressSlider.maxValue = 100;
             progressSlider.wholeNumbers = true;
-            progressSlider.value = State.progress;
+            progressSlider.value = progress;
         }
 
-        // 4) Daily 퀘스트 목록 생성 (Quest_type == Daily)
-        BuildDailyQuestList();
-
-        // 5) 진행도 보상 버튼 세팅 + 아이콘 로드
+        // 2) 진행도 보상 버튼 세팅 + 아이콘 로드
         HookRewardButtonEvents();
         InitQuestProgressDataFromTable();
         await LoadRewardIconsAsync();
 
-        // 6) 진행도/보상 버튼 상태 반영
+        // 3) 진행도/보상 버튼 상태 반영
         UpdateRewardButtons();
 
-        // 7) 스크롤 뷰에 퀘스트 UI 생성 + 완료 상태 반영
-        CreateDailyQuestItems();
-        ApplyCompletedStateToItems();
+        // 4) 스크롤 뷰에 퀘스트 UI 생성 + 완료/클리어 상태 반영
+        RebuildQuestItems();
+        RefreshAllItemStatesFromSave();
 
         IsInitialized = true;
-        Debug.Log($"[DailyQuests] Initialized. date={State.date}, progress={State.progress}, completed={State.completedQuestIds.Count}");
+        Debug.Log($"[DailyQuests] UI Initialized. progress={State.progress}, completed={State.completedQuestIds.Count}");
     }
 
-#region DailyQuestState 초기화 / 리셋 / 저장
+    #region DailyQuestState 구조 보정
 
-private void InitStateStructure()
+    /// <summary>
+    /// UI 쪽에서 필요한 배열/리스트 null 방지
+    /// (날짜 리셋/기본 구조 생성은 QuestManager 쪽에서 이미 처리한다고 가정)
+    /// </summary>
+    private void InitStateStructureForUI()
     {
         if (SaveLoadManager.Data.dailyQuest == null)
             SaveLoadManager.Data.dailyQuest = new DailyQuestState();
@@ -150,36 +139,79 @@ private void InitStateStructure()
         if (State.claimed == null || State.claimed.Length != rewardSlots.Length)
             State.claimed = new bool[rewardSlots.Length];
 
+        if (State.clearedQuestIds == null)
+            State.clearedQuestIds = new List<int>();
+
         if (State.completedQuestIds == null)
             State.completedQuestIds = new List<int>();
-    }
-
-    private void ResetDailyState(string todayKey)
-    {
-        InitStateStructure();
-
-        State.date = todayKey;
-        State.progress = 0;
-
-        Array.Clear(State.claimed, 0, State.claimed.Length);
-        State.completedQuestIds.Clear();
     }
 
     private async UniTask SaveDailyStateAsync()
     {
         await SaveLoadManager.SaveToServer();
     }
-    private void RefreshAllItemStatesFromSave()
+
+    #endregion
+
+    #region QuestTabBase 구현부
+
+    /// <summary>
+    /// 이 탭에서 사용할 Daily 퀘스트 정의 리스트.
+    /// - QuestManager에서 이미 Daily 리스트를 만들어 두므로 그대로 사용.
+    /// </summary>
+    protected override IReadOnlyList<QuestData> GetQuestDefinitions()
     {
-        if (_questItems == null || _questItems.Count == 0)
+        if (QuestManager.Instance != null)
+            return QuestManager.Instance.DailyQuests;   // QuestManager 쪽 리스트 :contentReference[oaicite:2]{index=2}
+
+        // 혹시나 QuestManager가 없으면 빈 리스트 방어
+        return Array.Empty<QuestData>();
+    }
+
+    /// <summary>
+    /// 개별 DailyQuestItemUI 초기화.
+    /// - SaveData 기준으로 cleared/completed 계산해서 Init.
+    /// </summary>
+    protected override void SetupItemUI(DailyQuestItemUI ui, QuestData data)
+    {
+        if (ui == null || data == null)
             return;
 
-        if (State.clearedQuestIds == null)
-            State.clearedQuestIds = new List<int>();
-        if (State.completedQuestIds == null)
-            State.completedQuestIds = new List<int>();
+        InitStateStructureForUI();
 
-        foreach (var item in _questItems)
+        int id = data.Quest_ID;
+
+        bool completed = State.completedQuestIds != null &&
+                         State.completedQuestIds.Contains(id);
+
+        bool cleared = false;
+
+        // SaveData 기준으로 조건 충족 여부
+        if (State.clearedQuestIds != null &&
+            State.clearedQuestIds.Contains(id))
+        {
+            cleared = true;
+        }
+
+        // 이미 보상까지 받은 퀘스트면 당연히 cleared도 true
+        if (completed)
+            cleared = true;
+
+        ui.Init(this, data, cleared, completed);
+    }
+
+    /// <summary>
+    /// SaveData 기준으로 각 아이템의 상태(cleared/completed) 다시 반영.
+    /// 탭이 다시 켜질 때 호출됨.
+    /// </summary>
+    public override void RefreshAllItemStatesFromSave()
+    {
+        if (questItems == null || questItems.Count == 0)
+            return;
+
+        InitStateStructureForUI();
+
+        foreach (var item in questItems)
         {
             if (item == null)
                 continue;
@@ -190,131 +222,6 @@ private void InitStateStructure()
             bool cleared = completed || State.clearedQuestIds.Contains(id);
 
             item.SetState(cleared, completed);
-        }
-    }
-    #endregion
-
-    #region Daily 퀘스트 목록 만들기 (Quest_type == Daily 자동 수집)
-
-    /// <summary>
-    /// QuestTable에서 Quest_type == QuestType.Daily 인 퀘스트만 모아서 내부 리스트 구성
-    /// </summary>
-    private void BuildDailyQuestList()
-    {
-        _dailyQuestList.Clear();
-
-        var table = QuestTable;
-        if (table == null)
-        {
-            Debug.LogError("[DailyQuests] QuestTable 이 null 입니다.");
-            return;
-        }
-
-        // 네가 QuestTable에 만든 GetByType(QuestType type) 기준
-        foreach (var q in table.GetByType(QuestType.Daily))
-        {
-            if (q == null)
-                continue;
-
-            _dailyQuestList.Add(q);
-        }
-
-        // 필요하면 ID 순 정렬
-        _dailyQuestList.Sort((a, b) => a.Quest_ID.CompareTo(b.Quest_ID));
-    }
-
-    #endregion
-
-    #region 진행도 보상 슬롯 초기화 / 아이콘 로드
-
-    private void HookRewardButtonEvents()
-    {
-        for (int i = 0; i < rewardSlots.Length; i++)
-        {
-            var slot = rewardSlots[i];
-            int index = i;
-
-            if (slot?.button == null)
-                continue;
-
-            slot.button.onClick.RemoveAllListeners();
-            slot.button.onClick.AddListener(() => OnClickRewardButton(index));
-        }
-    }
-
-    private void InitQuestProgressDataFromTable()
-    {
-        var qpt = QuestProgressTable;
-        if (qpt == null)
-        {
-            Debug.LogError("[DailyQuests] QuestProgressTable 이 null 입니다.");
-            return;
-        }
-
-        for (int i = 0; i < rewardSlots.Length; i++)
-        {
-            var slot = rewardSlots[i];
-            if (slot == null)
-                continue;
-
-            if (slot.progressRewardId == 0)
-            {
-                Debug.LogWarning($"[DailyQuests] rewardSlots[{i}] 의 progressRewardId 가 0 입니다. CSV의 progress_reward_ID 를 인스펙터에 넣어줘야 함.");
-                continue;
-            }
-
-            QuestProgressData data = qpt.Get(slot.progressRewardId);
-            if (data == null)
-            {
-                Debug.LogError($"[DailyQuests] QuestProgressData 찾기 실패. progress_reward_ID = {slot.progressRewardId}");
-                continue;
-            }
-
-            // progress_type: enum ProgressType (CSV int) vs 설정 progressType
-            if (data.progress_type != progressType)
-            {
-                Debug.LogWarning($"[DailyQuests] 슬롯 {i} progress_type({data.progress_type}) != 설정 progressType({progressType})");
-            }
-
-            slot.data = data;
-        }
-    }
-
-    private async UniTask LoadRewardIconsAsync()
-    {
-        for (int i = 0; i < rewardSlots.Length; i++)
-        {
-            var slot = rewardSlots[i];
-            if (slot == null || slot.data == null || slot.iconImage == null)
-                continue;
-
-            try
-            {
-                // Notfill_icon
-                if (!string.IsNullOrEmpty(slot.data.Notfill_icon))
-                {
-                    var h = Addressables.LoadAssetAsync<Sprite>(slot.data.Notfill_icon);
-                    slot.notFilledSprite = await h.Task;
-                }
-
-                // filled_icon
-                if (!string.IsNullOrEmpty(slot.data.filled_icon))
-                {
-                    var h = Addressables.LoadAssetAsync<Sprite>(slot.data.filled_icon);
-                    slot.filledSprite = await h.Task;
-                }
-
-                // get_reward_icon
-                if (!string.IsNullOrEmpty(slot.data.get_reward_icon))
-                {
-                    var h = Addressables.LoadAssetAsync<Sprite>(slot.data.get_reward_icon);
-                    slot.claimedSprite = await h.Task;
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"[DailyQuests] 진행도 보상 아이콘 로드 실패 (slot {i}, id {slot.progressRewardId}) : {ex}");
-            }
         }
     }
 
@@ -377,13 +284,26 @@ private void InitStateStructure()
         }
     }
 
-    // ★ 버튼에서 직접 쓰는 콜백은 얘 하나
+    private void HookRewardButtonEvents()
+    {
+        for (int i = 0; i < rewardSlots.Length; i++)
+        {
+            var slot = rewardSlots[i];
+            int index = i;
+
+            if (slot?.button == null)
+                continue;
+
+            slot.button.onClick.RemoveAllListeners();
+            slot.button.onClick.AddListener(() => OnClickRewardButton(index));
+        }
+    }
+
     private void OnClickRewardButton(int index)
     {
         ClaimRewardInternal(index).Forget();
     }
 
-    // ★ 실제 로직은 여기로 몰아넣음 → AllReceive에서도 재사용
     private async UniTask ClaimRewardInternal(int index)
     {
         if (index < 0 || index >= rewardSlots.Length)
@@ -421,11 +341,10 @@ private void InitStateStructure()
     /// [전체 보상 받기]에서 호출할 함수
     /// - 현재 진행도 조건을 만족하지만 아직 안 받은 진행도 보상을 전부 수령
     /// </summary>
-    public void ClaimAllAvailableRewards()
+    public override void ClaimAllAvailableRewards()
     {
         for (int i = 0; i < rewardSlots.Length; i++)
         {
-            // 조건(진행도/이미 수령 여부)은 ClaimRewardInternal 안에서 다시 체크하니까 그냥 돌리면 됨
             ClaimRewardInternal(i).Forget();
         }
     }
@@ -441,73 +360,81 @@ private void InitStateStructure()
             Debug.Log($"[DailyQuests] Reward3: {data.reward3} x {data.reward3_amount}");
     }
 
-    #endregion
-
-    #region ScrollView 안 데일리 퀘스트 생성 / 완료 처리
-
-    private void CreateDailyQuestItems()
+    private void InitQuestProgressDataFromTable()
     {
-        if (questListContent == null || questItemPrefab == null)
+        var qpt = QuestProgressTable;
+        if (qpt == null)
         {
-            Debug.LogWarning("[DailyQuests] Quest 리스트 생성에 필요한 참조(questListContent, questItemPrefab)가 없습니다.");
+            Debug.LogError("[DailyQuests] QuestProgressTable 이 null 입니다.");
             return;
         }
 
-        foreach (Transform child in questListContent)
+        for (int i = 0; i < rewardSlots.Length; i++)
         {
-            Destroy(child.gameObject);
-        }
-        _questItems.Clear();
-
-        if (_dailyQuestList.Count == 0)
-        {
-            Debug.LogWarning("[DailyQuests] Daily 타입 퀘스트가 없습니다. QuestTable / Quest_type 확인.");
-            return;
-        }
-
-        for (int i = 0; i < _dailyQuestList.Count; i++)
-        {
-            var data = _dailyQuestList[i];
-            int id = data.Quest_ID;
-
-            bool completed = State.completedQuestIds != null &&
-                             State.completedQuestIds.Contains(id);
-
-            bool cleared = false;
-
-            // SaveData 기준으로 조건 충족 여부
-            if (State.clearedQuestIds != null &&
-                State.clearedQuestIds.Contains(id))
-            {
-                cleared = true;
-            }
-
-            // 이미 보상까지 받은 퀘스트면 당연히 cleared도 true
-            if (completed)
-                cleared = true;
-
-            var item = Instantiate(questItemPrefab, questListContent);
-            item.Init(this, data, cleared, completed);
-
-            _questItems.Add(item);
-        }
-    }
-
-
-    private void ApplyCompletedStateToItems()
-    {
-        if (State.completedQuestIds == null)
-            return;
-
-        foreach (var item in _questItems)
-        {
-            if (item == null)
+            var slot = rewardSlots[i];
+            if (slot == null)
                 continue;
 
-            if (State.completedQuestIds.Contains(item.QuestId))
-                item.SetCompleted(true);
+            if (slot.progressRewardId == 0)
+            {
+                Debug.LogWarning($"[DailyQuests] rewardSlots[{i}] 의 progressRewardId 가 0 입니다. CSV의 progress_reward_ID 를 인스펙터에 넣어줘야 함.");
+                continue;
+            }
+
+            QuestProgressData data = qpt.Get(slot.progressRewardId);
+            if (data == null)
+            {
+                Debug.LogError($"[DailyQuests] QuestProgressData 찾기 실패. progress_reward_ID = {slot.progressRewardId}");
+                continue;
+            }
+
+            if (data.progress_type != progressType)
+            {
+                Debug.LogWarning($"[DailyQuests] 슬롯 {i} progress_type({data.progress_type}) != 설정 progressType({progressType})");
+            }
+
+            slot.data = data;
         }
     }
+
+    private async UniTask LoadRewardIconsAsync()
+    {
+        for (int i = 0; i < rewardSlots.Length; i++)
+        {
+            var slot = rewardSlots[i];
+            if (slot == null || slot.data == null || slot.iconImage == null)
+                continue;
+
+            try
+            {
+                if (!string.IsNullOrEmpty(slot.data.Notfill_icon))
+                {
+                    var h = Addressables.LoadAssetAsync<Sprite>(slot.data.Notfill_icon);
+                    slot.notFilledSprite = await h.Task;
+                }
+
+                if (!string.IsNullOrEmpty(slot.data.filled_icon))
+                {
+                    var h = Addressables.LoadAssetAsync<Sprite>(slot.data.filled_icon);
+                    slot.filledSprite = await h.Task;
+                }
+
+                if (!string.IsNullOrEmpty(slot.data.get_reward_icon))
+                {
+                    var h = Addressables.LoadAssetAsync<Sprite>(slot.data.get_reward_icon);
+                    slot.claimedSprite = await h.Task;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[DailyQuests] 진행도 보상 아이콘 로드 실패 (slot {i}, id {slot.progressRewardId}) : {ex}");
+            }
+        }
+    }
+
+    #endregion
+
+    #region Daily 퀘스트 완료/클리어 처리 (QuestManager 이벤트 연동)
 
     /// <summary>
     /// UI에서 "완료" 버튼 눌렀을 때 호출됨.
@@ -519,8 +446,7 @@ private void InitStateStructure()
         if (questData == null || itemUI == null)
             return;
 
-        if (State.completedQuestIds == null)
-            State.completedQuestIds = new List<int>();
+        InitStateStructureForUI();
 
         int id = questData.Quest_ID;
         bool alreadyCompleted = State.completedQuestIds.Contains(id);
@@ -529,15 +455,14 @@ private void InitStateStructure()
         {
             State.completedQuestIds.Add(id);
 
-            // TODO: 여기서 퀘스트 개별 보상 지급(Quest_reward1~3)도 처리하면 됨.
+            // TODO: 여기서 퀘스트 개별 보상 지급(Quest_reward1~3) 처리
             // ex) ItemManager.AddItem(questData.Quest_reward1, questData.Quest_reward1_A);
 
-            // 진행도 타입이 현재 Daily 진행도 타입과 일치하면 progress 증가
             if (questData.progress_type == (int)progressType &&
                 questData.progress_amount > 0)
             {
                 AddProgress(questData.progress_amount);
-                // AddProgress 안에서 SaveDailyStateAsync 호출함
+                // AddProgress 안에서 Save 호출
             }
             else
             {
@@ -545,12 +470,12 @@ private void InitStateStructure()
             }
         }
 
-        // UI는 무조건 "조건 충족 + 보상 수령 완료" 상태로 맞춰준다
         itemUI.SetState(cleared: true, completed: true);
     }
 
     /// <summary>
     /// 전투/로비 등 외부 시스템에서 "조건을 만족했다"는 신호를 받을 때 호출됨.
+    /// (QuestManager.DailyQuestCompleted 이벤트로 연결)
     /// </summary>
     public void OnDailyQuestClearedExternally(QuestData questData)
     {
@@ -560,15 +485,14 @@ private void InitStateStructure()
         if (questData.Quest_type != QuestType.Daily)
             return;
 
-        int id = questData.Quest_ID;
+        InitStateStructureForUI();
 
-        if (State.clearedQuestIds == null)
-            State.clearedQuestIds = new List<int>();
+        int id = questData.Quest_ID;
 
         if (!State.clearedQuestIds.Contains(id))
             State.clearedQuestIds.Add(id);
 
-        var ui = _questItems.Find(x => x.QuestId == id);
+        var ui = questItems.Find(x => x.QuestId == id);
         if (ui != null)
         {
             bool completed = State.completedQuestIds != null &&
@@ -577,12 +501,17 @@ private void InitStateStructure()
             ui.SetState(cleared: true, completed: completed);
         }
 
-        // 조건 충족 상태는 저장해두는 편이 좋음 (앱 껐다 켜도 유지)
         SaveDailyStateAsync().Forget();
+    }
+
+    public void OnQuestItemClickedComplete(QuestData questData, QuestItemUIBase itemUI)
+    {
+        throw new NotImplementedException();
     }
 
     #endregion
 }
+
 public class DailyQuestState
 {
     // 마지막으로 갱신된 날짜 (서버 기준) "yyyyMMdd"
