@@ -7,12 +7,12 @@ public class MonsterMovement : MonoBehaviour
     private bool isInitialized = false;
     private Vector3 moveDirection = Vector3.down; // 이동 방향
 
-    [SerializeField] private float separationRadius = 1.2f;   // 분리 반경
-    [SerializeField] private float separationForce = 3f;      // 분리 힘
-    [SerializeField] private float minDistance = 0.6f;        // 최소 거리 유지
-    [SerializeField] private float frontCheckDistance = 0.8f; // 앞줄 체크 거리
+    private float separationRadius = 2.5f;   // 분리 반경
+    private float separationForce = 1f;      // 분리 힘
+    private float minDistance = 0.6f;        // 최소 거리 유지
+    private float frontCheckDistance = 1f; // 앞줄 체크 거리
 
-    [SerializeField] private float screenMargin = 0.5f;
+    private float screenMargin = 0.1f; // 화면 경계 마진
 
     private bool isNearWall = false;      // 벽 근접 상태
     private bool isFrontBlocked = false;  // 앞줄 막힘 상태
@@ -75,14 +75,14 @@ public class MonsterMovement : MonoBehaviour
 
     private void SetMoveDirectionStageType()
     {
-        if(StageManager.Instance == null)
+        if (StageManager.Instance == null)
         {
             moveDirection = Vector3.down;
             return;
         }
 
         var currantStageData = StageManager.Instance.GetCurrentStageData();
-        if(currantStageData == null)
+        if (currantStageData == null)
         {
             moveDirection = Vector3.down;
             return;
@@ -90,7 +90,7 @@ public class MonsterMovement : MonoBehaviour
 
         switch (currantStageData.stage_position)
         {
-            case 1: 
+            case 1:
                 // 상단
                 moveDirection = Vector3.up;
                 break;
@@ -138,7 +138,7 @@ public class MonsterMovement : MonoBehaviour
 
         if (EffectBase.Has<ConfuseEffect>(gameObject))
         {
-            ConfuseMove(); 
+            ConfuseMove();
             return false;
         }
 
@@ -160,7 +160,7 @@ public class MonsterMovement : MonoBehaviour
         monsterData = data;
         isInitialized = true;
 
-        SetMoveDirectionStageType();    
+        SetMoveDirectionStageType();
     }
 
     // 화면 경계 초기화
@@ -242,7 +242,7 @@ public class MonsterMovement : MonoBehaviour
         foreach (var other in allActiveMonsters)
         {
             if (other == this || other == null || !other.gameObject.activeInHierarchy)
-            { 
+            {
                 continue;
             }
 
@@ -356,7 +356,7 @@ public class MonsterMovement : MonoBehaviour
             }
         }
 
-        if (closest == null) 
+        if (closest == null)
             return;
 
         float attackRangeSq = monsterData.attackRange * monsterData.attackRange;

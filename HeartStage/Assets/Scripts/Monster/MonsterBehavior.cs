@@ -1,5 +1,4 @@
-﻿using Unity.VisualScripting;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 {
@@ -13,8 +12,6 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     public bool isDead = false;
 
     private readonly string attack = "Attack";
-    private readonly string run = "Run"; // 이동 상태 파라미터 추가
-    private bool wasMoving = false; // 클래스 상단에 추가
 
     [SerializeField] private GameObject heartPrefab;
     private float fadeOutTime = 0.7f;
@@ -27,11 +24,6 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     //혼란 전용 셀프 콜라이더
     private Collider2D selfCollider;
 
-    // 이동 상태 추적용
-    private MonsterMovement monsterMovement;
-    private Vector3 lastPosition;
-
-
     private int currentHP;
     private int maxHP; // 최대 HP는 따로 저장 (SO 변경 시에도 유지)
 
@@ -42,8 +34,6 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     private void Awake()
     {
         selfCollider = GetComponent<Collider2D>();
-        monsterMovement = GetComponent<MonsterMovement>();
-        lastPosition = transform.position;
     }
 
     // 몬스터 초기화 (SO 참조 설정, HP는 필요시에만 갱신)
@@ -51,6 +41,8 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     {
         monsterData = data;
         isDead = false;
+
+        attackCooldown = 0f;
 
         if (heartPrefab != null)
         {
@@ -76,8 +68,6 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         {
             animator = GetComponentInChildren<Animator>();
         }
-
-        lastPosition = transform.position;
 
         ActivateVisual();
 
@@ -112,9 +102,6 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         if (isDead || monsterData == null || EffectBase.Has<StunEffect>(gameObject))
             return;
 
-        // 이동 상태 체크 및 애니메이션 업데이트
-        UpdateMovementAnimation();
-
         // SO의 최신 공격속도 값을 직접 사용 (런타임 변경사항 즉시 반영)
         attackCooldown -= Time.deltaTime;
         if (attackCooldown <= 0f)
@@ -132,22 +119,6 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
                 attackCooldown = monsterData.attackSpeed; // SO에서 직접 가져옴
             }
         }
-    }
-
-    // 이동 상태에 따른 애니메이션 업데이트
-    private void UpdateMovementAnimation()
-    {
-        if (animator == null || animator.runtimeAnimatorController == null) return;
-
-        bool isCurrentlyMoving = Vector3.Distance(transform.position, lastPosition) > 0.01f;
-
-        if (isCurrentlyMoving && !wasMoving)
-        {
-            animator.SetTrigger(run);
-        }
-
-        wasMoving = isCurrentlyMoving;
-        lastPosition = transform.position;
     }
 
     // 공격 범위 내에 타겟이 있는지 확인
@@ -385,7 +356,6 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         }
     }
 
-
     public static bool IsBossMonster(int id)
     {
         if (DataTableManager.MonsterTable != null)
@@ -397,7 +367,7 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
             }
         }
 
-        return id == 22201 || id == 22214; // 보스 id
+        return id == 22201 || id == 22214 || id == 22224; // 보스 id
     }
 
     private void ResetFadeState()

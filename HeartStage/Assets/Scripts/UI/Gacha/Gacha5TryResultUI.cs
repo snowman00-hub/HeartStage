@@ -83,7 +83,7 @@ public class Gacha5TryResultUI : GenericWindow
         }
         else
         {
-            Debug.LogError("5개 가챠 뽑기 실패");
+
         }
 
         SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);

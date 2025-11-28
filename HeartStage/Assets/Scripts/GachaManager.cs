@@ -111,7 +111,6 @@ public class GachaManager : MonoBehaviour
 
         if (!ItemInvenHelper.TryConsumeItem(ItemID.HeartStick, 250))
         {
-            Debug.LogError("하트 스틱이 부족합니다. 5회 뽑기에 필요한 하트 스틱: 250개");
             return result;
         }
 

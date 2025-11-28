@@ -134,7 +134,6 @@ public class MonsterSpawner : MonoBehaviour
                     monsterDataSO.InitFromCSV(monsterId);
                     monsterDataCache[monsterId] = monsterDataSO;
                 }
-
             }
             catch
             {
@@ -204,7 +203,6 @@ public class MonsterSpawner : MonoBehaviour
 
         if (stageWaveIds.Count == 0)
         {
-            Debug.Log("스테이지에 웨이브가 없습니다.");
             return;
         }
 
@@ -223,9 +221,12 @@ public class MonsterSpawner : MonoBehaviour
                     await UniTask.Delay(2000);
                 }
             }
+            else
+            {
+                break;
+            }
         }
 
-        Debug.Log($"스테이지 {currentStageData.stage_name} 완료!");
         ProgressToNextStage();
     }
 
@@ -237,7 +238,6 @@ public class MonsterSpawner : MonoBehaviour
 
         if (currentWaveData == null)
         {
-            Debug.LogError($"웨이브 데이터를 찾을 수 없음: {currentWaveId}");
             return;
         }
 
@@ -590,6 +590,8 @@ public class MonsterSpawner : MonoBehaviour
                 break;
             }
         }
+
+        int totalRemaining = GetRemainingMonsterCount();
         UpdateStageUI();
     }
 
@@ -738,6 +740,14 @@ public class MonsterSpawner : MonoBehaviour
     private void GiveWaveReward(StageWaveCSVData waveData)
     {
         var rewardData = DataTableManager.RewardTable.Get(waveData.wave_reward);
+
+        if (rewardData == null)
+        {
+            Debug.LogWarning($"[MonsterSpawner] RewardData가 null입니다! RewardID: {waveData.wave_reward} - 보상 없이 진행");
+            OnWaveCleared?.Invoke(); //이벤트는 발생시켜서 UI 업데이트
+            return; // 리워드 데이터에 데이터가 없으면 보상 없이 그냥 진행하기 위함
+        }
+
         // 최초 보상 체크
         var clearWaveList = SaveLoadManager.Data.clearWaveList;
         bool isFirstClear = false; // 최초 클리어 여부 
@@ -748,8 +758,10 @@ public class MonsterSpawner : MonoBehaviour
             ItemManager.Instance.AcquireItem(rewardData.first_clear, rewardData.first_clear_a);
             isFirstClear = true; // 최초 클리어
         }
+
         // 팬 보상
         StageManager.Instance.fanReward += rewardData.user_fan_amount;
+
         // 아이템 보상 주기
         if (rewardData.normal_clear1 != 0)
         {

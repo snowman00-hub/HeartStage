@@ -392,6 +392,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d20c57eba5c44fa45b79799100bf0990, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isDead: 0
+  heartPrefab: {fileID: 0}
 --- !u!114 &436045163540706575
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -430,11 +432,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac2942492dab8e243851c84bd4830796, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  separationRadius: 1
-  separationForce: 3
-  minDistance: 0.6
-  frontCheckDistance: 0.8
-  screenMargin: 0.5
   confuseSearchRadius: 5
 --- !u!114 &1664435993275153533
 MonoBehaviour:
@@ -470,7 +467,7 @@ SortingGroup:
   m_Enabled: 1
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: -1
+  m_SortingOrder: 120
   m_SortAtRoot: 0
 --- !u!1 &4266634089282418854
 GameObject:
