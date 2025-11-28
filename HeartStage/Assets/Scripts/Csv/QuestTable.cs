@@ -53,4 +53,14 @@ public class QuestTable : DataTable
             return false;
         return table.TryGetValue(cur.Quest_ID, out next);
     }
+
+    public IEnumerable<QuestData> GetByType(QuestType type)
+    {
+        foreach (var kvp in table)
+        {
+            var q = kvp.Value;
+            if (q.Quest_type == type)
+                yield return q;
+        }
+    }
 }

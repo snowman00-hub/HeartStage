@@ -25,8 +25,8 @@ public class GoTestScene : MonoBehaviour
             goTestSceneButton.onClick.RemoveListener(OnClickGoTestScene);
     }
 
-    private async void OnClickGoTestScene()
+    private void OnClickGoTestScene()
     {
-        await GameSceneManager.ChangeScene(SceneType.TestStageScene);
+        LoadSceneManager.Instance.GoTestStage(601);
     }
 }

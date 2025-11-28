@@ -26,9 +26,9 @@ public class QuestProgressTable : DataTable
 
         foreach (var item in list)
         {
-            if (!table.ContainsKey(item.Progress_Reward_ID))
+            if (!table.ContainsKey(item.progress_reward_ID))
             {
-                table.Add(item.Progress_Reward_ID, item);
+                table.Add(item.progress_reward_ID, item);
             }
         }
 
@@ -51,6 +51,6 @@ public class QuestProgressTable : DataTable
         var cur = Get(currentId);
         if (cur == null)
             return false;
-        return table.TryGetValue(cur.Progress_Reward_ID, out next);
+        return table.TryGetValue(cur.progress_reward_ID, out next);
     }
 }

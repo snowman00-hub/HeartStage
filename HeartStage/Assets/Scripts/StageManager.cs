@@ -200,6 +200,9 @@ public class StageManager : MonoBehaviour
     // 승리시 
     public void Clear()
     {
+        // 클리어 퀘스트 알림
+        QuestManager.Instance.OnStageClear();
+
         VictoryDefeatPanel.isClear = true;
 
         if (windowManager != null)

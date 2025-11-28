@@ -51,6 +51,9 @@ public class ShopItemSlot : MonoBehaviour
     public void MarkAsPurchased()
     {
         var shopTableData = DataTableManager.ShopTable.Get(shopTableID);
+
+        QuestManager.Instance.OnShopPurchase();
+
         if (shopTableData.Shop_multibuy == 1) // 재구매 여부 판단
         {
             isPurchased = true;

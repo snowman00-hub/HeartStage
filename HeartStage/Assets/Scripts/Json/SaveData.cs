@@ -23,6 +23,8 @@ public class SaveDataV1 : SaveData
     public Dictionary<int, int> expById = new Dictionary<int, int>(); // 경험치를 ID별로 저장
     public List<DailyShopSlot> dailyShopSlotList = new List<DailyShopSlot>(); // 데일리 샵 슬롯 3개 정보 (상점테이블ID,구매여부)
 
+    public DailyQuestState dailyQuest = new DailyQuestState(); // 데일리 퀘스트 진행 상태
+
     public int selectedStageID = -1;
     public int selectedStageStep1 = -1;
     public int selectedStageStep2 = -1;

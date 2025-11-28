@@ -117,6 +117,28 @@ public static class DataTableManager
             await table.LoadAsync(id);
             tables.Add(id, table);
         }
+
+        {
+            var table = new QuestTable();
+            var id = DataTableIds.Quest;
+            await table.LoadAsync(id);
+            tables.Add(id, table);
+        }
+
+
+        {
+            var table = new QuestTypeTable();
+            var id = DataTableIds.QuestType;
+            await table.LoadAsync(id);
+            tables.Add(id, table);
+        }
+
+        {
+            var table = new QuestProgressTable();
+            var id = DataTableIds.QuestProgress;
+            await table.LoadAsync(id);
+            tables.Add(id, table);
+        }
     }
 
     public static ItemTable ItemTable
@@ -236,6 +258,30 @@ public static class DataTableManager
             return Get<LevelUpTable>(DataTableIds.LevelUp);
         }
     }
+
+    public static QuestTable QuestTable
+    {
+        get
+        {
+            return Get<QuestTable>(DataTableIds.Quest);
+        }
+    }
+    public static QuestTypeTable QuestTypeTable
+    {
+        get
+        {
+            return Get<QuestTypeTable>(DataTableIds.QuestType);
+        }
+    }
+    public static QuestProgressTable QuestProgressTable
+    {
+        get
+        {
+            return Get<QuestProgressTable>(DataTableIds.QuestProgress);
+        }
+    }
+
+
 
     public static T Get<T>(string id) where T : DataTable
     {

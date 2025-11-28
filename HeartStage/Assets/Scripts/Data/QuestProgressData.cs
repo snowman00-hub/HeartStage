@@ -2,24 +2,24 @@
 
 public class QuestProgressData
 {
-    // CSV columns:
+    // CSV columns (정확한 네이밍 유지):
     // progress_reward_ID	progress_type	progress_amount	reward1	reward1_amount	reward2	reward2_amount	reward3	reward3_amount	Notfill_icon	filled_icon	get_reward_icon
 
-    public int Progress_Reward_ID { get; set; }
-    public int Progress_Type { get; set; }      // CSV 값은 int로 취급. 필요하면 enum으로 교체하세요.
-    public int Progress_Amount { get; set; }
+    public int progress_reward_ID { get; set; }
+    public ProgressType progress_type { get; set; }
+    public int progress_amount { get; set; }
 
-    public int Reward1 { get; set; }
-    public int Reward1_Amount { get; set; }
-    public int Reward2 { get; set; }
-    public int Reward2_Amount { get; set; }
-    public int Reward3 { get; set; }
-    public int Reward3_Amount { get; set; }
+    public int reward1 { get; set; }
+    public int reward1_amount { get; set; }
+    public int reward2 { get; set; }
+    public int reward2_amount { get; set; }
+    public int reward3 { get; set; }
+    public int reward3_amount { get; set; }
 
     // 아이콘은 리소스 키나 경로를 저장하는 문자열로 처리
-    public string NotFill_Icon { get; set; }
-    public string Filled_Icon { get; set; }
-    public string Get_Reward_Icon { get; set; }
+    public string Notfill_icon { get; set; }
+    public string filled_icon { get; set; }
+    public string get_reward_icon { get; set; }
 }
 
 public enum ProgressType

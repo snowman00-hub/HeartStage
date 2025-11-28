@@ -587,6 +587,9 @@ public class MonsterSpawner : MonoBehaviour
             {
                 monsterInfo.remainMonster--;
                 waveMonstersToSpawn[i] = monsterInfo;
+
+                // 몬스터 킬 퀘스트 알림
+                QuestManager.Instance.OnMonsterKilled(monsterId);
                 break;
             }
         }
