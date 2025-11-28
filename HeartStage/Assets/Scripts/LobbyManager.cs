@@ -123,8 +123,10 @@ public class LobbyManager : MonoBehaviour
 
         // 처음에 드림에너지 100개 주기
         ItemInvenHelper.AddItem(ItemID.DreamEnergy, 100);
-
         SaveLoadManager.SaveToServer().Forget();
+
+        //현재 출석은 로그인을 확인해야 해서 부트씬으로 가야해 적용 안됨
+        GameSceneManager.ChangeScene(SceneType.LobbyScene);
     }
 
     public void Logout()

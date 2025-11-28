@@ -64,6 +64,10 @@ public class MonsterSpawner : MonoBehaviour
     private const string MonsterProjectilePoolId = "MonsterProjectile";
     public static string GetMonsterProjectilePoolId() => MonsterProjectilePoolId;
 
+    // 전역 프로그레스 구간 (95% ~ 99%)
+    private const float GlobalStart = 0.95f;
+    private const float GlobalEnd = 0.99f;
+
     private async void Start()
     {
         //StageManager에서 스테이지 데이터 가져오기
@@ -97,19 +101,26 @@ public class MonsterSpawner : MonoBehaviour
     //로딩 및 초기화
     private async UniTask LoadStageDataAndInitializePool()
     {
-        // 데이터 테이블 로딩 대기
+        // 0) 시작
+        ReportMonsterProgress(0.0f);
+
+        // 1) 테이블 로딩 대기 (0.0 ~ 0.1)
         while (DataTableManager.StageTable == null || DataTableManager.StageWaveTable == null)
         {
             await UniTask.Delay(100);
         }
+        ReportMonsterProgress(0.1f);
 
-        // 스테이지의 웨이브 ID 목록 가져오기
+        // 2) 웨이브/몬스터 ID 수집 (0.1 ~ 0.2)
         stageWaveIds = DataTableManager.StageTable.GetWaveIds(currentStageId);
         currentWaveIndex = 0;
 
-        if (stageWaveIds.Count == 0) return;
+        if (stageWaveIds.Count == 0)
+        {
+            ReportMonsterProgress(1.0f);
+            return;
+        }
 
-        // 몬스터 ID 수집
         var monsterIds = new HashSet<int>();
         foreach (var waveId in stageWaveIds)
         {
@@ -121,8 +132,12 @@ public class MonsterSpawner : MonoBehaviour
                 if (waveData.EnemyID3 > 0) monsterIds.Add(waveData.EnemyID3);
             }
         }
+        ReportMonsterProgress(0.2f);
 
-        // MonsterData 캐시 로드
+        // 3) MonsterData SO 로딩 (0.2 ~ 0.5)
+        int totalMonsters = monsterIds.Count;
+        int loadedCount = 0;
+
         foreach (var monsterId in monsterIds)
         {
             try
@@ -138,9 +153,27 @@ public class MonsterSpawner : MonoBehaviour
             catch
             {
             }
+
+            loadedCount++;
+            float t = 0.2f + 0.3f * (float)loadedCount / Mathf.Max(1, totalMonsters);
+            ReportMonsterProgress(t);
         }
 
-        // 몬스터 타입별 풀 생성
+        // 4) 풀 인스턴스들 실제 생성 (0.5 ~ 1.0)
+        //    먼저 전체 몇 개 만들지 계산
+        int totalToInstantiate = 0;
+        foreach (var kvp in monsterDataCache)
+        {
+            int monsterId = kvp.Key;
+            var monsterDataSO = kvp.Value;
+
+            bool isBoss = MonsterBehavior.IsBossMonster(monsterId);
+            int poolCount = isBoss ? 5 : poolSize / Mathf.Max(1, monsterDataCache.Count);
+            totalToInstantiate += poolCount;
+        }
+
+        int createdCount = 0;
+
         foreach (var kvp in monsterDataCache)
         {
             int monsterId = kvp.Key;
@@ -148,7 +181,7 @@ public class MonsterSpawner : MonoBehaviour
 
             bool isBoss = MonsterBehavior.IsBossMonster(monsterId);
             var prefab = isBoss ? bossMonsterPrefab : monsterPrefab;
-            int poolCount = isBoss ? 5 : poolSize / monsterDataCache.Count; // 보스 풀 사이즈
+            int poolCount = isBoss ? 5 : poolSize / Mathf.Max(1, monsterDataCache.Count);
 
             monsterPools[monsterId] = new List<GameObject>();
 
@@ -161,14 +194,11 @@ public class MonsterSpawner : MonoBehaviour
                     var monster = await handle.Task;
 
                     if (monster == null)
-                    {
                         continue;
-                    }
 
                     monster.SetActive(false);
                     AddVisualChild(monster, monsterDataSO);
 
-                    // 몬스터 초기화
                     var monsterBehavior = monster.GetComponent<MonsterBehavior>();
                     if (monsterBehavior != null)
                     {
@@ -182,18 +212,30 @@ public class MonsterSpawner : MonoBehaviour
                         monsterMovement.Init(monsterDataSO, Vector3.down);
                     }
 
-                    // 초기 상태 설정
                     monster.SetActive(false);
                     monsterPools[monsterId].Add(monster);
-
                 }
                 catch
                 {
                 }
+
+                createdCount++;
+                float t = 0.5f + 0.5f * (float)createdCount / Mathf.Max(1, totalToInstantiate);
+                ReportMonsterProgress(t);
             }
         }
 
+        // 5) 추가 풀 생성 (투사체 등)
         CreateAllPools();
+
+        // 6) 몬스터 스포너 구간 끝
+        ReportMonsterProgress(1.0f);
+    }
+    private void ReportMonsterProgress(float local01)
+    {
+        float clamped = Mathf.Clamp01(local01);
+        float global = Mathf.Lerp(GlobalStart, GlobalEnd, clamped);
+        SceneLoader.SetProgressExternal(global);
     }
 
     // 스테이지 내 모든 웨이브 진행 관리

@@ -12,6 +12,11 @@ public class DragMe : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
 
     [SerializeField] private float directionThreshold = 10f;
 
+
+    // ==== 전역 드래그 상태 (멀티 드래그 방지용) ====
+    public static bool s_IsAnyDragActive = false;
+    public static int s_ActivePointerId = -1;
+
     // ==== 상태 플래그 ====
     // 이번 드래그가 “세로 드래그”였는지 여부 (DraggableSlot/CharacterInfoTab에서 사용)
     public bool IsVerticalDrag { get; private set; }
@@ -50,6 +55,12 @@ public class DragMe : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
 
         if (characterData != null)
             DragSourceRegistry.Register(characterData, this);
+    }
+
+    private void OnDisable()
+    {
+        s_IsAnyDragActive = false;
+        s_ActivePointerId = -1;
     }
 
     void OnDestroy()
@@ -103,6 +114,12 @@ public class DragMe : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
         // 슬롯에 올라간 상태면 드래그 금지
         if (IsLocked)
             return;
+
+        if (s_IsAnyDragActive && s_ActivePointerId != eventData.pointerId)
+            return;
+        // 여기서부터는 "처음 시작된" 드래그만 통과
+        s_IsAnyDragActive = true;
+        s_ActivePointerId = eventData.pointerId;
 
         int id = eventData.pointerId;
 
@@ -272,6 +289,12 @@ public class DragMe : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHa
 
         IsVerticalDrag = false;
         SetDragJustEndedFlag().Forget();
+
+        if (s_ActivePointerId == eventData.pointerId)
+        {
+            s_IsAnyDragActive = false;
+            s_ActivePointerId = -1;
+        }
     }
 
     // =============== UTIL ===============

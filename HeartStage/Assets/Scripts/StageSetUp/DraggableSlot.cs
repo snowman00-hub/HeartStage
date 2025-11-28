@@ -35,6 +35,9 @@ public class DraggableSlot : MonoBehaviour,
     // ---------- Drag (슬롯 자체도 드래그 가능하도록) ----------
     public void OnBeginDrag(PointerEventData eventData)
     {
+        if (DragMe.s_IsAnyDragActive && DragMe.s_ActivePointerId != eventData.pointerId)
+            return;
+
         var canvas = FindInParents<Canvas>(gameObject);
         if (canvas == null)
             return;
@@ -216,7 +219,9 @@ public class DraggableSlot : MonoBehaviour,
         var dragMe = srcObj.GetComponent<DragMe>();
         if (dragMe != null)
         {
-            if (dragMe.IsLocked)
+            // 슬롯에 올라가 잠겨 있거나,
+            // 세로 드래그가 아니라면(= 가로 스크롤 중이라면) 드롭/미리보기 무시
+            if (dragMe.IsLocked || !dragMe.IsVerticalDrag)
                 return false;
 
             var img = srcObj.GetComponent<Image>();
