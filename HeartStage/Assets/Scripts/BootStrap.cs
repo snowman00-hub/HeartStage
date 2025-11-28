@@ -1,6 +1,10 @@
-﻿using Cysharp.Threading.Tasks;
+﻿
+
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.ResourceManagement.ResourceProviders;
 using System;
 
 #if UNITY_EDITOR
@@ -11,56 +15,74 @@ using System.Linq;
 
 public class BootStrap : MonoBehaviour
 {
-    private const string LastSceneKey = "LastSceneType";
+    private const string LastSceneKey = "LastSceneType"; // 나중에 enum 기반으로 쓰고 싶으면 재활용 가능
     public static bool IsInitialized = false;
-    // Scene 새로 복사했으면 Addressable 체크하고 플레이 하기, 등록 안되면 오류 뜸!
-    // Scene Addressable 주소 바꾸지 말기, 그냥 체크만 하기
+
     private async UniTask Start()
     {
-         if (!IsInitialized)
+        // 1) 공통 초기화 (Addressables / 리소스 / 데이터테이블)
+        if (!IsInitialized)
         {
             // Addressables 초기화
             await Addressables.InitializeAsync();
-            // 비동기로 미리 해야하는 작업들 있으면 가능한 부트 씬에서 하고 해당 씬에선 동기로 쓰기
+
+            // 부트에서 미리 로드해둘 애셋들
             await ResourceManager.Instance.PreloadLabelAsync(AddressableLabel.Stage);
-            await ResourceManager.Instance.PreloadLabelAsync("SFX"); // 사운드 추가 로드
-            //await ResourceManager.Instance.PreloadLabelAsync("BGM");
+            await ResourceManager.Instance.PreloadLabelAsync("SFX");
+            // await ResourceManager.Instance.PreloadLabelAsync("BGM");
+
+            // 데이터테이블 초기화
             await DataTableManager.Initialization;
-            
+
             IsInitialized = true;
         }
 
+        // 기본 타겟은 로비
         SceneType targetScene = SceneType.LobbyScene;
+        // 에디터에서 EditPlayScene으로 찾은 Addressables 주소 (또는 씬 이름)
         string targetAddress = null;
 
 #if UNITY_EDITOR
+        // ---------------- 에디터 전용: EditPlayScene.GetLastScene() 호출 ----------------
         string lastScenePath = string.Empty;
+
         try
         {
-            // 먼저 전역 타입 검색
-            var type = Type.GetType("EditPlayScene");
+            // 1) 전역 타입으로 바로 찾기
+            Type type = Type.GetType("EditPlayScene");
+
+            // 2) 못 찾으면 어셈블리 전체에서 이름 기반 검색
             if (type == null)
             {
-                // 어셈블리들에서 이름으로 검색
                 var assemblies = AppDomain.CurrentDomain.GetAssemblies();
                 foreach (var asm in assemblies)
                 {
+                    Type t = null;
                     try
                     {
-                        var t = asm.GetTypes().FirstOrDefault(x => x.Name == "EditPlayScene");
-                        if (t != null)
-                        {
-                            type = t;
-                            break;
-                        }
+                        t = asm
+                            .GetTypes()
+                            .FirstOrDefault(x => x.Name == "EditPlayScene");
                     }
-                    catch { /* 일부 어셈블리에서 예외 발생 가능, 무시 */ }
+                    catch
+                    {
+                        // 일부 어셈블리는 GetTypes()에서 예외 던질 수 있으니 무시
+                    }
+
+                    if (t != null)
+                    {
+                        type = t;
+                        break;
+                    }
                 }
             }
 
             if (type != null)
             {
-                var method = type.GetMethod("GetLastScene", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+                var method = type.GetMethod(
+                    "GetLastScene",
+                    BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+
                 if (method != null)
                 {
                     var result = method.Invoke(null, null) as string;
@@ -84,7 +106,7 @@ public class BootStrap : MonoBehaviour
 
         if (!string.IsNullOrEmpty(lastScenePath))
         {
-            // 파일명(확장자 제외) 추출: 예) "Assets/Scenes/StageScene.unity" -> "StageScene"
+            // 예) "Assets/Scenes/StageScene.unity" -> "StageScene"
             string sceneName = System.IO.Path.GetFileNameWithoutExtension(lastScenePath);
 
             // 부트/타이틀 같은 씬은 스킵
@@ -92,25 +114,28 @@ public class BootStrap : MonoBehaviour
                 sceneName != "BootScene" &&
                 sceneName != "TitleScene")
             {
-                // Addressables 설정에서 해당 씬의 주소(address)를 찾아본다.
-                // 실패하면 씬 이름(sceneName)을 fallback으로 사용
-                var settings = UnityEditor.AddressableAssets.AddressableAssetSettingsDefaultObject.Settings;
+                var settings = UnityEditor.AddressableAssets
+                    .AddressableAssetSettingsDefaultObject.Settings;
+
                 if (settings != null)
                 {
-                    string guid = UnityEditor.AssetDatabase.AssetPathToGUID(lastScenePath);
+                    string guid = AssetDatabase.AssetPathToGUID(lastScenePath);
                     var entry = settings.FindAssetEntry(guid);
+
                     if (entry != null && !string.IsNullOrEmpty(entry.address))
                     {
+                        // Addressables에 등록된 주소 사용
                         targetAddress = entry.address;
                     }
                     else
                     {
-                        // Addressables에 등록되어있지 않으면 씬 이름을 시도 값으로 둠
+                        // Addressables에 없으면 씬 이름을 주소처럼 사용 (직접 LoadSceneAsync에서 사용)
                         targetAddress = sceneName;
                     }
                 }
                 else
                 {
+                    // Settings 자체를 못 찾으면 씬 이름만 저장
                     targetAddress = sceneName;
                 }
             }
@@ -118,57 +143,79 @@ public class BootStrap : MonoBehaviour
 #else
         Application.targetFrameRate = 60;
 #endif
-        // Firebase 로그인 될때까지 대기
-        await UniTask.WaitUntil(()=> AuthManager.Instance.IsLoggedIn);
-        // 서버 시간 가져오는 클래스 초기화, Firebase Initialization 이후에 실행하기
-        FirebaseTime.Initialize(); 
-        // 서버에서 데이터 로드
+
+        // 2) Firebase 로그인까지 대기
+        await UniTask.WaitUntil(() =>
+            AuthManager.Instance != null &&
+            AuthManager.Instance.IsLoggedIn);
+
+        // 3) 서버 시간 초기화 + 세이브 로드 / 첫 세이브 생성 + 출석 처리
+        FirebaseTime.Initialize();
+
         await TryLoad();
-        // 유저가 마지막으로 접속한 시간 갱신, 로그인 보상 주기
         await UpdateLastLoginTime();
 
-        // 에디터에서 주소를 찾았으면 Addressables 주소 기반으로 씬 로드
+        // 4) 실제 씬 전환
+
+#if UNITY_EDITOR
+        // 에디터 + EditPlayScene에서 타겟씬을 지정한 경우:
+        // -> 로딩 UI 없이 Addressables로 바로 해당 씬으로 전환
         if (!string.IsNullOrEmpty(targetAddress))
         {
-            await Addressables.LoadSceneAsync(targetAddress);
+            var handle = Addressables.LoadSceneAsync(
+                targetAddress,
+                UnityEngine.SceneManagement.LoadSceneMode.Single);
+
+            await handle.Task;
+            return;
+        }
+#endif
+
+        // 빌드(또는 에디터지만 EditPlayScene 타겟 없음)에서는
+        // 기존 로딩 UI + GameSceneManager 플로우 사용
+        if (!string.IsNullOrEmpty(targetAddress))
+        {
+            // targetAddress가 Addressables 주소이든, 씬 이름이든
+            // SceneLoader 쪽에서 Addressables 기반으로 로딩 + 로딩창 연출
+            await SceneLoader.LoadSceneWithLoading(targetAddress);
         }
         else
         {
-            // 기존 동작 유지: SceneType 기반으로 매핑된 Addressables 주소로 전환
+            // 기본 플로우: SceneType -> Addressables 주소 매핑해서 로딩
             await GameSceneManager.ChangeScene(targetScene);
         }
     }
 
+    // 마지막 접속 시간 갱신 + 출석 퀘스트 처리
     private async UniTask UpdateLastLoginTime()
     {
         DateTime now = FirebaseTime.GetServerTime();
         DateTime last = SaveLoadManager.Data.LastLoginTime;
 
-        // 시간에 따라 이벤트 처리하기
-        if (last.Date != now.Date) //
+        // 날짜만 비교 (시/분/초는 무시)
+        if (last.Date != now.Date)
         {
-            // ex) 일일 로그인 보상 주기
-
-            // 출석 퀘스트 처리
+            // 일일 로그인 보상 / 출석 퀘스트 처리
             QuestManager.Instance.OnAttendance();
         }
 
-        // 이벤트 처리 후, 현재 시간으로 마지막 접속 시간 업데이트 // 나중에 앱 종료할때도 해야할듯?
-        SaveLoadManager.Data.lastLoginBinary = FirebaseTime.GetServerTime().ToBinary();
+        // 현재 시간을 마지막 접속 시간으로 저장
+        SaveLoadManager.Data.lastLoginBinary = now.ToBinary();
         await SaveLoadManager.SaveToServer();
     }
 
+    // 서버에서 세이브 로드, 없으면 기본 세이브 생성
     private async UniTask TryLoad()
     {
         bool loaded = await SaveLoadManager.LoadFromServer();
 
         if (!loaded)
         {
-            // 기본 세이브 생성
+            // 기본 세이브 생성 로직
             var charTable = DataTableManager.CharacterTable;
 
             charTable.BuildDefaultSaveDictionaries(
-                new[] { "하나" },
+                new[] { "하나" },          // 처음 해금할 캐릭터 이름
                 out var unlockedByName,
                 out var expById,
                 out var ownedBaseIds
@@ -180,13 +227,13 @@ public class BootStrap : MonoBehaviour
             foreach (var id in ownedBaseIds)
                 SaveLoadManager.Data.ownedIds.Add(id);
 
-            // 처음에 드림에너지 100개 주기
+            // 처음에 드림에너지 100개 지급
             ItemInvenHelper.AddItem(ItemID.DreamEnergy, 100);
-            // 첫 저장은 await로 확실하게 보장하는 게 좋다
 
-            // 처음에 출석 퀘스트 처리
+            // 첫 접속 시에도 출석 퀘스트 처리
             QuestManager.Instance.OnAttendance();
 
+            // 첫 저장은 확실하게 await
             await SaveLoadManager.SaveToServer();
         }
     }
