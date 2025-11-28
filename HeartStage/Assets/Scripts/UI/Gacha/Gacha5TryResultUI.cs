@@ -83,7 +83,7 @@ public class Gacha5TryResultUI : GenericWindow
         }
         else
         {
-
+            WindowManager.Instance.OpenOverlay(WindowType.GachaCancel);
         }
 
         SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);

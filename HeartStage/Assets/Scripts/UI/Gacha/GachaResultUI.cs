@@ -120,7 +120,7 @@ public class GachaResultUI : GenericWindow
         }
         else
         {
-            Debug.LogError("가챠 뽑기 실패");
+            WindowManager.Instance.OpenOverlay(WindowType.GachaCancel);
         }
 
         SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);

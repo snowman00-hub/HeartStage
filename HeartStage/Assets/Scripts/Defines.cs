@@ -55,6 +55,7 @@ public enum WindowType
     GachaResult = 5,
     Gacha5TryResult = 6,
     Quest = 7,
+    GachaCancel = 8,
 
     // 인게임 윈도우
     VictoryDefeat = 50, // 위에 추가해도 안바뀌게 큰 값으로 해두기
