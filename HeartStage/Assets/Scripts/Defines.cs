@@ -68,7 +68,6 @@ public enum SceneType
     LobbyScene = 1,
     StageScene = 2,
     TestStageScene = 3,
-
 }
 
 public class SoundName
@@ -181,5 +180,27 @@ public static class StatPower
     public static int GetSexyPower(float value)
     {
         return Mathf.CeilToInt((value / sexyBaseLine) * sexyWeight);
+    }
+}
+
+public class CharacterAttributeIcon
+{
+    public static readonly string VocalIconAssetName = "VocalIcon";
+    public static readonly string LabIconAssetName = "VocalIcon";
+    public static readonly string CharismaIconAssetName = "VocalIcon";
+    //public static readonly string VocalIconAssetName = "VocalIcon";
+    //public static readonly string VocalIconAssetName = "VocalIcon";
+    //public static readonly string VocalIconAssetName = "VocalIcon";
+    //public static readonly string VocalIconAssetName = "VocalIcon";
+
+    public enum CharacterAttribute
+    {
+        Vocal = 1,
+        Lab = 2,
+        Charisma = 3,
+        Cuty = 4,
+        Dance = 5,
+        Visual = 6,
+        Sexy = 7,
     }
 }
