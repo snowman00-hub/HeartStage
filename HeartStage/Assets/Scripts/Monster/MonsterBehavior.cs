@@ -42,6 +42,8 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         monsterData = data;
         isDead = false;
 
+        attackCooldown = 0f;
+
         if (heartPrefab != null)
         {
             heartPrefab.SetActive(false);
