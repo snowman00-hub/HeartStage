@@ -20,6 +20,7 @@ public class StageInfoWindow : GenericWindow
     [Header("UI")]
     [SerializeField] private TextMeshProUGUI stageStepText;
     [SerializeField] private TextMeshProUGUI stageNameText;
+    [SerializeField] private TextMeshProUGUI stagePositionText;
 
     [Header("Wave Progress Colors")]
     [SerializeField] private Color completedCircleColor = Color.yellow;
@@ -83,6 +84,27 @@ public class StageInfoWindow : GenericWindow
         sb.Clear();
         sb.Append($"{currentStageData.stage_name}");
         stageNameText.text = sb.ToString();
+
+        switch (currentStageData.stage_position)
+        {
+            case 1: 
+                sb.Clear();
+                sb.Append("스테이지 위치 : 상");
+                stagePositionText.text = sb.ToString();
+                break;
+
+            case 2:
+                sb.Clear();
+                sb.Append("스테이지 위치 : 중");
+                stagePositionText.text = sb.ToString();
+                break;
+
+            case 3:
+                sb.Clear();
+                sb.Append("스테이지 위치 : 하");
+                stagePositionText.text = sb.ToString();
+                break;
+        }
     }
 
     private void UpdateWaveProgress()
