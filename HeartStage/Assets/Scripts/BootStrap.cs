@@ -1,10 +1,6 @@
-﻿
-
-using Cysharp.Threading.Tasks;
+﻿using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
-using UnityEngine.ResourceManagement.ResourceProviders;
 using System;
 
 #if UNITY_EDITOR
@@ -43,6 +39,7 @@ public class BootStrap : MonoBehaviour
         string targetAddress = null;
 
 #if UNITY_EDITOR
+        #region TargetSceneCheck
         // ---------------- 에디터 전용: EditPlayScene.GetLastScene() 호출 ----------------
         string lastScenePath = string.Empty;
 
@@ -140,6 +137,7 @@ public class BootStrap : MonoBehaviour
                 }
             }
         }
+        #endregion
 #else
         Application.targetFrameRate = 60;
 #endif
@@ -156,10 +154,7 @@ public class BootStrap : MonoBehaviour
         await UpdateLastLoginTime();
 
         // 4) 실제 씬 전환
-
 #if UNITY_EDITOR
-        // 에디터 + EditPlayScene에서 타겟씬을 지정한 경우:
-        // -> 로딩 UI 없이 Addressables로 바로 해당 씬으로 전환
         if (!string.IsNullOrEmpty(targetAddress))
         {
             var handle = Addressables.LoadSceneAsync(
@@ -170,18 +165,12 @@ public class BootStrap : MonoBehaviour
             return;
         }
 #endif
-
-        // 빌드(또는 에디터지만 EditPlayScene 타겟 없음)에서는
-        // 기존 로딩 UI + GameSceneManager 플로우 사용
         if (!string.IsNullOrEmpty(targetAddress))
         {
-            // targetAddress가 Addressables 주소이든, 씬 이름이든
-            // SceneLoader 쪽에서 Addressables 기반으로 로딩 + 로딩창 연출
             await SceneLoader.LoadSceneWithLoading(targetAddress);
         }
         else
         {
-            // 기본 플로우: SceneType -> Addressables 주소 매핑해서 로딩
             await GameSceneManager.ChangeScene(targetScene);
         }
     }
