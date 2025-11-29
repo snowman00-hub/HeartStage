@@ -18,22 +18,37 @@ namespace Ricimi
 
         private GameObject m_background;
 
+        private Coroutine closeRoutine;
+
         public void Open()
         {
+            // close 코루틴 실행 중이면 중지
+            if (closeRoutine != null)
+            {
+                StopCoroutine(closeRoutine);
+                closeRoutine = null;
+            }
+
             gameObject.SetActive(true);
+
+            var animator = GetComponent<Animator>();
+            animator.Play("Open", 0, 0f);
+
             AddBackground();
         }
 
         public void Close()
         {
             var animator = GetComponent<Animator>();
-            if (animator.GetCurrentAnimatorStateInfo(0).IsName("Open"))
-            {
-                animator.Play("Close");
-            }
+
+            animator.Play("Close", 0, 0f);
 
             RemoveBackground();
-            StartCoroutine(CloseAfterAnimation());
+
+            if (closeRoutine != null)
+                StopCoroutine(closeRoutine);
+
+            closeRoutine = StartCoroutine(CloseAfterAnimation());
         }
 
         private IEnumerator CloseAfterAnimation()
