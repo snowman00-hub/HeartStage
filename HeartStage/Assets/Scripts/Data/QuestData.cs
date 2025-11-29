@@ -6,6 +6,7 @@ public class QuestData
     public QuestType Quest_type { get; set; }
     public string Quest_info { get; set; }
 
+    public int Quest_required { get; set; }
     public int Quest_reward1 { get; set; }
     public int Quest_reward1_A { get; set; }
     public int Quest_reward2 { get; set; }

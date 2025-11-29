@@ -441,7 +441,7 @@ public class DailyQuests : QuestTabBase<DailyQuestItemUI>, IQuestItemOwner
     /// - 조건은 이미 QuestManager 에서 만족된 상태라고 가정.
     /// - 여기서 보상 지급 + 진행도 증가 + completed 목록에 등록.
     /// </summary>
-    public async void OnQuestItemClickedComplete(QuestData questData, DailyQuestItemUI itemUI)
+    public async void OnQuestItemClickedComplete(QuestData questData, QuestItemUIBase itemUI)
     {
         if (questData == null || itemUI == null)
             return;
@@ -504,28 +504,21 @@ public class DailyQuests : QuestTabBase<DailyQuestItemUI>, IQuestItemOwner
         SaveDailyStateAsync().Forget();
     }
 
-    public void OnQuestItemClickedComplete(QuestData questData, QuestItemUIBase itemUI)
-    {
-        throw new NotImplementedException();
-    }
-
     #endregion
 }
 
 public class DailyQuestState
 {
-    // 마지막으로 갱신된 날짜 (서버 기준) "yyyyMMdd"
     public string date;
-
-    // 진행도 (0~100)
     public int progress;
+    public bool[] claimed;
+    public List<int> clearedQuestIds;
+    public List<int> completedQuestIds;
 
-    // 진행도 보상 5개 수령 여부
-    public bool[] claimed = new bool[5];
-
-    // 오늘 조건을 만족한(클리어된) 데일리 퀘스트 ID 목록 (보상은 아직 안 받았을 수 있음)
-    public List<int> clearedQuestIds = new List<int>();
-
-    // 오늘 보상까지 받은 데일리 퀘스트 ID 목록
-    public List<int> completedQuestIds = new List<int>();
+    // 🔽 여기부터 추가 (일간 카운터)
+    public int attendanceCount;     // 출석 횟수
+    public int clearStageCount;     // 스테이지 클리어 횟수
+    public int monsterKillCount;    // 몬스터 처치 수
+    public int gachaDrawCount;      // 가챠 사용 횟수
+    public int shopPurchaseCount;   // 상점 구매 횟수
 }

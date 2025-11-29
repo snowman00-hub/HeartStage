@@ -25,6 +25,7 @@ public class SaveDataV1 : SaveData
 
     public DailyQuestState dailyQuest = new DailyQuestState(); // 데일리 퀘스트 진행 상태
     public WeeklyQuestState weeklyQuest = new WeeklyQuestState(); // 위클리 퀘스트 진행 상태
+    public AchievementQuestState achievementQuest = new AchievementQuestState(); // 업적 퀘스트 진행 상태
 
     public int selectedStageID = -1;
     public int selectedStageStep1 = -1;

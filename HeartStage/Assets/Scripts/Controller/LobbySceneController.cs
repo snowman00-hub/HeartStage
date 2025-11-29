@@ -5,6 +5,9 @@ public class LobbySceneController : MonoBehaviour
 {
     [Header("로비에 있는 DailyQuests 컴포넌트")]
     public DailyQuests dailyQuestsComponent;
+    public WeeklyQuests weeklyQuestsComponent;
+    public ArchivementQuests archivementQuestsComponent;
+
 
     private async void Awake()
     {
@@ -20,8 +23,12 @@ public class LobbySceneController : MonoBehaviour
         // --- 여기서 분기 포인트 ---
         bool needInitDaily = dailyQuestsComponent != null &&
                              !dailyQuestsComponent.IsInitialized;
+        bool needInitWeekly = weeklyQuestsComponent != null &&
+                             !weeklyQuestsComponent.IsInitialized;
+        bool needInitArchivement = archivementQuestsComponent != null &&
+                                 !archivementQuestsComponent.IsInitialized;
 
-        if (needInitDaily)
+        if (needInitDaily && needInitWeekly && needInitArchivement)
         {
             // 아직 한 번도 안 초기화된 상태라면 → 진짜 로딩
             var go = dailyQuestsComponent.gameObject;
@@ -29,6 +36,14 @@ public class LobbySceneController : MonoBehaviour
 
             go.SetActive(true); // 로딩창 뒤에서 몰래 켜기
             await dailyQuestsComponent.InitializeAsync(); // 카드/아이콘 전부 생성
+            go.SetActive(wasActive); // 다시 원래 상태(false)로 돌려두기
+
+
+            go = weeklyQuestsComponent.gameObject;
+            wasActive = go.activeSelf;
+
+            go.SetActive(true);
+            await weeklyQuestsComponent.InitializeAsync();
             go.SetActive(wasActive); // 다시 원래 상태(false)로 돌려두기
         }
         else

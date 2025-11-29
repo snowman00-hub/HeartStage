@@ -176,8 +176,16 @@ public class QuestManager : MonoBehaviour
         state.completedQuestIds.Clear();
         _clearedDailyQuestIds.Clear();
 
+        // 추가: 오늘자 카운터 리셋
+        state.attendanceCount = 0;
+        state.clearStageCount = 0;
+        state.monsterKillCount = 0;
+        state.gachaDrawCount = 0;
+        state.shopPurchaseCount = 0;
+
         Debug.Log($"[QuestManager] DailyQuest 리셋. date={todayKey}");
     }
+
 
     private void BuildDailyQuestList()
     {
@@ -235,46 +243,69 @@ public class QuestManager : MonoBehaviour
     public void OnAttendance()
     {
         EnsureDailyInitialized();
-        TryCompleteDailyById(attendanceDailyQuestId, DailyQuestEventType.Attendance);
+
+        var state = DailyState;
+        state.attendanceCount++;
+        SaveLoadManager.SaveToServer().Forget();
+
+        TryCompleteDailyById(attendanceDailyQuestId, DailyQuestEventType.Attendance, state.attendanceCount);
     }
 
     // 스테이지 클리어 시점(StageManager 등)에서 호출
     public void OnStageClear(int stageId = 0)
     {
         EnsureDailyInitialized();
-        // 필요하면 stageId로 특정 스테이지만 인정하는 조건 추가 가능
-        TryCompleteDailyById(clearStageDailyQuestId, DailyQuestEventType.ClearStage);
+
+        var state = DailyState;
+        state.clearStageCount++;
+        SaveLoadManager.SaveToServer().Forget();
+
+        TryCompleteDailyById(clearStageDailyQuestId, DailyQuestEventType.ClearStage, state.clearStageCount);
     }
 
     // 몬스터 사망 시점(Monster / MonsterHP 등)에서 호출
     public void OnMonsterKilled(int monsterId)
     {
         EnsureDailyInitialized();
-        // 특정 몬스터만 카운트할 거면 여기서 monsterId 체크 가능
-        TryCompleteDailyById(monsterKillDailyQuestId, DailyQuestEventType.MonsterKill);
+
+        var state = DailyState;
+        state.monsterKillCount++;
+
+        // 필요하면 여기서 바로 저장 (너무 잦으면 나중에 묶어서 저장해도 됨)
+        SaveLoadManager.SaveToServer().Forget();
+
+        TryCompleteDailyById(monsterKillDailyQuestId, DailyQuestEventType.MonsterKill, state.monsterKillCount);
     }
 
     // 가챠 결과 확정 시점에서 호출 (count: 1회/10회 등)
     public void OnGachaDraw(int count = 0)
     {
         EnsureDailyInitialized();
-        // 10연차 1번도 인정이면 그냥 1번만 호출, count 로 세분화하려면 나중에 로직 추가
-        TryCompleteDailyById(gachaDrawDailyQuestId, DailyQuestEventType.GachaDraw);
+
+        var state = DailyState;
+        // 1회 가챠면 1, 10연이면 10 올리고 싶으면 이렇게:
+        state.gachaDrawCount += (count <= 0 ? 1 : count);
+        SaveLoadManager.SaveToServer().Forget();
+
+        TryCompleteDailyById(gachaDrawDailyQuestId, DailyQuestEventType.GachaDraw, state.gachaDrawCount);
     }
 
     // 상점 구매 성공 시점에서 호출 (shopItemId: 상점 상품 id)
     public void OnShopPurchase(int shopItemId = 0)
     {
         EnsureDailyInitialized();
-        // 특정 상품만 인정이면 shopItemId 체크해서 필터 가능
-        TryCompleteDailyById(shopPurchaseDailyQuestId, DailyQuestEventType.ShopPurchase);
-    }
 
+        var state = DailyState;
+        state.shopPurchaseCount++;
+        SaveLoadManager.SaveToServer().Forget();
+
+        TryCompleteDailyById(shopPurchaseDailyQuestId, DailyQuestEventType.ShopPurchase, state.shopPurchaseCount);
+    }
     #endregion
 
     #region Daily 퀘스트 완료 처리
 
-    private void TryCompleteDailyById(int questId, DailyQuestEventType evtType)
+    private void TryCompleteDailyById(int questId, DailyQuestEventType evtType, int currentCount)
     {
         if (questId <= 0)
         {
@@ -301,8 +332,22 @@ public class QuestManager : MonoBehaviour
             Debug.LogWarning($"[QuestManager] Quest_ID={questId} 는 Quest_Type={quest.Quest_type} 입니다. Daily가 아닙니다. ({evtType})");
         }
 
+        int requiredCount = quest.Quest_required;
+
+        if (requiredCount <= 0)
+            requiredCount = 1;  // 기본값: 1회만 해도 완료
+
+        // 아직 목표 수치에 못 미치면 그냥 진행도만 로그 찍고 종료
+        if (currentCount < requiredCount)
+        {
+            Debug.Log($"[QuestManager] {evtType} 진행도 {currentCount}/{requiredCount}");
+            return;
+        }
+
+        // 목표 이상이면 진짜 완료 처리
         CompleteDailyQuestInternal(quest);
     }
+
 
     /// <summary>
     /// 실제 Daily 퀘스트 "조건 충족" 처리 (보상/진행도는 여기서 건드리지 않음)

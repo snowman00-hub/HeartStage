@@ -1,16 +1,9 @@
-using UnityEngine;
+﻿using UnityEngine;
 
-public class ArchivementQuestItemUI : MonoBehaviour
+public class ArchivementQuestItemUI : QuestItemUIBase
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public void Init(ArchivementQuests owner, QuestData data, bool cleared, bool completed)
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        base.Init(owner, data, cleared, completed);
     }
 }
