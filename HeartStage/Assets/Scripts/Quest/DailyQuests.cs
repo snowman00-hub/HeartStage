@@ -137,7 +137,6 @@ public class DailyQuests : MonoBehaviour
         ApplyCompletedStateToItems();
 
         IsInitialized = true;
-        Debug.Log($"[DailyQuests] Initialized. date={State.date}, progress={State.progress}, completed={State.completedQuestIds.Count}");
     }
 
 #region DailyQuestState 초기화 / 리셋 / 저장
