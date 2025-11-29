@@ -42,13 +42,8 @@ public class TestCharacterDataLaod : MonoBehaviour
         characters.Clear();
         characters.AddRange(loadedList);
 
-        // 정렬 등등 네가 하던 거
-        characters.Sort((a, b) =>
-        {
-            int cmp = a.char_name.CompareTo(b.char_name);
-            if (cmp != 0) return cmp;
-            return a.char_id.CompareTo(b.char_id);
-        });
+        // 기본 정렬: 이름 → id
+        SortByNameInternal();
         ReportTestProgress(0.5f);
 
         // 2) 캐릭 프리팹 Instantiate + 패널 InitAsync 전부 기다리기
@@ -61,6 +56,54 @@ public class TestCharacterDataLaod : MonoBehaviour
         ReportTestProgress(1.0f);
     }
 
+    /// <summary>
+    /// 현재 characters 리스트 기준으로 스크롤뷰를 다시 그린다.
+    /// (정렬/필터 후에 이 함수를 불러주면 됨)
+    /// </summary>
+    public async UniTask RebuildAsync()
+    {
+        await InstantiateCharactersAsync();
+    }
+
+    /// <summary>
+    /// 이름순 정렬 (이름, 같으면 id)
+    /// UI 버튼에서 OnClick에 연결해서 써도 됨.
+    /// </summary>
+    public async void ApplySortByName()
+    {
+        SortByNameInternal();
+        await InstantiateCharactersAsync();
+    }
+
+    private void SortByNameInternal()
+    {
+        characters.Sort((a, b) =>
+        {
+            int cmp = a.char_name.CompareTo(b.char_name);
+            if (cmp != 0) return cmp;
+            return a.char_id.CompareTo(b.char_id);
+        });
+    }
+
+    /// <summary>
+    /// 랭크순 정렬 (낮은 랭크 → 높은 랭크, 같으면 id)
+    /// </summary>
+    public async void ApplySortByRank()
+    {
+        characters.Sort((a, b) =>
+        {
+            int cmp = a.char_rank.CompareTo(b.char_rank);
+            if (cmp != 0) return cmp;
+            return a.char_id.CompareTo(b.char_id);
+        });
+
+        await InstantiateCharactersAsync();
+    }
+
+    /// <summary>
+    /// 내부에서만 사용하는 실제 Instantiate 로직.
+    /// characters 리스트 전체를 기준으로 다시 만든다.
+    /// </summary>
     private async UniTask InstantiateCharactersAsync()
     {
         if (content == null || CharacterPrefab == null)
