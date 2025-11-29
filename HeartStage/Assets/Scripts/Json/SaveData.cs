@@ -30,6 +30,8 @@ public class SaveDataV1 : SaveData
     public int selectedStageStep2 = -1;
     public int startingWave = 1;
 
+    public Dictionary<int, int> characterDispatchCounts = new Dictionary<int, int>(); // 파견 중인 캐릭터 ID와 파견 횟수
+
     public SaveDataV1()
     {
         Version = 1;

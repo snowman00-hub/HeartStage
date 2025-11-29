@@ -16,6 +16,7 @@ public class StageInfoWindow : GenericWindow
     [Header("Button")]
     [SerializeField] private Button closeButton;
     [SerializeField] private Button stageStartButton;
+    [SerializeField] private Button monitoringButton;
 
     [Header("UI")]
     [SerializeField] private TextMeshProUGUI stageStepText;
@@ -34,6 +35,7 @@ public class StageInfoWindow : GenericWindow
         isOverlayWindow = true; // 오버레이 창으로 설정
         closeButton.onClick.AddListener(() => OnCloseButtonClicked());
         stageStartButton.onClick.AddListener(() => OnStageStartButtonClicked());
+        monitoringButton.onClick.AddListener(() => OnMonitoringButtonClicked());
     }
 
     public override void Open()
@@ -237,16 +239,6 @@ public class StageInfoWindow : GenericWindow
         StartStage();
     }
 
-    //private void SaveSelectedStageData()
-    //{
-    //    // 선택된 스테이지 정보를 저장
-    //    PlayerPrefs.SetInt("SelectedStageID", currentStageData.stage_ID);
-    //    PlayerPrefs.SetInt("SelectedStageStep1", currentStageData.stage_step1);
-    //    PlayerPrefs.SetInt("SelectedStageStep2", currentStageData.stage_step2);
-    //    PlayerPrefs.SetInt("StartingWave", 1); // 첫 번째 웨이브부터 시작
-    //    PlayerPrefs.Save();
-    //}
-
     private void SaveSelectedStageData()
     {
         var gameData = SaveLoadManager.Data;
@@ -264,5 +256,32 @@ public class StageInfoWindow : GenericWindow
         {
             LoadSceneManager.Instance.GoStage();
         }
+    }
+
+    private void OnMonitoringButtonClicked()
+    {
+        if (windowManager != null)
+        {
+            windowManager.OpenOverlay(WindowType.MonitoringCharacterSelect);
+        }
+
+        SaveSelectedStageDataForMonitoring();
+
+        if (windowManager != null)
+        {
+            windowManager.OpenOverlay(WindowType.MonitoringCharacterSelect);
+        }
+    }
+
+    private void SaveSelectedStageDataForMonitoring()
+    {
+        var gameData = SaveLoadManager.Data;
+        gameData.selectedStageID = currentStageData.stage_ID;
+        gameData.selectedStageStep1 = currentStageData.stage_step1;
+        gameData.selectedStageStep2 = currentStageData.stage_step2;
+
+        SaveLoadManager.SaveToServer().Forget();
+
+        Debug.Log($"모니터링용 스테이지 데이터 저장: Stage ID {currentStageData.stage_ID}");
     }
 }
