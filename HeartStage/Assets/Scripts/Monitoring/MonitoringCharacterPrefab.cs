@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
+using System;
 public class MonitoringCharacterPrefab : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     [SerializeField] private Image characterImage;
@@ -199,6 +201,9 @@ public class MonitoringCharacterPrefab : MonoBehaviour, IBeginDragHandler, IDrag
             saveData.characterDispatchCounts = new Dictionary<int, int>();
         }
 
+        // 날짜 체크 추가
+        CheckAndResetDaily();
+
         int charId = characterData.char_id;
         if (saveData.characterDispatchCounts.ContainsKey(charId))
         {
@@ -211,6 +216,35 @@ public class MonitoringCharacterPrefab : MonoBehaviour, IBeginDragHandler, IDrag
         }
 
         currentDispatchCount = Mathf.Max(0, currentDispatchCount);
+    }
+
+    private void CheckAndResetDaily()
+    {
+        var saveData = SaveLoadManager.Data;
+
+        DateTime now;
+        try
+        {
+            now = FirebaseTime.GetServerTime();
+        }
+        catch
+        {
+            now = DateTime.Now;
+        }
+
+        string todayKey = now.ToString("yyyyMMdd");
+
+        if (string.IsNullOrEmpty(saveData.lastDispatchResetDate) || saveData.lastDispatchResetDate != todayKey)
+        {
+            // 자정이 지났으면 모든 캐릭터 파견 횟수 리셋
+            if (saveData.characterDispatchCounts != null)
+            {
+                saveData.characterDispatchCounts.Clear();
+            }
+
+            saveData.lastDispatchResetDate = todayKey;
+            SaveLoadManager.SaveToServer().Forget();
+        }
     }
 
     private void SaveDispatchCountToServer()

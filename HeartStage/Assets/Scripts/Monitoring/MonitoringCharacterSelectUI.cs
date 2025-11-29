@@ -1,4 +1,5 @@
 ﻿using Cysharp.Threading.Tasks;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -248,7 +249,6 @@ public class MonitoringCharacterSelectUI : GenericWindow
 
         if (selectedCharacters.Count == 0)
         {
-            Debug.Log("캐릭터를 선택해주세요!");
             return;
         }
 
@@ -265,11 +265,6 @@ public class MonitoringCharacterSelectUI : GenericWindow
                     if (prefab.ConsumeDispatch())
                     {
                         anyDispatchConsumed = true;
-                        Debug.Log($"{character.char_name} 파견 횟수 차감: {prefab.GetCurrentDispatchCount()}/{2}");
-                    }
-                    else
-                    {
-                        Debug.Log($"{character.char_name}은(는) 파견 횟수가 부족합니다.");
                     }
                     break;
                 }
@@ -278,16 +273,16 @@ public class MonitoringCharacterSelectUI : GenericWindow
 
         if (!anyDispatchConsumed)
         {
-            Debug.Log("파견 가능한 캐릭터가 없습니다!");
             return;
         }
 
         GiveMonitoringReward();
-
         ClearAllSlots();
+
+        WindowManager.Instance.OpenOverlay(WindowType.MonitoringReward);
     }
 
-    // 새로 추가할 메서드
+
     private void ClearAllSlots()
     {
         for (int i = 0; i < selectedSlots.Length; i++)
@@ -300,8 +295,6 @@ public class MonitoringCharacterSelectUI : GenericWindow
 
         // 캐릭터 목록 UI도 새로고침 (파견 횟수 변경 반영)
         Display();
-
-        Debug.Log("모든 파견 슬롯이 초기화되었습니다.");
     }
 
     private void GiveMonitoringReward()
@@ -312,21 +305,19 @@ public class MonitoringCharacterSelectUI : GenericWindow
 
         if (currentStageID == -1)
         {
-            Debug.LogWarning("선택된 스테이지가 없습니다.");
+            Debug.Log("선택된 스테이지가 없습니다.");
             return;
         }
 
         var stageData = DataTableManager.StageTable?.GetStage(currentStageID);
         if (stageData == null)
         {
-            Debug.LogWarning($"스테이지 데이터를 찾을 수 없습니다. Stage ID: {currentStageID}");
             return;
         }
 
         int rewardId = stageData.dispatch_reward;
         if (rewardId <= 0)
         {
-            Debug.Log("이 스테이지는 모니터링 보상이 없습니다.");
             return;
         }
 
@@ -334,7 +325,6 @@ public class MonitoringCharacterSelectUI : GenericWindow
         var rewardData = DataTableManager.RewardTable?.Get(rewardId);
         if (rewardData == null)
         {
-            Debug.LogWarning($"보상 데이터를 찾을 수 없습니다. Reward ID: {rewardId}");
             return;
         }
 
