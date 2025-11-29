@@ -38,9 +38,11 @@ public class CharacterInfoWindow : GenericWindow
         var texture = ResourceManager.Instance.Get<Texture2D>(data.card_imageName);
         characterImage.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
         characterName.text = data.char_name;
-        // 속성 아이콘 변경하기 attributeIcon
+        // 캐릭터 속성 아이콘 변경
+        CharacterAttributeIcon.ChangeIcon(attributeIcon, data.char_type);
+        // 랭크 세팅
         rankText.text = $"{data.char_rank}";
-        // 패시브 스킬 정보 세팅하기, 하나만, 범위도 표시하기
+        // 패시브 스킬 정보 세팅하기
         var skillIds = data.GetSkillIds();
         var passiveSkills = skillIds.Where(x => x > 32000).ToList();
         // 1. 원래 색으로 초기화

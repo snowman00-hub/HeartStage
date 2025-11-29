@@ -32,6 +32,8 @@ public class SaveDataV1 : SaveData
     public int selectedStageStep2 = -1;
     public int startingWave = 1;
 
+    public int fanAmount; // 팬 수
+
     public SaveDataV1()
     {
         Version = 1;

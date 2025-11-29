@@ -122,8 +122,6 @@ public class QuestManager : MonoBehaviour
         SyncDailyCompletedSet();
 
         _initializedDaily = true;
-
-        Debug.Log($"[QuestManager] DailyQuests 초기화 완료. date={DailyState.date}, progress={DailyState.progress}, count={_dailyQuestList.Count}");
     }
 
     private void InitDailyStateAndDate()

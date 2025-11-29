@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UI;
 
 public enum Languages
@@ -26,8 +27,6 @@ public static class DataTableIds
     public static string Quest => "QuestTable";
     public static string QuestType => "QuestTypeTable";
     public static string QuestProgress => "QuestProgressTable";
-
-
 }
 
 public class Tag
@@ -68,7 +67,6 @@ public enum SceneType
     LobbyScene = 1,
     StageScene = 2,
     TestStageScene = 3,
-
 }
 
 public class SoundName
@@ -143,11 +141,7 @@ public static class StatPower
     private static float sexyBaseLine = 0.01f;
     private static float sexyWeight = 0.1f;
 
-
-    // --------------------------
     //        Power Functions
-    // --------------------------
-
     public static int GetVocalPower(float value)
     {
         return Mathf.CeilToInt((value / vocalBaseLine) * vocalWeight);
@@ -181,5 +175,55 @@ public static class StatPower
     public static int GetSexyPower(float value)
     {
         return Mathf.CeilToInt((value / sexyBaseLine) * sexyWeight);
+    }
+}
+
+public class CharacterAttributeIcon
+{
+    public static readonly string VocalIconAssetName = "VocalIcon";
+    public static readonly string LabIconAssetName = "LabIcon";
+    public static readonly string CharismaIconAssetName = "CharismaIcon";
+    public static readonly string CutyIconAssetName = "CutyIcon";
+    public static readonly string DanceIconAssetName = "DanceIcon";
+    public static readonly string VisualIconAssetName = "VisualIcon";
+    public static readonly string SexyIconAssetName = "SexyIcon";
+
+    public enum CharacterAttribute
+    {
+        Vocal = 1,
+        Lab = 2,
+        Charisma = 3,
+        Cuty = 4,
+        Dance = 5,
+        Visual = 6,
+        Sexy = 7,
+    }
+
+    // 속성 타입 → 에셋 이름 매핑 딕셔너리
+    private static readonly Dictionary<CharacterAttribute, string> iconNames =
+        new Dictionary<CharacterAttribute, string>()
+    {
+        { CharacterAttribute.Vocal, VocalIconAssetName },
+        { CharacterAttribute.Lab, LabIconAssetName },
+        { CharacterAttribute.Charisma, CharismaIconAssetName },
+        { CharacterAttribute.Cuty, CutyIconAssetName },
+        { CharacterAttribute.Dance, DanceIconAssetName },
+        { CharacterAttribute.Visual, VisualIconAssetName },
+        { CharacterAttribute.Sexy, SexyIconAssetName },
+    };
+
+    // char_type에 따라 이미지 자동 변경
+    public static void ChangeIcon(Image image, int char_type)
+    {
+        CharacterAttribute attr = (CharacterAttribute)char_type;
+
+        string assetName = iconNames[attr];
+
+        var texture = ResourceManager.Instance.Get<Texture2D>(assetName);
+        image.sprite = Sprite.Create(
+            texture,
+            new Rect(0, 0, texture.width, texture.height),
+            new Vector2(0.5f, 0.5f)
+        );
     }
 }

@@ -1,4 +1,4 @@
-// Copyright (C) 2024 ricimi. All rights reserved.
+﻿// Copyright (C) 2024 ricimi. All rights reserved.
 // This code can only be used under the standard Unity Asset Store EULA,
 // a copy of which is available at https://unity.com/legal/as-terms.
 
@@ -20,6 +20,7 @@ namespace Ricimi
 
         public void Open()
         {
+            gameObject.SetActive(true);
             AddBackground();
         }
 
@@ -32,18 +33,14 @@ namespace Ricimi
             }
 
             RemoveBackground();
-            StartCoroutine(RunPopupDestroy());
+            StartCoroutine(CloseAfterAnimation());
         }
 
-        // We destroy the popup automatically 0.5 seconds after closing it.
-        // The destruction is performed asynchronously via a coroutine. If you
-        // want to destroy the popup at the exact time its closing animation is
-        // finished, you can use an animation event instead.
-        private IEnumerator RunPopupDestroy()
+        private IEnumerator CloseAfterAnimation()
         {
-            yield return new WaitForSeconds(destroyTime);
-            Destroy(m_background);
-            Destroy(gameObject);
+            yield return new WaitForSeconds(destroyTime); // 애니메이션이 끝나는 시간
+            Destroy(m_background);                        // 배경은 제거
+            gameObject.SetActive(false);                  // 팝업은 삭제 X, 숨기기만
         }
 
         private void AddBackground()

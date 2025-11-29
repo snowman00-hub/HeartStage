@@ -9,6 +9,7 @@ public class LobbyManager : MonoBehaviour
     public TextMeshProUGUI lightStickCountText;
     public TextMeshProUGUI heartStickCountText;
     public TextMeshProUGUI dreamEnergyCountText;
+    public TextMeshProUGUI fanAmountText;
 
     private int lightStickCount = 0;
     public int LightStickCount
@@ -88,6 +89,8 @@ public class LobbyManager : MonoBehaviour
         {
             DreamEnergyCount = 0;
         }
+
+        fanAmountText.text = $"{SaveLoadManager.Data.fanAmount}";
     }
 
     // 테스트용 함수

@@ -61,7 +61,6 @@ public class StageManager : MonoBehaviour
         }
     }
 
-    // 최초 보상 나중에 추가하기
     [HideInInspector]
     public int fanReward = 0; // 늘어난 팬수
     [HideInInspector]
@@ -87,7 +86,6 @@ public class StageManager : MonoBehaviour
     {
         var gameData = SaveLoadManager.Data;
         int stageID = gameData.selectedStageID;
-        Debug.Log($"선택된 스테이지 ID: {stageID}");
 
         if (stageID != -1)
         {
@@ -96,9 +94,6 @@ public class StageManager : MonoBehaviour
 
             if (stageData != null)
             {
-                Debug.Log($"로드된 스테이지 데이터: {stageData.stage_step1}-{stageData.stage_step2}, position: {stageData.stage_position}");
-
-
                 SetCurrentStageData(stageData);
 
                 SetBackgroundByStageData(stageData);
@@ -251,8 +246,9 @@ public class StageManager : MonoBehaviour
                 saveItemList.Add(kvp.Key, kvp.Value);
             }
         }
+        // 팬 수 증가
+        SaveLoadManager.Data.fanAmount += fanReward;
 
-        //
         SaveLoadManager.SaveToServer().Forget();
     }
 
