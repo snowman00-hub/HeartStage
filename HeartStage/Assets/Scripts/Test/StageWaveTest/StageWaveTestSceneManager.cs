@@ -100,6 +100,14 @@ public class StageWaveTestSceneManager : MonoBehaviour
     // 라이프사이클
     // ==========================
 
+    private async void Awake()
+    {
+        SceneLoader.SetProgressExternal(1.0f);
+
+        await UniTask.Delay(300, DelayType.UnscaledDeltaTime);
+
+        GameSceneManager.NotifySceneReady(SceneType.TestStageScene, 100);
+    }
     private async void Start()
     {
         // 1) 테이블 준비 대기

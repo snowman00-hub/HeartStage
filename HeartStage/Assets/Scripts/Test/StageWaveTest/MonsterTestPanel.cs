@@ -107,9 +107,6 @@ public class MonsterTestPanel : MonoBehaviour
 
         if (root != null)
             root.SetActive(true);
-
-        if (titleText != null)
-            titleText.text = $"몬스터 설정 - ID: {currentMonster.monsterName.ToString()}";
     }
 
     public void Hide()
