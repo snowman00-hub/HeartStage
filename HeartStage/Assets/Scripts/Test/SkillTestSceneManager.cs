@@ -19,9 +19,9 @@ public class SkillTestManager : MonoBehaviour
     [SerializeField] private TMP_InputField skillIdInput;          // skill_id 숫자로 검색용 InputField
 
     // ==========================
-    // Page1 - 기본 정보 / 스탯
+    // Page2 - 기본 정보 / 스탯 (실제론 Panel2에 배치)
     // ==========================
-    [Header("Page2 - 기본 정보 / 스탯 (Panel1)")]
+    [Header("Page2 - 기본 정보 / 스탯 (Panel2)")]
     [SerializeField] private TMP_InputField skillNameInput;
     [SerializeField] private TMP_InputField skillAutoInput;
     [SerializeField] private TMP_InputField skillTypeInput;
@@ -39,7 +39,7 @@ public class SkillTestManager : MonoBehaviour
     [SerializeField] private TMP_InputField skillDurationInput;
 
     // ==========================
-    // Page2 - 소환 / 이펙트 / Info / Prefab
+    // Page3 - 소환 / 이펙트 / Info / Prefab
     // ==========================
     [Header("Page3 - 소환 / 이펙트 / Info / Prefab (Panel3)")]
     [SerializeField] private TMP_InputField summonMinInput;
@@ -64,7 +64,6 @@ public class SkillTestManager : MonoBehaviour
 
     // ==========================
     // Projectile / Hit UI
-    // (어느 페이지에 두든 상관 없음. 보통 Page3에 배치 추천)
     // ==========================
     [Header("Projectile / Hit UI")]
     [SerializeField] private TMP_InputField projectileKeyInput;    // projectile 키 입력
@@ -86,7 +85,7 @@ public class SkillTestManager : MonoBehaviour
     [SerializeField] private float defaultSliderMax = 10f;
 
     [Header("페이지 전환 (Panel1/2/3)")]
-    [SerializeField] private GameObject page1Root;   // Panel1: 테스트/기타 (원래 3페이지에 두려던 UI)
+    [SerializeField] private GameObject page1Root;   // Panel1: 테스트/기타
     [SerializeField] private GameObject page2Root;   // Panel2: 기본 정보 / 스탯 편집
     [SerializeField] private GameObject page3Root;   // Panel3: 소환 / 이펙트 / Info / Prefab 편집
 
@@ -110,6 +109,20 @@ public class SkillTestManager : MonoBehaviour
     private bool hasHandle = false;
 
     private int currentPage = 1;
+
+    // ==========================
+    // PassiveType 패턴 미리보기 (5 x 3 고정)
+    // ==========================
+    [Header("PassiveType 패턴 미리보기")]
+    [SerializeField] private GameObject passivePatternRoot;   // 전체 패턴 패널 (비/활성)
+    [SerializeField] private Image[] passiveTiles;            // 0~14까지 15칸 직접 할당
+
+    [SerializeField] private Color passiveDefaultColor = new Color(1f, 1f, 1f, 0.15f); // 기본 색
+    [SerializeField] private Color passiveActiveColor = Color.yellow;                  // 버프 타일
+    [SerializeField] private Color passiveCenterColor = Color.red;                     // 중앙 타일
+
+    private const int PassiveTileCount = 15; // 5 x 3
+    private const int PassiveCenterIndex = 7; // 가운데(1행 2열) = 인덱스 7
 
     private async void Start()
     {
@@ -202,9 +215,12 @@ public class SkillTestManager : MonoBehaviour
         // 기본은 1페이지(테스트 패널) 보여주기
         ShowPage(1);
 
-        // 6) 초기 스킬 선택
+        // 초기 스킬 선택
         if (skillList.Count > 0)
             OnSkillChanged(0);
+
+        // 패시브 패턴 초기 그리기
+        InitPassivePatternPreview();
     }
 
     private void OnDestroy()
@@ -358,10 +374,8 @@ public class SkillTestManager : MonoBehaviour
 
         int currentId = (currentSkill != null) ? currentSkill.skill_id : 0;
 
-        // 잘못 입력하면 ParseInt 에서 currentId 로 fallback 시킴 → 결과적으로 변경 없음.
         int id = ParseInt(newText, currentId);
 
-        // 같은 id이거나 파싱 실패한 경우 → 그냥 현재 스킬 id로 되돌리고 종료
         if (id == currentId)
         {
             if (currentSkill != null && skillIdInput != null)
@@ -369,18 +383,15 @@ public class SkillTestManager : MonoBehaviour
             return;
         }
 
-        // skillList 에서 해당 id 찾기
         int idx = skillList.FindIndex(s => s.skill_id == id);
         if (idx < 0)
         {
-            // 없는 id → 변경 없이 되돌림
             Debug.LogWarning($"[SkillTest] skill_id {id} 를 찾을 수 없습니다.");
             if (currentSkill != null && skillIdInput != null)
                 skillIdInput.SetTextWithoutNotify(currentSkill.skill_id.ToString());
             return;
         }
 
-        // 찾으면 드롭다운/데이터 전부 그 스킬로 변경
         if (skillDropdown != null)
             skillDropdown.SetValueWithoutNotify(idx);
 
@@ -406,6 +417,9 @@ public class SkillTestManager : MonoBehaviour
             int val = Mathf.Clamp((int)currentSkill.passive_type, 0, passiveTypeDropdown.options.Count - 1);
             passiveTypeDropdown.SetValueWithoutNotify(val);
         }
+
+        // 패시브 패턴 미리보기 갱신
+        UpdatePassivePatternPreview(currentSkill.passive_type);
 
         if (skillTargetInput != null)
             skillTargetInput.SetTextWithoutNotify(currentSkill.skill_target.ToString());
@@ -552,6 +566,10 @@ public class SkillTestManager : MonoBehaviour
     {
         if (currentSkill == null) return;
         currentSkill.passive_type = (PassiveType)index;
+
+        // 패턴 미리보기 갱신
+        UpdatePassivePatternPreview(currentSkill.passive_type);
+
         MarkCurrentSkillDirty();
     }
 
@@ -1039,6 +1057,61 @@ public class SkillTestManager : MonoBehaviour
             page2Button.interactable = page != 2;
         if (page3Button != null)
             page3Button.interactable = page != 3;
+    }
+
+    // ==========================
+    // PassiveType 패턴 미리보기
+    // ==========================
+
+    private void InitPassivePatternPreview()
+    {
+        if (passiveTiles == null || passiveTiles.Length == 0)
+            return;
+
+        PassiveType type = PassiveType.None;
+        if (currentSkill != null)
+            type = currentSkill.passive_type;
+
+        UpdatePassivePatternPreview(type);
+    }
+
+    private void UpdatePassivePatternPreview(PassiveType type)
+    {
+        // Type.None이면 패널 숨김
+        if (passivePatternRoot != null)
+            passivePatternRoot.SetActive(type != PassiveType.None);
+
+        if (type == PassiveType.None)
+            return;
+
+        if (passiveTiles == null || passiveTiles.Length == 0)
+            return;
+
+        // 1) 전부 기본 색 + 중앙 칸 centerColor
+        for (int i = 0; i < passiveTiles.Length; i++)
+        {
+            if (passiveTiles[i] == null) continue;
+
+            if (i == PassiveCenterIndex)
+                passiveTiles[i].color = passiveCenterColor;
+            else
+                passiveTiles[i].color = passiveDefaultColor;
+        }
+
+        // 2) PassivePatternUtil로 실제 버프 들어가는 타일들 색칠
+        foreach (int idx in PassivePatternUtil.GetPatternTiles(PassiveCenterIndex, type, PassiveTileCount))
+        {
+            if (idx < 0 || idx >= passiveTiles.Length)
+                continue;
+
+            var img = passiveTiles[idx];
+            if (img == null) continue;
+
+            if (idx == PassiveCenterIndex)
+                img.color = passiveCenterColor;
+            else
+                img.color = passiveActiveColor;
+        }
     }
 
     // ==========================
