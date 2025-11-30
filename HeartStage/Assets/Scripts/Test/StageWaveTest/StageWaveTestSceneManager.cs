@@ -8,19 +8,22 @@ using UnityEngine.UI;
 public class StageWaveTestSceneManager : MonoBehaviour
 {
     // ==========================
-    // Stage / Wave DB
+    // 데이터 DB
     // ==========================
     private Dictionary<int, StageData> stageDB;
     private List<StageData> stageList;
 
     private Dictionary<int, StageWaveData> waveDB;
 
+    private Dictionary<int, MonsterData> monsterDB;
+    private List<MonsterData> monsterList;
+
     private StageData currentStage;
     private StageWaveData currentWave;
     private int currentWaveIndex = -1; // 0~3 (Wave1~4)
 
     // ==========================
-    // Stage 선택 영역 (공통 헤더)
+    // Stage 선택 영역
     // ==========================
     [Header("Stage 선택")]
     [SerializeField] private TMP_Dropdown stageDropdown;
@@ -28,7 +31,7 @@ public class StageWaveTestSceneManager : MonoBehaviour
 
     [Header("Wave 버튼 (1~4)")]
     [SerializeField] private Button[] waveButtons;            // size = 4
-    [SerializeField] private TMP_Text[] waveButtonLabels;     // size = 4 (옵션)
+    [SerializeField] private TMP_Text[] waveButtonLabels;     // size = 4
 
     // ==========================
     // Stage 편집 패널
@@ -41,11 +44,11 @@ public class StageWaveTestSceneManager : MonoBehaviour
     [SerializeField] private TMP_InputField stageStep2Input;
     [SerializeField] private TMP_InputField stageTypeInput;
     [SerializeField] private TMP_InputField stagePositionInput;
+    [SerializeField] private TMP_InputField levelMaxInput;
     [SerializeField] private TMP_InputField memberCountInput;
     [SerializeField] private TMP_InputField dispatchMemberInput;
     [SerializeField] private TMP_InputField debutStaminaInput;
     [SerializeField] private TMP_InputField regularStaminaInput;
-    [SerializeField] private TMP_InputField levelMaxInput;
     [SerializeField] private TMP_InputField waveTimeInput;
     [SerializeField] private TMP_InputField wave1IdInput;
     [SerializeField] private TMP_InputField wave2IdInput;
@@ -60,20 +63,38 @@ public class StageWaveTestSceneManager : MonoBehaviour
     // ==========================
     [Header("Wave 편집 패널")]
     [SerializeField] private GameObject wavePanelRoot;
-    [SerializeField] private TMP_Text waveTitleText;         // "Wave 1 (ID:1234)" 표시용
+    [SerializeField] private TMP_Text waveTitleText;         // "Wave 1 (ID:1234)"
 
     [SerializeField] private TMP_InputField waveNameInput;
     [SerializeField] private TMP_InputField enemySpawnTimeInput;
+
+    // 몬스터 ID / Count (숫자 인풋은 그대로 두고, ID는 드롭다운이랑 동기화)
+    [Header("Wave - Enemy ID / Count")]
     [SerializeField] private TMP_InputField enemyId1Input;
     [SerializeField] private TMP_InputField enemyCount1Input;
     [SerializeField] private TMP_InputField enemyId2Input;
     [SerializeField] private TMP_InputField enemyCount2Input;
     [SerializeField] private TMP_InputField enemyId3Input;
     [SerializeField] private TMP_InputField enemyCount3Input;
+
+    [Header("Wave - Enemy 드롭다운 & 설정 버튼")]
+    [SerializeField] private TMP_Dropdown enemy1Dropdown;
+    [SerializeField] private TMP_Dropdown enemy2Dropdown;
+    [SerializeField] private TMP_Dropdown enemy3Dropdown;
+
+    [SerializeField] private Button enemy1EditButton;
+    [SerializeField] private Button enemy2EditButton;
+    [SerializeField] private Button enemy3EditButton;
+
+    [Header("Wave 기타")]
     [SerializeField] private TMP_InputField waveRewardInput;
     [SerializeField] private TMP_InputField waveInfoInput;
 
     [SerializeField] private Button backToStageButton;
+
+    // 몬스터 설정 패널
+    [Header("몬스터 설정 패널")]
+    [SerializeField] private MonsterTestPanel monsterPanel;
 
     // ==========================
     // 라이프사이클
@@ -81,26 +102,29 @@ public class StageWaveTestSceneManager : MonoBehaviour
 
     private async void Start()
     {
-        // 1) 테이블 준비될 때까지 대기
-        while (DataTableManager.StageTable == null || DataTableManager.StageWaveTable == null)
+        // 1) 테이블 준비 대기
+        while (DataTableManager.StageTable == null ||
+               DataTableManager.StageWaveTable == null ||
+               DataTableManager.MonsterTable == null)
         {
             await UniTask.Delay(10, DelayType.UnscaledDeltaTime);
         }
 
         // 2) 테이블에서 SO 딕셔너리 가져오기
-        // StageTable.GetAllData() : Dictionary<int, StageData> 반환 :contentReference[oaicite:1]{index=1}
-        stageDB = DataTableManager.StageTable.GetAllData();
+        stageDB = DataTableManager.StageTable.GetAllData();          // Dictionary<int, StageData>
+        waveDB = DataTableManager.StageWaveTable.GetAllData();      // Dictionary<int, StageWaveData>
+        monsterDB = DataTableManager.MonsterTable.GetAll();          // Dictionary<int, MonsterData>
+
         stageList = new List<StageData>(stageDB.Values);
-        // 여기서는 ID 기준 정렬 (원하면 step1/step2 기준으로 바꿔도 됨)
         stageList.Sort((a, b) => a.stage_ID.CompareTo(b.stage_ID));
 
-        // StageWaveTable.GetAllData() : Dictionary<int, StageWaveData> 반환 :contentReference[oaicite:2]{index=2}
-        waveDB = DataTableManager.StageWaveTable.GetAllData();
+        monsterList = new List<MonsterData>(monsterDB.Values);
+        monsterList.Sort((a, b) => a.id.CompareTo(b.id));
 
         BuildStageDropdown();
+        BuildMonsterDropdowns();
         HookEvents();
 
-        // 기본 모드는 Stage 패널
         ShowStagePanel();
 
         if (stageList.Count > 0)
@@ -120,7 +144,6 @@ public class StageWaveTestSceneManager : MonoBehaviour
         if (stageDropdown == null) return;
 
         var options = new List<TMP_Dropdown.OptionData>();
-
         foreach (var s in stageList)
         {
             string label = $"{s.stage_ID} - {s.stage_name}";
@@ -129,6 +152,28 @@ public class StageWaveTestSceneManager : MonoBehaviour
 
         stageDropdown.ClearOptions();
         stageDropdown.AddOptions(options);
+    }
+
+    private void BuildMonsterDropdowns()
+    {
+        BuildMonsterDropdown(enemy1Dropdown);
+        BuildMonsterDropdown(enemy2Dropdown);
+        BuildMonsterDropdown(enemy3Dropdown);
+    }
+
+    private void BuildMonsterDropdown(TMP_Dropdown dropdown)
+    {
+        if (dropdown == null || monsterList == null) return;
+
+        var options = new List<TMP_Dropdown.OptionData>();
+        foreach (var m in monsterList)
+        {
+            string label = $"{m.id} - {m.monsterName}";
+            options.Add(new TMP_Dropdown.OptionData(label));
+        }
+
+        dropdown.ClearOptions();
+        dropdown.AddOptions(options);
     }
 
     private void HookEvents()
@@ -145,7 +190,7 @@ public class StageWaveTestSceneManager : MonoBehaviour
         {
             for (int i = 0; i < waveButtons.Length; i++)
             {
-                int idx = i; // 클로저 캡쳐 방지
+                int idx = i;
                 if (waveButtons[idx] != null)
                     waveButtons[idx].onClick.AddListener(() => OnWaveButtonClicked(idx));
             }
@@ -154,30 +199,29 @@ public class StageWaveTestSceneManager : MonoBehaviour
         if (backToStageButton != null)
             backToStageButton.onClick.AddListener(OnBackToStageClicked);
 
-        // ------ Stage 필드 변경 이벤트 ------
+        // Stage 필드 변경 이벤트
         if (stageNameInput != null) stageNameInput.onEndEdit.AddListener(OnStageNameChanged);
         if (stageStep1Input != null) stageStep1Input.onEndEdit.AddListener(OnStageStep1Changed);
         if (stageStep2Input != null) stageStep2Input.onEndEdit.AddListener(OnStageStep2Changed);
         if (stageTypeInput != null) stageTypeInput.onEndEdit.AddListener(OnStageTypeChanged);
         if (stagePositionInput != null) stagePositionInput.onEndEdit.AddListener(OnStagePositionChanged);
+        if (levelMaxInput != null) levelMaxInput.onEndEdit.AddListener(OnLevelMaxChanged);
         if (memberCountInput != null) memberCountInput.onEndEdit.AddListener(OnMemberCountChanged);
         if (dispatchMemberInput != null) dispatchMemberInput.onEndEdit.AddListener(OnDispatchMemberChanged);
         if (debutStaminaInput != null) debutStaminaInput.onEndEdit.AddListener(OnDebutStaminaChanged);
         if (regularStaminaInput != null) regularStaminaInput.onEndEdit.AddListener(OnRegularStaminaChanged);
-        if (levelMaxInput != null) levelMaxInput.onEndEdit.AddListener(OnLevelMaxChanged);
-
         if (waveTimeInput != null) waveTimeInput.onEndEdit.AddListener(OnWaveTimeChanged);
 
-        if (wave1IdInput != null) wave1IdInput.onEndEdit.AddListener(newText => OnWaveIdFieldChanged(0, newText));
-        if (wave2IdInput != null) wave2IdInput.onEndEdit.AddListener(newText => OnWaveIdFieldChanged(1, newText));
-        if (wave3IdInput != null) wave3IdInput.onEndEdit.AddListener(newText => OnWaveIdFieldChanged(2, newText));
-        if (wave4IdInput != null) wave4IdInput.onEndEdit.AddListener(newText => OnWaveIdFieldChanged(3, newText));
+        if (wave1IdInput != null) wave1IdInput.onEndEdit.AddListener(t => OnWaveIdFieldChanged(0, t));
+        if (wave2IdInput != null) wave2IdInput.onEndEdit.AddListener(t => OnWaveIdFieldChanged(1, t));
+        if (wave3IdInput != null) wave3IdInput.onEndEdit.AddListener(t => OnWaveIdFieldChanged(2, t));
+        if (wave4IdInput != null) wave4IdInput.onEndEdit.AddListener(t => OnWaveIdFieldChanged(3, t));
 
         if (dispatchRewardInput != null) dispatchRewardInput.onEndEdit.AddListener(OnDispatchRewardChanged);
         if (failStaminaInput != null) failStaminaInput.onEndEdit.AddListener(OnFailStaminaChanged);
         if (stagePrefabInput != null) stagePrefabInput.onEndEdit.AddListener(OnStagePrefabChanged);
 
-        // ------ Wave 필드 변경 이벤트 ------
+        // Wave 필드 변경 이벤트
         if (waveNameInput != null) waveNameInput.onEndEdit.AddListener(OnWaveNameChanged);
         if (enemySpawnTimeInput != null) enemySpawnTimeInput.onEndEdit.AddListener(OnEnemySpawnTimeChanged);
 
@@ -190,6 +234,27 @@ public class StageWaveTestSceneManager : MonoBehaviour
 
         if (waveRewardInput != null) waveRewardInput.onEndEdit.AddListener(OnWaveRewardChanged);
         if (waveInfoInput != null) waveInfoInput.onEndEdit.AddListener(OnWaveInfoChanged);
+
+        // 몬스터 드롭다운 이벤트
+        HookMonsterDropdownEvents();
+
+        // 몬스터 설정 버튼
+        if (enemy1EditButton != null)
+            enemy1EditButton.onClick.AddListener(() => OpenMonsterEditorForSlot(1));
+        if (enemy2EditButton != null)
+            enemy2EditButton.onClick.AddListener(() => OpenMonsterEditorForSlot(2));
+        if (enemy3EditButton != null)
+            enemy3EditButton.onClick.AddListener(() => OpenMonsterEditorForSlot(3));
+    }
+
+    private void HookMonsterDropdownEvents()
+    {
+        if (enemy1Dropdown != null)
+            enemy1Dropdown.onValueChanged.AddListener(i => OnEnemyDropdownChanged(1, i));
+        if (enemy2Dropdown != null)
+            enemy2Dropdown.onValueChanged.AddListener(i => OnEnemyDropdownChanged(2, i));
+        if (enemy3Dropdown != null)
+            enemy3Dropdown.onValueChanged.AddListener(i => OnEnemyDropdownChanged(3, i));
     }
 
     // ==========================
@@ -247,11 +312,11 @@ public class StageWaveTestSceneManager : MonoBehaviour
         stageStep2Input?.SetTextWithoutNotify(currentStage.stage_step2.ToString());
         stageTypeInput?.SetTextWithoutNotify(currentStage.stage_type.ToString());
         stagePositionInput?.SetTextWithoutNotify(currentStage.stage_position.ToString());
+        levelMaxInput?.SetTextWithoutNotify(currentStage.level_max.ToString());
         memberCountInput?.SetTextWithoutNotify(currentStage.member_count.ToString());
         dispatchMemberInput?.SetTextWithoutNotify(currentStage.dispatch_member.ToString());
         debutStaminaInput?.SetTextWithoutNotify(currentStage.debut_stamina.ToString());
         regularStaminaInput?.SetTextWithoutNotify(currentStage.regular_stamina.ToString());
-        levelMaxInput?.SetTextWithoutNotify(currentStage.level_max.ToString());
         waveTimeInput?.SetTextWithoutNotify(currentStage.wave_time.ToString());
 
         wave1IdInput?.SetTextWithoutNotify(currentStage.wave1_id.ToString());
@@ -285,9 +350,8 @@ public class StageWaveTestSceneManager : MonoBehaviour
             int waveId = waveIds[i];
             bool exists = (waveId > 0) && waveDB.ContainsKey(waveId);
 
-            // 4번 웨이브(보스)도 없으면 비활성화
             btn.interactable = exists;
-            btn.gameObject.SetActive(true); // 버튼 자체는 항상 보이게, 없는 경우 회색 느낌
+            btn.gameObject.SetActive(true);
 
             if (waveButtonLabels != null && waveButtonLabels.Length > i && waveButtonLabels[i] != null)
             {
@@ -351,14 +415,37 @@ public class StageWaveTestSceneManager : MonoBehaviour
 
         waveNameInput?.SetTextWithoutNotify(currentWave.wave_name ?? "");
         enemySpawnTimeInput?.SetTextWithoutNotify(currentWave.enemy_spown_time.ToString("0.00", CultureInfo.InvariantCulture));
+
         enemyId1Input?.SetTextWithoutNotify(currentWave.EnemyID1.ToString());
         enemyCount1Input?.SetTextWithoutNotify(currentWave.EnemyCount1.ToString());
         enemyId2Input?.SetTextWithoutNotify(currentWave.EnemyID2.ToString());
         enemyCount2Input?.SetTextWithoutNotify(currentWave.EnemyCount2.ToString());
         enemyId3Input?.SetTextWithoutNotify(currentWave.EnemyID3.ToString());
         enemyCount3Input?.SetTextWithoutNotify(currentWave.EnemyCount3.ToString());
+
         waveRewardInput?.SetTextWithoutNotify(currentWave.wave_reward.ToString());
         waveInfoInput?.SetTextWithoutNotify(currentWave.info ?? "");
+
+        SyncWaveMonsterDropdowns();
+    }
+
+    private void SyncWaveMonsterDropdowns()
+    {
+        if (currentWave == null || monsterList == null) return;
+
+        SetMonsterDropdownValue(enemy1Dropdown, currentWave.EnemyID1);
+        SetMonsterDropdownValue(enemy2Dropdown, currentWave.EnemyID2);
+        SetMonsterDropdownValue(enemy3Dropdown, currentWave.EnemyID3);
+    }
+
+    private void SetMonsterDropdownValue(TMP_Dropdown dropdown, int monsterId)
+    {
+        if (dropdown == null || monsterList == null) return;
+
+        int idx = monsterList.FindIndex(m => m.id == monsterId);
+        if (idx < 0) idx = 0;
+
+        dropdown.SetValueWithoutNotify(idx);
     }
 
     private void OnBackToStageClicked()
@@ -392,7 +479,7 @@ public class StageWaveTestSceneManager : MonoBehaviour
         if (currentStage == null) return;
         currentStage.stage_name = newText;
         MarkStageDirty();
-        BuildStageDropdown(); // 이름 바뀌면 드롭다운 라벨도 갱신
+        BuildStageDropdown(); // 이름 바뀌면 드롭다운 갱신
     }
 
     private void OnStageStep1Changed(string newText)
@@ -427,8 +514,16 @@ public class StageWaveTestSceneManager : MonoBehaviour
         if (currentStage == null) return;
         int v = ParseInt(newText, currentStage.stage_position);
         currentStage.stage_position = v;
-        if (stagePositionInput != null)
-            stagePositionInput.SetTextWithoutNotify(v.ToString());
+        stagePositionInput?.SetTextWithoutNotify(v.ToString());
+        MarkStageDirty();
+    }
+
+    private void OnLevelMaxChanged(string newText)
+    {
+        if (currentStage == null) return;
+        int v = ParseInt(newText, currentStage.level_max);
+        currentStage.level_max = v;
+        levelMaxInput?.SetTextWithoutNotify(v.ToString());
         MarkStageDirty();
     }
 
@@ -467,16 +562,7 @@ public class StageWaveTestSceneManager : MonoBehaviour
         regularStaminaInput?.SetTextWithoutNotify(v.ToString());
         MarkStageDirty();
     }
-    private void OnLevelMaxChanged(string newText)
-    {
-        if (currentStage == null) return;
-        int v = ParseInt(newText, currentStage.level_max);
-        currentStage.level_max = v;
 
-        if (levelMaxInput != null)
-            levelMaxInput.SetTextWithoutNotify(v.ToString());
-        MarkStageDirty();
-    }
     private void OnWaveTimeChanged(string newText)
     {
         if (currentStage == null) return;
@@ -568,6 +654,7 @@ public class StageWaveTestSceneManager : MonoBehaviour
         int v = ParseInt(newText, currentWave.EnemyID1);
         currentWave.EnemyID1 = v;
         enemyId1Input?.SetTextWithoutNotify(v.ToString());
+        SyncWaveMonsterDropdowns();
         MarkWaveDirty();
     }
 
@@ -586,6 +673,7 @@ public class StageWaveTestSceneManager : MonoBehaviour
         int v = ParseInt(newText, currentWave.EnemyID2);
         currentWave.EnemyID2 = v;
         enemyId2Input?.SetTextWithoutNotify(v.ToString());
+        SyncWaveMonsterDropdowns();
         MarkWaveDirty();
     }
 
@@ -604,6 +692,7 @@ public class StageWaveTestSceneManager : MonoBehaviour
         int v = ParseInt(newText, currentWave.EnemyID3);
         currentWave.EnemyID3 = v;
         enemyId3Input?.SetTextWithoutNotify(v.ToString());
+        SyncWaveMonsterDropdowns();
         MarkWaveDirty();
     }
 
@@ -630,6 +719,64 @@ public class StageWaveTestSceneManager : MonoBehaviour
         if (currentWave == null) return;
         currentWave.info = newText;
         MarkWaveDirty();
+    }
+
+    // ==========================
+    // 몬스터 드롭다운 / 패널
+    // ==========================
+
+    private void OnEnemyDropdownChanged(int slotIndex, int dropdownIndex)
+    {
+        if (currentWave == null || monsterList == null) return;
+        if (dropdownIndex < 0 || dropdownIndex >= monsterList.Count) return;
+
+        int monsterId = monsterList[dropdownIndex].id;
+
+        switch (slotIndex)
+        {
+            case 1:
+                currentWave.EnemyID1 = monsterId;
+                enemyId1Input?.SetTextWithoutNotify(monsterId.ToString());
+                break;
+            case 2:
+                currentWave.EnemyID2 = monsterId;
+                enemyId2Input?.SetTextWithoutNotify(monsterId.ToString());
+                break;
+            case 3:
+                currentWave.EnemyID3 = monsterId;
+                enemyId3Input?.SetTextWithoutNotify(monsterId.ToString());
+                break;
+        }
+
+        MarkWaveDirty();
+    }
+
+    private void OpenMonsterEditorForSlot(int slotIndex)
+    {
+        if (currentWave == null || monsterDB == null) return;
+
+        int monsterId = 0;
+        switch (slotIndex)
+        {
+            case 1: monsterId = currentWave.EnemyID1; break;
+            case 2: monsterId = currentWave.EnemyID2; break;
+            case 3: monsterId = currentWave.EnemyID3; break;
+        }
+
+        if (monsterId <= 0 || !monsterDB.TryGetValue(monsterId, out var monster))
+        {
+            Debug.LogWarning($"[StageWaveTest] EnemyID{slotIndex} 몬스터가 없음. id={monsterId}");
+            return;
+        }
+
+        if (monsterPanel != null)
+        {
+            monsterPanel.Open(monster, () =>
+            {
+                // 몬스터 패널 닫힐 때, 필요하면 Wave 다시 갱신
+                SyncWaveToUI();
+            });
+        }
     }
 
     // ==========================
