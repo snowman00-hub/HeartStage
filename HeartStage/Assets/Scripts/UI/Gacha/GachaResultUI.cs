@@ -106,6 +106,7 @@ public class GachaResultUI : GenericWindow
 
     private void OnCloseButtonClicked()
     {
+        SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Exit_Button_Click);
         Close();
     }
 

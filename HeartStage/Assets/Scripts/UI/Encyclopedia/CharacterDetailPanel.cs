@@ -288,6 +288,8 @@ public class CharacterDetailPanel : MonoBehaviour
 
     public void OnLevelUpButtonClick(int charId)
     {
+        SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);
+
         var lvdata = DataTableManager.LevelUpTable.Get(charId);
         if (lvdata == null)
         {
@@ -312,6 +314,9 @@ public class CharacterDetailPanel : MonoBehaviour
         int finalId = lvdata.Lvup_char;
 
         CharacterHelper.CommitUpgradeResult(startId, finalId);
+
+        SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Enhance);
+
         Debug.Log($"레벨업 완료: {startId} -> {finalId}");
 
         var nextLevelData = DataTableManager.CharacterTable.Get(finalId);
@@ -325,6 +330,8 @@ public class CharacterDetailPanel : MonoBehaviour
 
     public void OnRankUpButtonClick(int charId)
     {
+        SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);
+
         var rankdata = DataTableManager.RankUpTable.Get(charId);
         if (rankdata == null) return;
 
@@ -334,6 +341,9 @@ public class CharacterDetailPanel : MonoBehaviour
             int finalId = rankdata.Upgrade_char;
 
             CharacterHelper.CommitUpgradeResult(startId, finalId);
+
+            SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Enhance);
+
             Debug.Log($"랭크업 완료: {startId} -> {finalId}");
 
             var nextRankData = DataTableManager.CharacterTable.Get(finalId);
@@ -386,7 +396,11 @@ public class CharacterDetailPanel : MonoBehaviour
         rankUpButton.interactable = false;
     }
 
-    public void ClosePanel() => gameObject.SetActive(false);
+    public void ClosePanel()
+    {
+        SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Exit_Button_Click);
+        gameObject.SetActive(false);
+    }
     public void OpenPanel() => gameObject.SetActive(true);
 
     public string SkillName(int characterid)

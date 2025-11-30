@@ -14,6 +14,8 @@ public class LevelUpSelectSlot : MonoBehaviour
 
     public void ChooseSlot()
     {
+        SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Skill_Select);
+
         var buffIds = new List<(int id, float value)>();
         if(selectData.effect_type1 != 0)
         {
@@ -38,7 +40,6 @@ public class LevelUpSelectSlot : MonoBehaviour
             }
         }
         StageManager.Instance.RestoreTimeScale();
-        SoundManager.Instance.PlaySFX("LevelUpSelect");
     }
 
     public void Init(SelectData data)

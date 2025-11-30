@@ -24,23 +24,23 @@ public class LobbyUI : MonoBehaviour
     private void OnStageUiButtonClicked()
     {
         windowManager.Open(WindowType.StageSelect);
-        SoundManager.Instance.PlaySFX("Ui_click_01");
+        SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);
     }
 
     private void OnLobbyHomeUiButtonClicked()
     {
         windowManager.Open(WindowType.LobbyHome);
-        SoundManager.Instance.PlaySFX("Ui_click_01");
+        SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);
     }
 
     private void OnGachaButtonClicked()
     {
         windowManager.OpenOverlay(WindowType.Gacha);
-        SoundManager.Instance.PlaySFX("Ui_click_01");
+        SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);
     }
     private void OnQuestButtonClicked()
     { 
         windowManager.OpenOverlay(WindowType.Quest);
-        SoundManager.Instance.PlaySFX("Ui_click_01");
+        SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);
     }
 }

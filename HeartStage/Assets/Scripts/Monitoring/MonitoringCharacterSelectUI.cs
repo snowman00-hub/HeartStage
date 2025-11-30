@@ -245,6 +245,8 @@ public class MonitoringCharacterSelectUI : GenericWindow
 
     private void OnStartButtonClicked()
     {
+        SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);
+
         var selectedCharacters = GetSelectedCharacters();
 
         if (selectedCharacters.Count == 0)
@@ -275,6 +277,8 @@ public class MonitoringCharacterSelectUI : GenericWindow
         {
             return;
         }
+
+        SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Reward_Monitoring);
 
         GiveMonitoringReward();
         ClearAllSlots();
@@ -380,6 +384,8 @@ public class MonitoringCharacterSelectUI : GenericWindow
 
     private void OnCloseButtonClicked()
     {
+        SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Exit_Button_Click);
+
         ClearAllSlots();
         Close();
     }

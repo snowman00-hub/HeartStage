@@ -77,7 +77,12 @@ public enum SceneType
 
 public class SoundName
 {
-    public static readonly string SFX_UI_Button_Click = "Ui_click_01";    
+    public static readonly string SFX_UI_Button_Click = "ui_click_01";
+    public static readonly string SFX_UI_Exit_Button_Click = "ui_exit_click_01";
+    public static readonly string SFX_UI_Skill_Select = "ui_skill_select_click_01";
+    public static readonly string SFX_UI_Reward_Monitoring = "ui_reward_monitoring_01";
+    public static readonly string SFX_UI_Enhance = "ui_enhance_01";
+    public static readonly string SFX_UI_LevelUp = "ui_levelup_01";
 }
 
 public class ItemID

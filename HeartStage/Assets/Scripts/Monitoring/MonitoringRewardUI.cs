@@ -109,6 +109,7 @@ public class MonitoringRewardUI : GenericWindow
 
     private void OnRewardButtonClicked()
     {
+        SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);
         base.Close();
     }
 }

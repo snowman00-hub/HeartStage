@@ -20,6 +20,7 @@ public class GachaCancelUI : GenericWindow
     }
     private void OnExitButtonClicked()
     {
+        SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Exit_Button_Click);
         Close();
     }
 }
