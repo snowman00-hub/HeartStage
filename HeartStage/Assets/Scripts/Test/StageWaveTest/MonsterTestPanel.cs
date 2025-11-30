@@ -57,6 +57,10 @@ public class MonsterTestPanel : MonoBehaviour
     [Header("프리뷰 소환 위치")]
     [SerializeField] private Transform previewPoint;
 
+    [Header("프리뷰 정렬 설정")]
+    [SerializeField] private bool overrideSorting = true;
+    [SerializeField] private string previewSortingLayerName = "Default";
+    [SerializeField] private int previewSortingOrder = 500;
     // ==========================
     // 내부 상태
     // ==========================
@@ -383,12 +387,43 @@ public class MonsterTestPanel : MonoBehaviour
             if (op.Status == AsyncOperationStatus.Succeeded)
             {
                 currentPreviewInstance = op.Result;
+
+                SetupPreviewSorting(currentPreviewInstance);
             }
             else
             {
                 Debug.LogWarning($"[MonsterTest] 몬스터 소환 실패: {currentMonster.prefab1}");
             }
         };
+    }
+    private void SetupPreviewSorting(GameObject go)
+    {
+        if (!overrideSorting || go == null)
+            return;
+
+        // 1) SpriteRenderer들 정렬
+        var renderers = go.GetComponentsInChildren<SpriteRenderer>(true);
+        foreach (var sr in renderers)
+        {
+            if (!string.IsNullOrEmpty(previewSortingLayerName))
+                sr.sortingLayerName = previewSortingLayerName;
+
+            sr.sortingOrder = previewSortingOrder;
+        }
+
+        // 2) World Space Canvas 있으면 같이 올려주기 (있을 수도 있어서)
+        var canvases = go.GetComponentsInChildren<Canvas>(true);
+        foreach (var cv in canvases)
+        {
+            if (cv.renderMode == RenderMode.WorldSpace)
+            {
+                cv.overrideSorting = true;
+                if (!string.IsNullOrEmpty(previewSortingLayerName))
+                    cv.sortingLayerName = previewSortingLayerName;
+
+                cv.sortingOrder = previewSortingOrder + 1;
+            }
+        }
     }
 
     private void ReleasePreview()
