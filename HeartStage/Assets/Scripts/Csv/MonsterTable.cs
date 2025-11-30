@@ -134,4 +134,17 @@ public class MonsterTable : DataTable
 
         return dict;
     }
+
+    public Dictionary<int, MonsterData> GetAll()
+    {
+        Dictionary<int, MonsterData> result = new Dictionary<int, MonsterData>();
+
+        foreach (var kvp in table)
+        {
+            var so = ResourceManager.Instance.Get<MonsterData>($"MonsterData_{kvp.Value.mon_id}");
+            result.Add(kvp.Key, so);
+        }
+
+        return result;
+    }
 }

@@ -75,7 +75,7 @@ public class MonsterDataTools : EditorWindow
 
             foreach (var data in allData)
             {
-                string assetPath = $"{folderPath}/MonsterData_{data.mon_id}.asset";
+                string assetPath = $"{folderPath}/{data.mon_id}.asset";
                 MonsterData existingSO = AssetDatabase.LoadAssetAtPath<MonsterData>(assetPath);
 
                 MonsterData so = existingSO ?? ScriptableObject.CreateInstance<MonsterData>();
@@ -222,9 +222,9 @@ public class MonsterDataTools : EditorWindow
         {
             string guid = UnityEditor.AssetDatabase.AssetPathToGUID(assetPath);
             var entry = settings.CreateOrMoveEntry(guid, settings.DefaultGroup);
-            entry.address = $"MonsterData_{monsterId}";
+            entry.address = $"{monsterId}";
             
-            Debug.Log($"Addressables 등록: MonsterData_{monsterId}");
+            Debug.Log($"Addressables 등록: {monsterId}");
         }
 #endif
     }

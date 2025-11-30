@@ -100,19 +100,6 @@ public class CharacterTable : DataTable
         }
         return table[key];
     }
-    public Dictionary<int, CharacterData> GetAllCharacterData()
-    {
-        var result = new Dictionary<int, CharacterData>();
-        foreach (var kvp in table)
-        {
-            var csvData = kvp.Value;
-            var charData = ScriptableObject.CreateInstance<CharacterData>();
-            charData.UpdateData(csvData);
-            result.Add(kvp.Key, charData);
-        }
-
-        return result;
-    }
 
     public List<int> GetSkillIds(int id)
     {
@@ -173,5 +160,18 @@ public class CharacterTable : DataTable
             return null;
         nametable.TryGetValue(name, out var data);
         return data;
+    }
+
+    public Dictionary<int, CharacterData> GetAllCharacterData()
+    {
+        Dictionary<int, CharacterData> result = new Dictionary<int, CharacterData>();
+
+        foreach (var kvp in table)
+        {
+            var so = ResourceManager.Instance.Get<CharacterData>(kvp.Value.data_AssetName);
+            result.Add(kvp.Key, so);
+        }
+
+        return result;
     }
 }

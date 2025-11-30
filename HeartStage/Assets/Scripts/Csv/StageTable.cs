@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using static UnityEngine.Rendering.DebugUI;
 
 public class StageCSVData
 {
@@ -104,5 +105,18 @@ public class StageTable : DataTable
         if (stage == null) return false;
 
         return currentStep1 >= stage.stage_step1 && currentStep2 >= stage.stage_step2;
+    }
+
+    public Dictionary<int, StageData> GetAllData()
+    {
+        Dictionary<int, StageData> result = new Dictionary<int, StageData>();
+
+        foreach (var kvp in stagecsvTable)
+        {
+            var so = ResourceManager.Instance.Get<StageData>(kvp.Value.stage_ID.ToString());
+            result.Add(kvp.Key, so);
+        }
+
+        return result;
     }
 }

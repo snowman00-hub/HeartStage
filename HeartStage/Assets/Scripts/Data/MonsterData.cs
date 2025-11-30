@@ -30,6 +30,41 @@ public class MonsterData : ScriptableObject
 
     public bool isInitialized = false; // 초기화 플래그 추가
 
+    //김의중 추가 
+    public MonsterCSVData ToCSVData()
+    {
+        var csvData = new MonsterCSVData
+        {
+            mon_id = id,
+            mon_name = monsterName,
+            mon_type = monsterType,
+            hp = hp,
+            atk_dmg = att,
+            atk_type = attType,
+            atk_speed = attackSpeed,
+            atk_range = attackRange,
+            bullet_speed = bulletSpeed,
+            speed = moveSpeed,
+            skill_id1 = skillId1,
+            skill_id2 = skillId2,
+            skill_id3 = skillId3,
+            min_level = minExp,
+            max_level = maxExp,
+            item_id1 = itemId1,
+            drop_count1 = dropCount1,
+            item_id2 = itemId2,
+            drop_count2 = dropCount2,
+            prefab1 = prefab1,
+            prefab2 = prefab2,
+        };
+
+        return csvData;
+    }
+
+
+
+
+
     // CharacterData처럼 UpdateData 구현
     public void UpdateData(MonsterCSVData csvData)
     {
