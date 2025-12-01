@@ -4,9 +4,18 @@ using UnityEngine;
 
 public class ItemTypeID
 {
-    public static readonly int Consumable = 4;
-    public static readonly int Cloth = 7;
-    public static readonly int Piece = 9;
+    public const int Consumable = 4;
+    public const int Cloth = 7;
+    public const int Piece = 9;
+    public const int PerfectPiece = 10;
+}
+
+public enum ItemInventorySorting
+{
+    All,
+    Consumable,
+    Cloth,
+    Piece
 }
 
 public class ItemInventoryUI : MonoBehaviour
@@ -17,6 +26,8 @@ public class ItemInventoryUI : MonoBehaviour
 
     private List<ItemInvenSlot> itemSlotList;
 
+    private ItemInventorySorting currentSorting = ItemInventorySorting.All;
+
     private void Awake()
     {
         Instance = this;
@@ -25,8 +36,26 @@ public class ItemInventoryUI : MonoBehaviour
 
     private void OnEnable()
     {
-        ClearAll();
-        ShowAll();
+        ShowInventoryWithSorting();
+    }
+
+    public void ShowInventoryWithSorting()
+    {
+        switch (currentSorting)
+        {
+            case ItemInventorySorting.All:
+                ShowAll();
+                break;
+            case ItemInventorySorting.Consumable:
+                ShowConsumable();
+                break;
+            case ItemInventorySorting.Cloth:
+                ShowCloth();
+                break;
+            case ItemInventorySorting.Piece:
+                ShowPiece();
+                break;
+        }
     }
 
     // 전부 보이기
@@ -39,6 +68,8 @@ public class ItemInventoryUI : MonoBehaviour
         {
             itemSlotList[index++].Init(item.Key, item.Value);
         }
+
+        currentSorting = ItemInventorySorting.All;
     }
 
     // 소모품 보이기
@@ -50,11 +81,15 @@ public class ItemInventoryUI : MonoBehaviour
         foreach (var item in saveItemList)
         {
             var itemData = DataTableManager.ItemTable.Get(item.Key);
-            if (itemData.item_type != ItemTypeID.Consumable)
+            // 현재 4번, 10번 소모품
+            if (itemData.item_type != ItemTypeID.Consumable 
+                && itemData.item_type != ItemTypeID.PerfectPiece)
                 continue;
 
             itemSlotList[index++].Init(item.Key, item.Value);
         }
+
+        currentSorting = ItemInventorySorting.Consumable;
     }
 
     // 의상 보이기
@@ -71,6 +106,8 @@ public class ItemInventoryUI : MonoBehaviour
 
             itemSlotList[index++].Init(item.Key, item.Value);
         }
+
+        currentSorting = ItemInventorySorting.Cloth;
     }
 
     // 조각 보이기
@@ -87,6 +124,8 @@ public class ItemInventoryUI : MonoBehaviour
 
             itemSlotList[index++].Init(item.Key, item.Value);
         }
+
+        currentSorting = ItemInventorySorting.Piece;
     }
 
     // 아이템 슬롯 비우기

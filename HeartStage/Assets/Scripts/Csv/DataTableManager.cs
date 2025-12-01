@@ -139,6 +139,13 @@ public static class DataTableManager
             await table.LoadAsync(id);
             tables.Add(id, table);
         }
+
+        {
+            var table = new PieceTable();
+            var id = DataTableIds.Piece;
+            await table.LoadAsync(id);
+            tables.Add(id, table);
+        }
     }
 
     public static ItemTable ItemTable
@@ -281,7 +288,13 @@ public static class DataTableManager
         }
     }
 
-
+    public static PieceTable PieceTable
+    {
+        get
+        {
+            return Get<PieceTable>(DataTableIds.Piece);
+        }
+    }
 
     public static T Get<T>(string id) where T : DataTable
     {
