@@ -1,4 +1,5 @@
 ﻿using Cysharp.Threading.Tasks;
+using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -63,24 +64,31 @@ public class MaintenanceWatcher : MonoBehaviour
     private void HandleMaintenanceChanged()
     {
         var m = LiveConfigManager.Instance.Maintenance;
-        Debug.Log($"[MaintenanceWatcher] HandleMaintenanceChanged: active={m.active}");
+        if (m == null)
+            return;
 
-        // 점검 꺼짐 → 팝업 있으면 닫고 타임스케일 복구
-        if (!m.active)
+        bool isNow = IsMaintenanceNow(m);
+        Debug.Log($"[MaintenanceWatcher] HandleMaintenanceChanged: active={m.active}, isNow={isNow}");
+
+        // 🔹 지금은 점검 시간이 아님 → 팝업 있으면 닫고 타임스케일 복구
+        if (!isNow)
         {
             if (_popupInstance != null)
             {
                 Destroy(_popupInstance);
                 _popupInstance = null;
             }
+
             _handlingMaintenance = false;
             Time.timeScale = 1f;
             return;
         }
 
-        // 점검 켜짐
+        // 🔹 여기부터는 "지금은 점검 상태"인 경우
+
+        // 이미 점검 처리 중이면 또 만들 필요 없음
         if (_handlingMaintenance)
-            return; // 이미 처리 중이면 무시
+            return;
 
         // TitleScene / BootScene 에서는 TitleSceneController가 처리하니까 패스
         var scene = SceneManager.GetActiveScene();
@@ -90,6 +98,7 @@ public class MaintenanceWatcher : MonoBehaviour
         _handlingMaintenance = true;
         ShowRuntimeMaintenancePopup(m);
     }
+
 
     private void ShowRuntimeMaintenancePopup(MaintenanceData m)
     {
@@ -156,6 +165,41 @@ public class MaintenanceWatcher : MonoBehaviour
         Time.timeScale = 1f;
         QuitApp();
     }
+
+    private bool IsMaintenanceNow(MaintenanceData m)
+    {
+        if (m == null)
+            return false;
+
+        // 1) 운영자가 강제로 active = true 넣으면 무조건 점검
+        if (m.active)
+            return true;
+
+        // 2) 시간 기반 점검 (startAt ~ endAt)
+        if (!string.IsNullOrEmpty(m.startAt))
+        {
+            if (DateTimeOffset.TryParse(m.startAt, out var start))
+            {
+                // now는 네가 쓰는 시간 소스에 맞게 (서버시간 쓰고 싶으면 그걸로 교체)
+                var now = DateTimeOffset.Now;
+                // var now = FirebaseTime.GetServerTimeOffset(); 이런 식으로 바꿔도 됨
+
+                if (string.IsNullOrEmpty(m.endAt))
+                {
+                    // endAt 없으면 "start 이후 계속 점검"으로 처리
+                    return now >= start;
+                }
+                else if (DateTimeOffset.TryParse(m.endAt, out var end))
+                {
+                    // start <= now <= end 구간이면 점검
+                    return now >= start && now <= end;
+                }
+            }
+        }
+
+        return false;
+    }
+
 
     private void QuitApp()
     {

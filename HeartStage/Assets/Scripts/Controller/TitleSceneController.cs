@@ -1,8 +1,9 @@
-﻿using System;
+﻿using Cysharp.Threading.Tasks;
+using System;
 using System.Threading;
-using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using static UnityEngine.Rendering.DebugUI.Table;
 
 [DisallowMultipleComponent]
 public class TitleSceneController : MonoBehaviour
@@ -417,7 +418,9 @@ public class TitleSceneController : MonoBehaviour
     private bool IsInMaintenance(out string message)
     {
         var m = LiveConfigManager.Instance.Maintenance;
-        if (!m.active)
+        var now = FirebaseTime.GetServerTime();
+
+        if (MaintenanceUtil.IsMaintenanceNow(m, now))
         {
             message = null;
             return false;
@@ -432,7 +435,6 @@ public class TitleSceneController : MonoBehaviour
         {
             if (DateTimeOffset.TryParse(m.endAt, out var end))
             {
-                var now = DateTimeOffset.Now;
                 if (end > now)
                 {
                     var remain = end - now;
@@ -444,6 +446,7 @@ public class TitleSceneController : MonoBehaviour
 
         return true;
     }
+
 
     // 강제 업데이트 팝업 버튼용
     public void OnClickForceUpdate_OpenStore()
