@@ -23,6 +23,7 @@ public class ItemConsumePanel : MonoBehaviour
 
     public void Open(int itemId)
     {
+        gameObject.SetActive(true);
         this.itemId = itemId;
         var itemData = DataTableManager.ItemTable.Get(itemId);
         var texture = ResourceManager.Instance.Get<Texture2D>(itemData.prefab);

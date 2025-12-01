@@ -29,6 +29,18 @@ public class ItemInfoPanel : MonoBehaviour
         itemImage.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
         itemName.text = data.item_name;
         itemDescription.text = data.item_desc;
+
+        var buttonImage = useButton.gameObject.GetComponent<Image>();
+        if(data.item_type == ItemTypeID.Consumable)
+        {
+            buttonImage.color = buttonOriginColor;
+            useButton.interactable = true;
+        }
+        else
+        {
+            buttonImage.color = buttonDisabledColor;
+            useButton.interactable = false;
+        }
     }
 
     private void OpenItemConsumePanel()
