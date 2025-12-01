@@ -7,9 +7,19 @@ public class ItemInfoPanel : MonoBehaviour
 	public Image itemImage;
 	public TextMeshProUGUI itemName;
 	public TextMeshProUGUI itemDescription;
+    public Button useButton;
+    public ItemConsumePanel consumePanel;
+
+    public Color buttonOriginColor;
+    public Color buttonDisabledColor;
 
     [HideInInspector]
 	public int itemId = 7101;
+
+    private void Start()
+    {
+        useButton.onClick.AddListener(OpenItemConsumePanel);
+    }
 
     // 아이템 설명창 띄우기
     private void OnEnable()
@@ -21,12 +31,8 @@ public class ItemInfoPanel : MonoBehaviour
         itemDescription.text = data.item_desc;
     }
 
-    // 터치하면 닫기
-    private void Update()
+    private void OpenItemConsumePanel()
     {
-        if(Input.GetMouseButtonDown(0))
-        {
-            gameObject.SetActive(false);
-        }
+        consumePanel.Open(itemId);
     }
 }

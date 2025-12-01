@@ -9,25 +9,8 @@ public class ItemInvenSlot : MonoBehaviour
 
     private int itemId;
 
-    //public void Init(int id, int amount)
-    //{
-    //    // 스프라이트 세팅
-    //    var texture = ResourceManager.Instance.Get<Texture2D>(DataTableManager.ItemTable.Get(id).prefab);
-    //    itemImage.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
-    //    // 수량 세팅
-    //    amountText.text = $"X{amount}";
-    //    itemImage.enabled = true;
-    //    amountText.enabled = true;
-    //    itemId = id;
-    //}
-
     public void Init(int id, int amount)
     {
-        Debug.Log($"Init Slot: id={id}, amount={amount}");
-
-        if (itemImage == null) Debug.LogError("itemImage is NULL!");
-        if (amountText == null) Debug.LogError("amountText is NULL!");
-
         var itemData = DataTableManager.ItemTable.Get(id);
         if (itemData == null)
         {
@@ -50,6 +33,12 @@ public class ItemInvenSlot : MonoBehaviour
     }
 
     private void OnDisable()
+    {
+        Clear();
+    }
+
+    // 이미지 지우기
+    public void Clear()
     {
         itemImage.enabled = false;
         amountText.enabled = false;
