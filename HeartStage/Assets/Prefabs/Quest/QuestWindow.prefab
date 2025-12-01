@@ -257,81 +257,6 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!1 &248292169888951524
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 6852485632956942488}
-  - component: {fileID: 2260556593979464189}
-  - component: {fileID: 5912003843606983677}
-  m_Layer: 5
-  m_Name: QuestPanelFram
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &6852485632956942488
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 248292169888951524}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 3802994195316115536}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!222 &2260556593979464189
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 248292169888951524}
-  m_CullTransparentMesh: 1
---- !u!114 &5912003843606983677
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 248292169888951524}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Material: {fileID: 0}
-  m_Color: {r: 0.9607844, g: 0.76470596, b: 0.25882354, a: 1}
-  m_RaycastTarget: 1
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 811ef078767b44f1bb159bc0e782fd60, type: 3}
-  m_Type: 1
-  m_PreserveAspect: 0
-  m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
-  m_FillOrigin: 0
-  m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &480706080892029229
 GameObject:
   m_ObjectHideFlags: 0
@@ -464,13 +389,14 @@ GameObject:
   - component: {fileID: 5346674978383174616}
   - component: {fileID: 3534605629858562560}
   - component: {fileID: 1086769108018958815}
+  - component: {fileID: 2915046290789993973}
   m_Layer: 5
   m_Name: WeeklyQuests
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &5346674978383174616
 RectTransform:
   m_ObjectHideFlags: 0
@@ -530,6 +456,38 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &2915046290789993973
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 771396560303492387}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ece3345575136e94ca472b8e9ffcd2ec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  progressSlider: {fileID: 7149256431818473295}
+  rewardSlots:
+  - button: {fileID: 6306282327891371710}
+    iconImage: {fileID: 3208812574673668914}
+    progressRewardId: 13202020
+  - button: {fileID: 4117575872300441509}
+    iconImage: {fileID: 6055100056541969716}
+    progressRewardId: 13202040
+  - button: {fileID: 2398587287637828645}
+    iconImage: {fileID: 6350948625054268855}
+    progressRewardId: 13202060
+  - button: {fileID: 3007141132208763373}
+    iconImage: {fileID: 7704469711107398698}
+    progressRewardId: 13202080
+  - button: {fileID: 2664042313639142556}
+    iconImage: {fileID: 804619316929787503}
+    progressRewardId: 13202100
+  questListContent: {fileID: 4122763726075899833}
+  questItemPrefab: {fileID: 3402487437676197057, guid: 78a61b45560a1a64b832345ffbcd627b, type: 3}
+  progressType: 2
 --- !u!1 &792343787468788370
 GameObject:
   m_ObjectHideFlags: 0
@@ -664,7 +622,7 @@ GameObject:
   - component: {fileID: 804619316929787503}
   - component: {fileID: 2664042313639142556}
   m_Layer: 5
-  m_Name: DailyRewardButton5
+  m_Name: WeeklyRewardButton5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -906,7 +864,7 @@ GameObject:
   - component: {fileID: 3208812574673668914}
   - component: {fileID: 6306282327891371710}
   m_Layer: 5
-  m_Name: DailyRewardButton1
+  m_Name: WeeklyRewardButton1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1306,7 +1264,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 45.024994, y: -0.00048828125}
-  m_SizeDelta: {x: -790.40576, y: -963.2293}
+  m_SizeDelta: {x: -790.40576, y: -788.04803}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &4358946122916708294
 MonoBehaviour:
@@ -1448,7 +1406,7 @@ GameObject:
   - component: {fileID: 6305194817175675750}
   - component: {fileID: 7149256431818473295}
   m_Layer: 5
-  m_Name: DailyGage
+  m_Name: WeeklyGage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2006,7 +1964,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &8170319225641165927
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3328,14 +3286,13 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 3802994195316115536}
+  m_Children: []
   m_Father: {fileID: 6118322332135750917}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 45.024994, y: -0.0008544922}
-  m_SizeDelta: {x: -90.40576, y: -924.4247}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &2407519875418406645
 MonoBehaviour:
@@ -4153,7 +4110,7 @@ GameObject:
   - component: {fileID: 157939913832937553}
   - component: {fileID: 6207143103610770852}
   m_Layer: 5
-  m_Name: DailyGageView
+  m_Name: WeeklyGageView
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4356,7 +4313,7 @@ GameObject:
   - component: {fileID: 7704469711107398698}
   - component: {fileID: 3007141132208763373}
   m_Layer: 5
-  m_Name: DailyRewardButton4
+  m_Name: WeeklyRewardButton4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4960,7 +4917,7 @@ GameObject:
   - component: {fileID: 6055100056541969716}
   - component: {fileID: 4117575872300441509}
   m_Layer: 5
-  m_Name: DailyRewardButton2
+  m_Name: WeeklyRewardButton2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5081,7 +5038,7 @@ GameObject:
   - component: {fileID: 6350948625054268855}
   - component: {fileID: 2398587287637828645}
   m_Layer: 5
-  m_Name: DailyRewardButton3
+  m_Name: WeeklyRewardButton3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5922,13 +5879,14 @@ GameObject:
   - component: {fileID: 1932290474909420291}
   - component: {fileID: 8423839620871513899}
   - component: {fileID: 7699775801379674048}
+  - component: {fileID: 3051659574892978438}
   m_Layer: 5
   m_Name: ArchievementQuests
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1932290474909420291
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5987,6 +5945,20 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &3051659574892978438
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8223350154753796526}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c0873ed2e0ac274b8c340890a3f082b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  questListContent: {fileID: 9205787479494603151}
+  questItemPrefab: {fileID: 721116212761899755, guid: 1798a7b44b95ea54eae5141d01b2d58d, type: 3}
 --- !u!1 &8722968812834292095
 GameObject:
   m_ObjectHideFlags: 0
@@ -6336,112 +6308,3 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_HorizontalFit: 2
   m_VerticalFit: 2
---- !u!1001 &770628778536648801
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 9205787479494603151}
-    m_Modifications:
-    - target: {fileID: 2566727868091196093, guid: 7f9ccbd317a07b440bb3c30c524dcfdf, type: 3}
-      propertyPath: m_Name
-      value: QuestPanel
-      objectReference: {fileID: 0}
-    - target: {fileID: 4501103567547811889, guid: 7f9ccbd317a07b440bb3c30c524dcfdf, type: 3}
-      propertyPath: m_Pivot.x
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 4501103567547811889, guid: 7f9ccbd317a07b440bb3c30c524dcfdf, type: 3}
-      propertyPath: m_Pivot.y
-      value: 0.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 4501103567547811889, guid: 7f9ccbd317a07b440bb3c30c524dcfdf, type: 3}
-      propertyPath: m_AnchorMax.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4501103567547811889, guid: 7f9ccbd317a07b440bb3c30c524dcfdf, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4501103567547811889, guid: 7f9ccbd317a07b440bb3c30c524dcfdf, type: 3}
-      propertyPath: m_AnchorMin.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4501103567547811889, guid: 7f9ccbd317a07b440bb3c30c524dcfdf, type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4501103567547811889, guid: 7f9ccbd317a07b440bb3c30c524dcfdf, type: 3}
-      propertyPath: m_SizeDelta.x
-      value: 700
-      objectReference: {fileID: 0}
-    - target: {fileID: 4501103567547811889, guid: 7f9ccbd317a07b440bb3c30c524dcfdf, type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 140
-      objectReference: {fileID: 0}
-    - target: {fileID: 4501103567547811889, guid: 7f9ccbd317a07b440bb3c30c524dcfdf, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4501103567547811889, guid: 7f9ccbd317a07b440bb3c30c524dcfdf, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4501103567547811889, guid: 7f9ccbd317a07b440bb3c30c524dcfdf, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4501103567547811889, guid: 7f9ccbd317a07b440bb3c30c524dcfdf, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4501103567547811889, guid: 7f9ccbd317a07b440bb3c30c524dcfdf, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4501103567547811889, guid: 7f9ccbd317a07b440bb3c30c524dcfdf, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4501103567547811889, guid: 7f9ccbd317a07b440bb3c30c524dcfdf, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4501103567547811889, guid: 7f9ccbd317a07b440bb3c30c524dcfdf, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 360
-      objectReference: {fileID: 0}
-    - target: {fileID: 4501103567547811889, guid: 7f9ccbd317a07b440bb3c30c524dcfdf, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: -90
-      objectReference: {fileID: 0}
-    - target: {fileID: 4501103567547811889, guid: 7f9ccbd317a07b440bb3c30c524dcfdf, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4501103567547811889, guid: 7f9ccbd317a07b440bb3c30c524dcfdf, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4501103567547811889, guid: 7f9ccbd317a07b440bb3c30c524dcfdf, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5468430306819733419, guid: 7f9ccbd317a07b440bb3c30c524dcfdf, type: 3}
-      propertyPath: m_Name
-      value: ButtonFrameImage
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: 4501103567547811889, guid: 7f9ccbd317a07b440bb3c30c524dcfdf, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 6852485632956942488}
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 7f9ccbd317a07b440bb3c30c524dcfdf, type: 3}
---- !u!224 &3802994195316115536 stripped
-RectTransform:
-  m_CorrespondingSourceObject: {fileID: 4501103567547811889, guid: 7f9ccbd317a07b440bb3c30c524dcfdf, type: 3}
-  m_PrefabInstance: {fileID: 770628778536648801}
-  m_PrefabAsset: {fileID: 0}
