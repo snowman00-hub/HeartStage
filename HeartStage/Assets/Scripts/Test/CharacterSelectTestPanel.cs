@@ -16,6 +16,12 @@ public class CharacterSelectTestPanel : MonoBehaviour
     public Image cardImage;
 
     /// <summary>
+    /// 이 패널에서 InitAsync가 호출될 때마다 증가하는 버전.
+    /// (나보다 더 최신 InitAsync가 있으면, 내 로딩 결과는 버림)
+    /// </summary>
+    private int _loadVersion = 0;
+
+    /// <summary>
     /// 편의용: 기다릴 필요 없을 때
     /// </summary>
     public void Init(CharacterData characterData)
@@ -33,6 +39,9 @@ public class CharacterSelectTestPanel : MonoBehaviour
             Debug.LogWarning("[CharacterSelectPanel] characterData is null", this);
             return;
         }
+
+        // 이번 Init 호출의 고유 버전
+        int myVersion = ++_loadVersion;
 
         // --- 텍스트 세팅 (null 방어) ---
         if (rankText != null)
@@ -84,6 +93,13 @@ public class CharacterSelectTestPanel : MonoBehaviour
                 if (handle.IsValid())
                     Addressables.Release(handle);
             }
+        }
+
+        // 🔹 로딩이 끝났을 때, 내가 아직 "마지막 Init"이 아니면 결과 버림
+        if (myVersion != _loadVersion)
+        {
+            // 더 최신 InitAsync가 호출된 상태 → 이 결과는 무시
+            return;
         }
 
         if (texture2D != null)

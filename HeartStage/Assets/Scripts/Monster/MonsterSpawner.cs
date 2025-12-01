@@ -827,4 +827,46 @@ public class MonsterSpawner : MonoBehaviour
             OnWaveCleared?.Invoke(); //이벤트 발생
         }
     }
+
+    // 현재 웨이브 스킵
+    public void SkipCurrentWave()
+    {
+        if (!isInitialized || currentWaveData == null)
+        {
+            Debug.LogWarning("[MonsterSpawner] SkipCurrentWave 호출됐지만 초기화가 안 됐습니다.");
+            return;
+        }
+
+        // 더 이상 스폰 루프 돌지 않도록
+        isWaveActive = false;
+
+        // 앞으로 스폰될 예정이던 몬스터 대기열 비우기
+        ClearSpawnQueue();
+
+        // 웨이브 정보상 남은 수치를 0으로 세팅해서
+        // 내부 로직 상으론 "남은 몬스터 0" 상태로 맞추기
+        for (int i = 0; i < waveMonstersToSpawn.Count; i++)
+        {
+            var info = waveMonstersToSpawn[i];
+            info.remainMonster = 0;
+            info.spawned = info.count; // 전부 소환된 걸로 취급
+            waveMonstersToSpawn[i] = info;
+        }
+
+        // 실제 필드에 나와 있는 몬스터들도 전부 정리
+        var aliveMonsters = GameObject.FindGameObjectsWithTag(Tag.Monster);
+        foreach (var monster in aliveMonsters)
+        {
+            if (monster != null)
+            {
+                // 테스트 씬 한정: 그냥 삭제해도 됨
+                Destroy(monster);
+            }
+        }
+
+        // UI에 남은 몬스터 수 0으로 반영
+        UpdateStageUI();
+
+        Debug.Log("[MonsterSpawner] 현재 웨이브 스킵: 남은 몬스터 0 + 필드 몬스터 정리 완료");
+    }
 }

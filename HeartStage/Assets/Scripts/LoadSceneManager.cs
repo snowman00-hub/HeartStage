@@ -38,7 +38,9 @@ public class LoadSceneManager : MonoBehaviour
 
     public void GoTestStage()
     {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
         GameSceneManager.ChangeScene(SceneType.TestStageScene);
+#endif
     }
 
     public void GoTestStage(int stageId, int startingWave = 1)
@@ -47,7 +49,9 @@ public class LoadSceneManager : MonoBehaviour
         gameData.selectedStageID = stageId;
         gameData.startingWave = startingWave;
         SaveLoadManager.SaveToServer().Forget();
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
         GoTestStage();
+#endif
     }
 
     public void GoLobby()

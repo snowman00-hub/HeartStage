@@ -89,4 +89,17 @@ public class StageWaveTable : DataTable
 
         return null;
     }
+
+    public Dictionary<int, StageWaveData> GetAllData()
+    {
+        Dictionary<int, StageWaveData> result = new Dictionary<int, StageWaveData>();
+
+        foreach (var kvp in table)
+        {
+            var so = ResourceManager.Instance.Get<StageWaveData>(kvp.Value.wave_name);
+            result.Add(kvp.Key, so);
+        }
+
+        return result;
+    }
 }

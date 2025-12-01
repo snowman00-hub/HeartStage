@@ -229,16 +229,19 @@ public class CharacterDropdownFilter : MonoBehaviour
         foreach (var characterData in list)
         {
             var dragMeInstance = Instantiate(characterPrefab, content);
-            dragMeInstance.name = characterData.name;
+            dragMeInstance.name = characterData.char_name; // 이게 더 직관적
 
             // DragMe 프리팹에 CharacterData 꽂기
             dragMeInstance.characterData = characterData;
 
-            // 여기 추가!
-            var panel = dragMeInstance.GetComponent<CharacterSelectPanel>();
+            // 여기 타입을 CharacterSelectTestPanel 로 변경
+            var panel = dragMeInstance.GetComponent<CharacterSelectTestPanel>();
             if (panel != null)
             {
+                // 래핑된 Init 함수: 내부에서 InitAsync().Forget() 호출
                 panel.Init(characterData);
+                // 또는 async로 하고 싶으면:
+                // panel.InitAsync(characterData).Forget();
             }
 
             if (dragMeInstance.transform is RectTransform rect)
@@ -248,4 +251,5 @@ public class CharacterDropdownFilter : MonoBehaviour
             }
         }
     }
+
 }

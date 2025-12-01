@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 public class StageLoad : MonoBehaviour
 {
     [SerializeField] private TMP_InputField stageInput;
@@ -139,3 +139,4 @@ public class StageLoad : MonoBehaviour
         LoadSceneManager.Instance.GoTestStage(stageId, 1);
     }
 }
+#endif

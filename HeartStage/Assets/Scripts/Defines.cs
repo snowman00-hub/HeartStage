@@ -71,6 +71,7 @@ public enum SceneType
     LobbyScene = 1,
     StageScene = 2,
     TestStageScene = 3,
+    TestStageWaveScene = 4,
 }
 
 public class SoundName
