@@ -104,12 +104,6 @@ public class StageWindow : GenericWindow
         contentParent.sizeDelta = size;
     }
 
-    private void OnCloseButtonClicked()
-    {
-        Close();
-        SoundManager.Instance.PlaySFX("Ui_click_01");
-    }
-
     private void OnStageInfoButtonClicked(StageCSVData stageData)
     {
         if (stageInfoUI != null)
@@ -118,7 +112,7 @@ public class StageWindow : GenericWindow
         }
 
         windowManager.OpenOverlay(WindowType.StageInfo);
-        SoundManager.Instance.PlaySFX("Ui_click_01");
+        SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);
     }
 
     public override void Open()

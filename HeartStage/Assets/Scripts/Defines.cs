@@ -54,10 +54,14 @@ public enum WindowType
     GachaResult = 5,
     Gacha5TryResult = 6,
     Quest = 7,
+    GachaCancel = 8,
+    MonitoringCharacterSelect = 9,
+    MonitoringReward = 10,
 
     // 인게임 윈도우
     VictoryDefeat = 50, // 위에 추가해도 안바뀌게 큰 값으로 해두기
     CharacterInfo,
+    LastStageNotice,
 }
 
 public enum SceneType
@@ -71,7 +75,12 @@ public enum SceneType
 
 public class SoundName
 {
-    public static readonly string SFX_UI_Button_Click = "Ui_click_01";    
+    public static readonly string SFX_UI_Button_Click = "ui_click_01";
+    public static readonly string SFX_UI_Exit_Button_Click = "ui_exit_click_01";
+    public static readonly string SFX_UI_Skill_Select = "ui_skill_select_click_01";
+    public static readonly string SFX_UI_Reward_Monitoring = "ui_reward_monitoring_01";
+    public static readonly string SFX_UI_Enhance = "ui_enhance_01";
+    public static readonly string SFX_UI_LevelUp = "ui_levelup_01";
 }
 
 public class ItemID

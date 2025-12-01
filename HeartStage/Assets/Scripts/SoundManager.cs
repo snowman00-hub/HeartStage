@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using Cysharp.Threading.Tasks;
 using UnityEngine.Audio;
 
 public class SoundManager : MonoBehaviour

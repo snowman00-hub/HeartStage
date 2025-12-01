@@ -110,8 +110,6 @@ public class StageManager : MonoBehaviour
     public void GoLobby()
     {
         LoadSceneManager.Instance.GoLobby();
-
-        SoundManager.Instance.PlaySFX("Ui_click_01"); // test
     }
 
     public void SetTimeScale(float timeScale)
@@ -174,10 +172,9 @@ public class StageManager : MonoBehaviour
     // 레벨업
     public void LevelUp()
     {
+        SoundManager.Instance.PlaySFX(SoundName.SFX_UI_LevelUp);
         Time.timeScale = 0f;
         LevelUpPanel.gameObject.SetActive(true);
-
-        SoundManager.Instance.PlaySFX("Ui_reward_01"); // test
     }
 
     // 원래 타임스케일 복원
@@ -189,7 +186,6 @@ public class StageManager : MonoBehaviour
     public void CompleteStage()
     {
         Clear();
-        SoundManager.Instance.PlaySFX("stageClearReward");
     }
 
     // 승리시 

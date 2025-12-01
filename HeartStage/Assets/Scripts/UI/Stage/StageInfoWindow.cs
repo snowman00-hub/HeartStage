@@ -16,10 +16,12 @@ public class StageInfoWindow : GenericWindow
     [Header("Button")]
     [SerializeField] private Button closeButton;
     [SerializeField] private Button stageStartButton;
+    [SerializeField] private Button monitoringButton;
 
     [Header("UI")]
     [SerializeField] private TextMeshProUGUI stageStepText;
     [SerializeField] private TextMeshProUGUI stageNameText;
+    [SerializeField] private TextMeshProUGUI stagePositionText;
 
     [Header("Wave Progress Colors")]
     [SerializeField] private Color completedCircleColor = Color.yellow;
@@ -35,6 +37,7 @@ public class StageInfoWindow : GenericWindow
         isOverlayWindow = true; // 오버레이 창으로 설정
         closeButton.onClick.AddListener(() => OnCloseButtonClicked());
         stageStartButton.onClick.AddListener(() => OnStageStartButtonClicked());
+        monitoringButton.onClick.AddListener(() => OnMonitoringButtonClicked());
     }
 
     public override void Open()
@@ -51,6 +54,8 @@ public class StageInfoWindow : GenericWindow
 
     private void OnCloseButtonClicked()
     {
+        SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Exit_Button_Click);
+
         Close();
     }
 
@@ -85,6 +90,27 @@ public class StageInfoWindow : GenericWindow
         sb.Clear();
         sb.Append($"{currentStageData.stage_name}");
         stageNameText.text = sb.ToString();
+
+        switch (currentStageData.stage_position)
+        {
+            case 1: 
+                sb.Clear();
+                sb.Append("스테이지 위치 : 상");
+                stagePositionText.text = sb.ToString();
+                break;
+
+            case 2:
+                sb.Clear();
+                sb.Append("스테이지 위치 : 중");
+                stagePositionText.text = sb.ToString();
+                break;
+
+            case 3:
+                sb.Clear();
+                sb.Append("스테이지 위치 : 하");
+                stagePositionText.text = sb.ToString();
+                break;
+        }
     }
 
     private void UpdateWaveProgress()
@@ -273,5 +299,32 @@ public class StageInfoWindow : GenericWindow
 
         obj.SetActive(false);
         rt.localScale = Vector3.one; // 원상복구
+    }
+    
+    private void OnMonitoringButtonClicked()
+    {
+        if (windowManager != null)
+        {
+            windowManager.OpenOverlay(WindowType.MonitoringCharacterSelect);
+        }
+
+        SaveSelectedStageDataForMonitoring();
+
+        if (windowManager != null)
+        {
+            windowManager.OpenOverlay(WindowType.MonitoringCharacterSelect);
+        }
+    }
+
+    private void SaveSelectedStageDataForMonitoring()
+    {
+        var gameData = SaveLoadManager.Data;
+        gameData.selectedStageID = currentStageData.stage_ID;
+        gameData.selectedStageStep1 = currentStageData.stage_step1;
+        gameData.selectedStageStep2 = currentStageData.stage_step2;
+
+        SaveLoadManager.SaveToServer().Forget();
+
+        Debug.Log($"모니터링용 스테이지 데이터 저장: Stage ID {currentStageData.stage_ID}");
     }
 }

@@ -33,6 +33,8 @@ public class SaveDataV1 : SaveData
     public int startingWave = 1;
 
     public int fanAmount; // 팬 수
+    public Dictionary<int, int> characterDispatchCounts = new Dictionary<int, int>(); // 파견 중인 캐릭터 ID와 파견 횟수
+    public string lastDispatchResetDate = ""; // 마지막 파견 리셋 날짜 
 
     public SaveDataV1()
     {

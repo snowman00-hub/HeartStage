@@ -211,13 +211,11 @@ public class StageSetupWindow : MonoBehaviour
         if (_maxDeployUnits > 0 && GetCurrentDeployCount() > _maxDeployUnits)
         {
             Debug.LogWarning($"[StageSetupWindow] Deploy limit exceeded! cur={GetCurrentDeployCount()} max={_maxDeployUnits}");
-            //SoundManager.Instance.PlaySFX("Ui_error");
             return;
         }
         if (GetCurrentDeployCount() == 0)
         {
             Debug.LogWarning("[StageSetupWindow] No units deployed!");
-            //SoundManager.Instance.PlaySFX("Ui_error");
             return;
         }
 
@@ -229,7 +227,7 @@ public class StageSetupWindow : MonoBehaviour
 
         SynergyManager.ApplySynergies(DraggableSlots, allies);
 
-        SoundManager.Instance.PlaySFX("Ui_click_01");
+        SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);
         StageManager.Instance.SetTimeScale(1f);
         gameObject.SetActive(false);
     }
