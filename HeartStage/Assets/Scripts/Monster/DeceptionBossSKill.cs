@@ -79,12 +79,12 @@ public class DeceptionBossSkill : MonoBehaviour, ISkillBehavior
             return; // 이미 로드됨
         }
 
-        MonsterData cachedMonsterData = ResourceManager.Instance.Get<MonsterData>($"{summonType}");
+        MonsterData cachedMonsterData = ResourceManager.Instance.Get<MonsterData>($"MonsterData_{summonType}");
         if (cachedMonsterData == null)
         {
             try
             {
-                var handle = Addressables.LoadAssetAsync<MonsterData>($"{summonType}");
+                var handle = Addressables.LoadAssetAsync<MonsterData>($"MonsterData_{summonType}");
                 cachedMonsterData = await handle.Task;
 
                 if (cachedMonsterData != null)
