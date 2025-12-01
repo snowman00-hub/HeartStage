@@ -303,11 +303,6 @@ public class StageInfoWindow : GenericWindow
     
     private void OnMonitoringButtonClicked()
     {
-        if (windowManager != null)
-        {
-            windowManager.OpenOverlay(WindowType.MonitoringCharacterSelect);
-        }
-
         SaveSelectedStageDataForMonitoring();
 
         if (windowManager != null)
