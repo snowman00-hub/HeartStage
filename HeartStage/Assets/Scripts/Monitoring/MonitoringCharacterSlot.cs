@@ -5,6 +5,7 @@ using UnityEngine.EventSystems;
 public class MonitoringCharacterSlot : MonoBehaviour, IDropHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     [SerializeField] private Image characterImage;
+    [SerializeField] private Image slotBackGroundImage; 
 
     private CharacterData currentCharacterData;
     private int slotIndex;
@@ -16,6 +17,9 @@ public class MonitoringCharacterSlot : MonoBehaviour, IDropHandler, IBeginDragHa
     private RectTransform rectTransform;
     private GameObject dragIcon;
 
+    private bool isSlotEnabled = true;
+    private Color originalSlotColor;
+
     private void Awake()
     {
         canvas = GetComponentInParent<Canvas>();
@@ -25,6 +29,16 @@ public class MonitoringCharacterSlot : MonoBehaviour, IDropHandler, IBeginDragHa
             canvasGroup = gameObject.AddComponent<CanvasGroup>();
         }
         rectTransform = GetComponent<RectTransform>();
+
+        if(slotBackGroundImage == null)
+        {
+             slotBackGroundImage = GetComponent<Image>();
+        }
+
+        if(slotBackGroundImage != null)
+        {
+           originalSlotColor = slotBackGroundImage.color;
+        }
     }
 
     public void Init(int index, MonitoringCharacterSelectUI parent)
@@ -37,9 +51,38 @@ public class MonitoringCharacterSlot : MonoBehaviour, IDropHandler, IBeginDragHa
     public bool IsEmpty() => currentCharacterData == null;
     public CharacterData GetCharacterData() => currentCharacterData;
 
+    public void SetSlotEnabled(bool enabled)
+    {
+        isSlotEnabled = enabled;
+        UpdateSlotColor();
+        UpdateVisualState();
+    }
+
+    private void UpdateSlotColor()
+    {
+        if (slotBackGroundImage == null)
+        {
+            return;
+        }
+
+        if (isSlotEnabled)
+        {
+            slotBackGroundImage.color = originalSlotColor;
+        }
+        else
+        {
+            slotBackGroundImage.color = Color.red;
+        }
+    }
+
     public bool TrySetCharacter(CharacterData characterData)
     {
         if (characterData == null) return false;
+
+        if(!isSlotEnabled)
+        {
+            return false; // 슬롯이 비활성화된 경우 캐릭터를 설정하지 않음
+        }
 
         UnlockPreviousCharacter();
         currentCharacterData = characterData;
