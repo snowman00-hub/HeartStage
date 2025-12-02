@@ -17,6 +17,8 @@ public class MonitoringCharacterSelectUI : GenericWindow
     [SerializeField] private Button closeButton;
     [SerializeField] private Button startButton;
 
+    private int currentDipatchMemberCount = 3;
+
     private void Awake()
     {
         closeButton.onClick.AddListener(OnCloseButtonClicked);
@@ -35,13 +37,52 @@ public class MonitoringCharacterSelectUI : GenericWindow
     public override void Open()
     {
         base.Open();
+        UpdateDispatchMemberCount();
         Display(); // 창이 열릴 때 캐릭터들을 표시
+        UpdateStartButton();
     }
 
     public override void Close()
     {
         base.Close();
         
+    }
+
+    private void UpdateDispatchMemberCount()
+    {
+        var gameData = SaveLoadManager.Data;
+
+        if(gameData != null && gameData.selectedStageID != -1)
+        {
+            var stageData = DataTableManager.StageTable.GetStage(gameData.selectedStageID);
+            if (stageData != null)
+            {
+                currentDipatchMemberCount = stageData.dispatch_member;
+            }
+        }
+
+        UpdateSlotState();
+        UpdateStartButton(); // 슬롯 상태 변경 후 시작 버튼 업테이트
+    }
+
+    private void UpdateSlotState()
+    {
+        for (int i = 0; i < selectedSlots.Length; i++)
+        {
+            if (selectedSlots[i] != null)
+            {
+                bool isSlotEnabled = i < currentDipatchMemberCount;
+                selectedSlots[i].SetSlotEnabled(isSlotEnabled);
+
+                // 비활성화된 슬롯의 캐릭터는 제거
+                if (!isSlotEnabled && !selectedSlots[i].IsEmpty())
+                {
+                    var characterData = selectedSlots[i].GetCharacterData();
+                    selectedSlots[i].ClearSlot();
+                    SetCharacterLocked(characterData, false);
+                }
+            }
+        }
     }
 
     private void Display()
@@ -100,11 +141,17 @@ public class MonitoringCharacterSelectUI : GenericWindow
         {
             if (selectedSlots[targetSlotIndex] != null)
             {
+                if (targetSlotIndex >= currentDipatchMemberCount)
+                {
+                    return false; // 비활성화된 슬롯에는 배치 불가
+                }
+
                 bool success = selectedSlots[targetSlotIndex].TrySetCharacter(characterData);
                 if (success)
                 {
                     // 해당 캐릭터 프리팹을 잠금 상태로 변경
                     SetCharacterLocked(characterData, true);
+                    UpdateStartButton();
                 }
                 return success;
             }
@@ -120,12 +167,14 @@ public class MonitoringCharacterSelectUI : GenericWindow
                 {
                     // 해당 캐릭터 프리팹을 잠금 상태로 변경
                     SetCharacterLocked(characterData, true);
+                    UpdateStartButton();
                 }
                 return success;
             }
         }
 
         return false; // 모든 슬롯이 꽉 참
+
     }
 
     // 캐릭터의 파견 가능 여부 확인
@@ -152,6 +201,7 @@ public class MonitoringCharacterSelectUI : GenericWindow
                 selectedSlots[i].ClearSlot();
                 // 해당 캐릭터 프리팹의 잠금 해제
                 SetCharacterLocked(characterData, false);
+                UpdateStartButton(); 
                 break;
             }
         }
@@ -243,13 +293,20 @@ public class MonitoringCharacterSelectUI : GenericWindow
         return ownedCharacters;
     }
 
-    private void OnStartButtonClicked()
+    private void UpdateStartButton() // 시작 버튼 활성화 상태 업데이트
     {
+        var selectedCharacters = GetSelectedCharacters();
+        bool canStart = selectedCharacters.Count >= currentDipatchMemberCount;
+
+        startButton.interactable = canStart;
+    }
+    private void OnStartButtonClicked()
+    {      
         SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);
 
         var selectedCharacters = GetSelectedCharacters();
 
-        if (selectedCharacters.Count == 0)
+        if (selectedCharacters.Count < currentDipatchMemberCount)
         {
             return;
         }
@@ -298,6 +355,7 @@ public class MonitoringCharacterSelectUI : GenericWindow
         }
 
         // 캐릭터 목록 UI도 새로고침 (파견 횟수 변경 반영)
+        UpdateStartButton();
         Display();
     }
 
