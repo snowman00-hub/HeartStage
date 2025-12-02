@@ -184,4 +184,17 @@ public class CharacterTable : DataTable
         }
         return Unknown;
     }
+
+    public string GetIconImageNameByName(string charName)
+    {
+        if (string.IsNullOrEmpty(charName))
+            return Unknown;
+
+        // char_name이 같은 가장 첫 번째 row 하나 찾기
+        var row = table.Values.FirstOrDefault(r => r.char_name == charName);
+        if (row != null)
+            return row.icon_imageName;
+
+        return Unknown;
+    }
 }

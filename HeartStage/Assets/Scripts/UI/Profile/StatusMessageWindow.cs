@@ -1,4 +1,5 @@
 ﻿using Cysharp.Threading.Tasks;
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,13 +13,15 @@ public class StatusMessageWindow : MonoBehaviour
     [SerializeField] private Button okButton;
     [SerializeField] private Button cancelButton;
 
+    public bool IsOpen => gameObject.activeSelf;
+
     private void Awake()
     {
         Instance = this;
         gameObject.SetActive(false);
 
         okButton.onClick.AddListener(() => OnClickOk().Forget());
-        cancelButton.onClick.AddListener(Close);
+        cancelButton.onClick.AddListener(CloseInternal);
     }
 
     public void Open()
@@ -34,16 +37,21 @@ public class StatusMessageWindow : MonoBehaviour
         inputField.ActivateInputField();
     }
 
-    private void Close()
+    public void CloseInternal()
     {
         gameObject.SetActive(false);
+    }
+
+    private void CloseWithModal()
+    {
+        CloseInternal();
+        ProfileWindow.Instance?.HideModalPanel();
     }
 
     private async UniTaskVoid OnClickOk()
     {
         string raw = inputField.text;
 
-        // 닉네임과 동일한 슬랭/길이 검사 로직 재사용
         if (!NicknameValidator.ValidateStatus(raw, out string error))
         {
             messageText.text = error;
@@ -62,7 +70,9 @@ public class StatusMessageWindow : MonoBehaviour
 
         int achievementCount = AchievementUtil.GetCompletedAchievementCount(data);
         await PublicProfileService.UpdateMyPublicProfileAsync(data, achievementCount);
+        // 프로필 UI 즉시 갱신
+        ProfileWindow.Instance?.RefreshAll();
 
-        Close();
+        CloseWithModal();
     }
 }

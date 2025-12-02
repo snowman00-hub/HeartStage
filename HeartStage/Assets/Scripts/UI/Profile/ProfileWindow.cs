@@ -1,8 +1,10 @@
 ﻿using Cysharp.Threading.Tasks;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections.Generic;
 
 public class ProfileWindow : MonoBehaviour
 {
@@ -10,6 +12,9 @@ public class ProfileWindow : MonoBehaviour
 
     [Header("Root")]
     [SerializeField] private GameObject root;
+
+    [Header("모달 패널")]
+    [SerializeField] private ProfileModalPanel modalPanel;
 
     [Header("상단 - 닉네임 / 칭호 / 팬 수")]
     [SerializeField] private TMP_Text nicknameText;
@@ -24,11 +29,6 @@ public class ProfileWindow : MonoBehaviour
     [SerializeField] private TMP_Text mainStageText;
     [SerializeField] private TMP_Text achievementCountText;
     [SerializeField] private TMP_Text fanMeetingTimeText;
-    // 스페셜 스테이지 타임은 아직 기획이 고정 안돼서 UI에서 제외
-    // [SerializeField] private TMP_Text specialStageTimeText;
-
-    // [Header("드림 에너지")]
-    // [SerializeField] private TMP_Text dreamEnergyText;
 
     [Header("버튼들")]
     [SerializeField] private Button closeButton;
@@ -36,9 +36,10 @@ public class ProfileWindow : MonoBehaviour
     [SerializeField] private Button changeStatusButton;
     [SerializeField] private Button changeIconButton;
 
-    [Header("변경창들")]
+    [Header("팝업들")]
     [SerializeField] private NicknameWindow nicknameWindow;
     [SerializeField] private StatusMessageWindow statusMessageWindow;
+    [SerializeField] private IconChangeWindow iconChangeWindow;
 
     // 드랍다운 인덱스 → 타이틀 ID 매핑
     private readonly List<int> _titleIdByIndex = new List<int>();
@@ -53,19 +54,20 @@ public class ProfileWindow : MonoBehaviour
         if (closeButton != null)
             closeButton.onClick.AddListener(Close);
 
-        if (changeNicknameButton != null && nicknameWindow != null)
-            changeNicknameButton.onClick.AddListener(nicknameWindow.Open);
+        if (changeNicknameButton != null)
+            changeNicknameButton.onClick.AddListener(OnClickChangeNickname);
 
-        if (changeStatusButton != null && statusMessageWindow != null)
-            changeStatusButton.onClick.AddListener(statusMessageWindow.Open);
+        if (changeStatusButton != null)
+            changeStatusButton.onClick.AddListener(OnClickChangeStatusMessage);
 
         if (changeIconButton != null)
             changeIconButton.onClick.AddListener(OnClickChangeIcon);
 
         if (titleDropdown != null)
-        {
             titleDropdown.onValueChanged.AddListener(OnTitleDropdownChanged);
-        }
+
+        if (modalPanel != null)
+            modalPanel.Hide();
     }
 
     private void OnEnable()
@@ -75,8 +77,6 @@ public class ProfileWindow : MonoBehaviour
             RefreshAll();
         }
     }
-
-    // ======= 외부에서 여는 함수 =======
 
     public void Open()
     {
@@ -90,9 +90,20 @@ public class ProfileWindow : MonoBehaviour
     {
         if (root != null)
             root.SetActive(false);
+
+        HideModalPanel();
+        modalPanel?.CloseAllPopups();
     }
 
-    // ======= 메인 갱신 =======
+    public void ShowModalPanel()
+    {
+        modalPanel?.Show();
+    }
+
+    public void HideModalPanel()
+    {
+        modalPanel?.Hide();
+    }
 
     public void RefreshAll()
     {
@@ -105,8 +116,6 @@ public class ProfileWindow : MonoBehaviour
         RefreshTopArea(data);
         RefreshIconAndStatus(data);
         RefreshRecordBox(data);
-        // 드림 에너지 / 스페셜 스테이지 타임은 현재 프로필에서 사용하지 않음
-        // RefreshDreamEnergy(data);
     }
 
     private void RefreshTopArea(SaveDataV1 data)
@@ -124,7 +133,7 @@ public class ProfileWindow : MonoBehaviour
         // 팬 수
         if (fanCountText != null)
         {
-            fanCountText.text = data.fanAmount.ToString("N0");
+            fanCountText.text = $"♥ 팬: {data.fanAmount}";
         }
     }
 
@@ -136,24 +145,20 @@ public class ProfileWindow : MonoBehaviour
         _titleIdByIndex.Clear();
         titleDropdown.options.Clear();
 
-        // 0번: 칭호 없음
         _titleIdByIndex.Add(0);
         titleDropdown.options.Add(new TMP_Dropdown.OptionData("칭호 없음"));
 
-        // TitleTable에서 전체 리스트 가져오기
-        var titleTable = DataTableManager.TitleTable; // 너 프로젝트 구조에 맞게 변경 가능
+        var titleTable = DataTableManager.TitleTable;
         Dictionary<int, TitleData> allTitles = null;
         if (titleTable != null)
             allTitles = titleTable.GetAll();
 
-        // 내가 가진 칭호들만 돌면서 옵션 추가
         if (data.ownedTitleIds != null)
         {
             foreach (var titleId in data.ownedTitleIds)
             {
                 TitleData tData = null;
-                if (allTitles != null)
-                    allTitles.TryGetValue(titleId, out tData);
+                allTitles?.TryGetValue(titleId, out tData);
 
                 string displayName = tData != null ? tData.Title_name : $"Title {titleId}";
                 _titleIdByIndex.Add(titleId);
@@ -161,9 +166,8 @@ public class ProfileWindow : MonoBehaviour
             }
         }
 
-        // 현재 장착된 칭호에 맞춰 드랍다운 선택 인덱스 설정
         int currentTitleId = data.equippedTitleId;
-        int selectedIndex = 0; // 기본: 칭호 없음
+        int selectedIndex = 0;
 
         for (int i = 0; i < _titleIdByIndex.Count; i++)
         {
@@ -177,11 +181,11 @@ public class ProfileWindow : MonoBehaviour
         titleDropdown.SetValueWithoutNotify(selectedIndex);
         titleDropdown.RefreshShownValue();
     }
+
     private void RefreshIconAndStatus(SaveDataV1 data)
     {
         Debug.Log("[ProfileWindow] RefreshIconAndStatus START");
 
-        // 프로필 아이콘
         if (profileIconImage != null)
         {
             string key = ResolveProfileIconKey(data);
@@ -209,7 +213,6 @@ public class ProfileWindow : MonoBehaviour
             Debug.LogWarning("[ProfileWindow] profileIconImage == null");
         }
 
-        // 상태 메시지
         if (statusMessageText != null)
         {
             if (string.IsNullOrEmpty(data.statusMessage))
@@ -221,7 +224,7 @@ public class ProfileWindow : MonoBehaviour
 
     private string ResolveProfileIconKey(SaveDataV1 data)
     {
-        // 1) 이미 저장된 profileIconKey가 있고, 실제 스프라이트도 있으면 그대로 사용
+        // 1) 이미 저장된 profileIconKey가 있고 실제 스프라이트도 있으면 그대로 사용
         if (!string.IsNullOrEmpty(data.profileIconKey))
         {
             var cached = ResourceManager.Instance.Get<Sprite>(data.profileIconKey);
@@ -229,44 +232,47 @@ public class ProfileWindow : MonoBehaviour
                 return data.profileIconKey;
         }
 
-        // 2) 내가 가진 캐릭터(ownedIds) 중에서 아이콘을 하나 골라서 기본 아이콘으로 사용
-        var charTable = DataTableManager.CharacterTable; // CSV 기반 캐릭터 테이블 :contentReference[oaicite:0]{index=0}
-        var ownedIds = SaveLoadManager.Data.ownedIds;
+        var charTable = DataTableManager.CharacterTable;
+        var unlocked = data.unlockedByName;
 
-        if (charTable != null && ownedIds != null && ownedIds.Count > 0)
+        if (charTable != null && unlocked != null && unlocked.Count > 0)
         {
-            foreach (var id in ownedIds)
+            string.Join(", ", unlocked.Where(p => p.Value).Select(p => p.Key));
+
+            foreach (var kv in unlocked)
             {
-                var row = charTable.Get(id);
+                string charName = kv.Key;
+                bool isUnlocked = kv.Value;
+
+                if (!isUnlocked)
+                    continue;
+
+                var row = charTable.GetByName(charName);
+
                 if (row == null)
                     continue;
 
-                // CSV에서 온 캐릭터 아이콘용 이름
-                var iconKey = row.icon_imageName;
+                string iconKey = row.icon_imageName;
+
                 if (string.IsNullOrEmpty(iconKey))
                     continue;
 
-                // 실제로 Addressable로 로드돼 있는 Sprite인지 확인
-                var sprite = ResourceManager.Instance.Get<Sprite>(iconKey);
+                var sprite = ResourceManager.Instance.GetSprite(iconKey);
+
                 if (sprite == null)
                     continue;
 
-                // 여기까지 왔으면 이 캐릭터 아이콘을 기본 프로필 아이콘으로 삼는다
+                // 여기 오면 진짜 성공
                 data.profileIconKey = iconKey;
-
-                if (!data.ownedProfileIconKeys.Contains(iconKey))
-                    data.ownedProfileIconKeys.Add(iconKey);
-
-                // 세이브에 반영 (원하면 빼도 됨)
-                SaveLoadManager.SaveToServer().Forget();
-
-                return iconKey;
+                
+        return iconKey;
             }
         }
 
-        // 3) 정말 캐릭터도 없고 아무것도 못 찾았을 때 최후의 기본값
-        const string fallback = "hanaicon"; // 혹은 "ProfileIcon_Default"
-        var fallbackSprite = ResourceManager.Instance.Get<Sprite>(fallback);
+        // 3) unlockedByName에서도 못 찾았으면 최후의 fallback
+        const string fallback = "hanaicon";
+
+        var fallbackSprite = ResourceManager.Instance.GetSprite("hanaicon");
         if (fallbackSprite != null)
         {
             data.profileIconKey = fallback;
@@ -274,70 +280,59 @@ public class ProfileWindow : MonoBehaviour
             return fallback;
         }
 
-        // 4) 진짜로 아무것도 못 찾으면 빈 문자열
+        // 4) 진짜 아무것도 없으면 빈 문자열
         return string.Empty;
     }
 
+
     private void RefreshRecordBox(SaveDataV1 data)
     {
-        // 메인 스테이지
         if (mainStageText != null)
         {
             if (data.mainStageStep1 <= 0 && data.mainStageStep2 <= 0)
-                mainStageText.text = "--";
+                mainStageText.text = "메인 스테이지 진행도: 없음";
             else
-                mainStageText.text = $"{data.mainStageStep1}-{data.mainStageStep2}";
+                mainStageText.text = $"메인 스테이지 진행도: {data.mainStageStep1}-{data.mainStageStep2}";
         }
 
-        // 업적 개수
         if (achievementCountText != null)
         {
             int count = AchievementUtil.GetCompletedAchievementCount(data);
-            achievementCountText.text = $"{count}개";
+            achievementCountText.text = $"달성한 업적: {count}개";
         }
 
-        // 팬미팅 기록
         if (fanMeetingTimeText != null)
         {
             fanMeetingTimeText.text = FormatTimeMMSS(data.bestFanMeetingSeconds);
         }
-
-        // 스페셜 스테이지 기록은 현재 UI에서 제거
-        // if (specialStageTimeText != null)
-        // {
-        //     specialStageTimeText.text = FormatTimeMMSS(data.specialStageBestSeconds);
-        // }
     }
-
-    // private void RefreshDreamEnergy(SaveDataV1 data)
-    // {
-    //     if (dreamEnergyText != null)
-    //     {
-    //         dreamEnergyText.text = data.dreamEnergy.ToString("N0");
-    //     }
-    // }
-
-    // ======= 버튼 콜백 =======
 
     private void OnClickChangeNickname()
     {
-        if (NicknameWindow.Instance != null)
-            NicknameWindow.Instance.Open();
+        if (nicknameWindow != null)
+        {
+            nicknameWindow.Open();
+            ShowModalPanel();
+        }
     }
 
     private void OnClickChangeStatusMessage()
     {
-        if (StatusMessageWindow.Instance != null)
-            StatusMessageWindow.Instance.Open();
+        if (statusMessageWindow != null)
+        {
+            statusMessageWindow.Open();
+            ShowModalPanel();
+        }
     }
 
     private void OnClickChangeIcon()
     {
-        // TODO: 아이콘 선택창 열기
-        Debug.Log("[ProfileWindow] 프로필 아이콘 변경 버튼 클릭");
+        if (iconChangeWindow != null)
+        {
+            iconChangeWindow.Open();
+            ShowModalPanel();
+        }
     }
-
-    // ======= 드랍다운 콜백 =======
 
     private void OnTitleDropdownChanged(int index)
     {
@@ -354,28 +349,24 @@ public class ProfileWindow : MonoBehaviour
 
         int newTitleId = _titleIdByIndex[index];
 
-        // 값이 같으면 패스
         if (data.equippedTitleId == newTitleId)
             return;
 
         data.equippedTitleId = newTitleId;
 
-        // 세이브 + publicProfiles 동기화
         await SaveLoadManager.SaveToServer();
 
         int achievementCount = AchievementUtil.GetCompletedAchievementCount(data);
         await PublicProfileService.UpdateMyPublicProfileAsync(data, achievementCount);
     }
 
-    // ======= 유틸 =======
-
     private string FormatTimeMMSS(int seconds)
     {
         if (seconds <= 0)
-            return "--:--";
+            return "팬미팅 진행시간: 없음";
 
         int m = seconds / 60;
         int s = seconds % 60;
-        return $"{m:00}:{s:00}";
+        return $"팬미팅 진행시간: {m:00}:{s:00}";
     }
 }
