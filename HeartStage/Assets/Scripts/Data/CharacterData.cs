@@ -38,6 +38,7 @@ public class CharacterData : ScriptableObject
     public string projectile_AssetName;
     public string hitEffect_AssetName;
     public string card_imageName;
+    public string icon_imageName;
 
     // 전투력 주기
     public int GetTotalPower()
@@ -97,6 +98,7 @@ public class CharacterData : ScriptableObject
         projectile_AssetName = csv.projectile_AssetName;
         hitEffect_AssetName = csv.hitEffect_AssetName;
         card_imageName = csv.card_imageName;
+        icon_imageName = csv.card_imageName;
     }
 
     // ScriptableObject → CSV
@@ -136,7 +138,8 @@ public class CharacterData : ScriptableObject
             bullet_PrefabName = bullet_PrefabName,
             projectile_AssetName = projectile_AssetName,
             hitEffect_AssetName = hitEffect_AssetName,
-            card_imageName = card_imageName
+            card_imageName = card_imageName,
+            icon_imageName = icon_imageName
         };
     }
 }

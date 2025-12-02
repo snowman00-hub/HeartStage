@@ -44,6 +44,9 @@ public class LobbySceneController : MonoBehaviour
 
             go.SetActive(true);
             await weeklyQuestsComponent.InitializeAsync();
+
+            await SyncPublicProfileIfPossible();
+
             go.SetActive(wasActive); // 다시 원래 상태(false)로 돌려두기
         }
         else
@@ -86,5 +89,16 @@ public class LobbySceneController : MonoBehaviour
         // 5) 로비 씬 준비 완료 알림 + 로딩창 닫기
         GameSceneManager.NotifySceneReady(SceneType.LobbyScene, 100);
         await SceneLoader.HideLoadingWithDelay(0);
+    }
+
+    private async UniTask SyncPublicProfileIfPossible()
+    {
+        if (SaveLoadManager.Data is not SaveDataV1 data)
+            return;
+
+        int achievementCount = AchievementUtil.GetCompletedAchievementCount(data);
+
+        await PublicProfileService.UpdateMyPublicProfileAsync(data, achievementCount);
+        Debug.Log("[Lobby] publicProfiles 동기화 완료");
     }
 }

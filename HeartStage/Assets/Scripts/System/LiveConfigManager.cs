@@ -9,7 +9,6 @@ using UnityEngine;
 public class AppConfigData
 {
     public int minVersionCodeAndroid;   // 최소 지원 안드로이드 버전 코드
-    public int minVersionCodeIOS;   // 최소 지원 iOS 버전 코드
     public int recommendVersionCode;    // 권장 버전 코드
 }
 
@@ -139,7 +138,6 @@ public class LiveConfigManager : MonoBehaviour
             AppConfig = new AppConfigData
             {
                 minVersionCodeAndroid = ToInt(snap.Child("minVersionCodeAndroid").Value),
-                minVersionCodeIOS = ToInt(snap.Child("minVersionCodeIOS").Value),
                 recommendVersionCode = ToInt(snap.Child("recommendVersionCode").Value)
             };
         }

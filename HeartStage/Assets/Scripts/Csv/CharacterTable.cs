@@ -41,6 +41,7 @@ public class CharacterCSVData
     public string projectile_AssetName { get; set; }
     public string hitEffect_AssetName { get; set; }
     public string card_imageName { get; set; }
+    public string icon_imageName { get; set; }
 }
 
 public class CharacterTable : DataTable
@@ -173,5 +174,14 @@ public class CharacterTable : DataTable
         }
 
         return result;
+    }
+
+    public string GetIconImageName(int charId)
+    {
+        if (table.TryGetValue(charId, out var data))
+        {
+            return data.icon_imageName;
+        }
+        return Unknown;
     }
 }

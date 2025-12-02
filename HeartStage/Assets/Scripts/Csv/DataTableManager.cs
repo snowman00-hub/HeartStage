@@ -146,6 +146,18 @@ public static class DataTableManager
             await table.LoadAsync(id);
             tables.Add(id, table);
         }
+        {
+            var table = new TitleTable();
+            var id = DataTableIds.Title;
+            await table.LoadAsync(id);
+            tables.Add(id, table);
+        }
+        {
+            var table = new SlangTable();
+            var id = DataTableIds.Slang;
+            await table.LoadAsync(id);
+            tables.Add(id, table);
+        }
     }
 
     public static ItemTable ItemTable
@@ -293,6 +305,22 @@ public static class DataTableManager
         get
         {
             return Get<PieceTable>(DataTableIds.Piece);
+        }
+    }
+
+    public static TitleTable TitleTable
+    {
+        get
+        {
+            return Get<TitleTable>(DataTableIds.Title);
+        }
+    }
+
+    public static SlangTable SlangTable
+    {
+        get
+        {
+            return Get<SlangTable>(DataTableIds.Slang);
         }
     }
 

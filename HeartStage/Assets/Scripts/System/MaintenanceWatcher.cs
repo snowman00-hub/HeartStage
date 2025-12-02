@@ -84,7 +84,7 @@ public class MaintenanceWatcher : MonoBehaviour
             return;
 
         var scene = SceneManager.GetActiveScene();
-        if (scene.name == "BootScene" || scene.name == "TitleScene")
+        if (scene.name == "bootScene" || scene.name == "TitleScene")
             return;
 
         bool isNow = IsMaintenanceNow(m);

@@ -108,7 +108,7 @@ public class BootStrap : MonoBehaviour
 
             // 부트/타이틀 같은 씬은 스킵
             if (!string.IsNullOrEmpty(sceneName) &&
-                sceneName != "BootScene" &&
+                sceneName != "bootScene" &&
                 sceneName != "TitleScene")
             {
                 var settings = UnityEditor.AddressableAssets
