@@ -12,6 +12,7 @@ public class MailPrefab : MonoBehaviour
 
     public event Action<MailData> OnMailClicked;
     private MailData mailData;
+    private Sprite currentMailSprite;
 
     private void Awake()
     {
@@ -31,10 +32,22 @@ public class MailPrefab : MonoBehaviour
 
     private void SetMailIconState(bool isRead)
     {
-        // 읽음/안읽음에 따른 이미지 색상 또는 투명도 변경
-        if (mailIcon != null)
+        if (mailIcon == null) return;
+
+        // 기존 스프라이트 정리
+        if (currentMailSprite != null)
         {
-            mailIcon.color = isRead ? Color.gray : Color.white;
+            DestroyImmediate(currentMailSprite);
+            currentMailSprite = null;
+        }
+
+        string imageName = isRead ? "Mail-Open-100" : "Mail-Heart";
+
+        var texture = ResourceManager.Instance.Get<Texture2D>(imageName);
+        if (texture != null)
+        {
+            currentMailSprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+            mailIcon.sprite = currentMailSprite;
         }
     }
 
@@ -45,7 +58,7 @@ public class MailPrefab : MonoBehaviour
 
     private string GetTimeString(long timestamp)
     {
-        var dateTime = DateTimeOffset.FromUnixTimeSeconds(timestamp);
+        var dateTime = DateTimeOffset.FromUnixTimeMilliseconds(timestamp); 
         var now = DateTimeOffset.UtcNow;
         var diff = now - dateTime;
 
@@ -60,5 +73,11 @@ public class MailPrefab : MonoBehaviour
     private void OnDestroy()
     {
         OnMailClicked = null; // 이벤트 정리
+
+        if (currentMailSprite != null)
+        {
+            DestroyImmediate(currentMailSprite);
+            currentMailSprite = null;
+        }
     }
 }

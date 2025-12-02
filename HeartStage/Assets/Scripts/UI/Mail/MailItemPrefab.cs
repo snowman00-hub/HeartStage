@@ -18,10 +18,6 @@ public class MailItemPrefab : MonoBehaviour
         {
             SetItemData(itemId, itemAttachment.count);
         }
-        else
-        {
-            Debug.LogWarning($"Invalid itemId format: {itemAttachment.itemId}");
-        }
     }
 
     private void SetItemData(int itemId, int count)
@@ -30,7 +26,6 @@ public class MailItemPrefab : MonoBehaviour
         var itemData = DataTableManager.ItemTable.Get(itemId);
         if (itemData == null)
         {
-            Debug.LogWarning($"Item data not found for ID: {itemId}");
             return;
         }
 
@@ -61,10 +56,6 @@ public class MailItemPrefab : MonoBehaviour
                 new Rect(0, 0, texture.width, texture.height),
                 new Vector2(0.5f, 0.5f)
             );
-        }
-        else
-        {
-            Debug.LogWarning($"Texture not found for prefab: {prefabName}");
         }
     }
 }
