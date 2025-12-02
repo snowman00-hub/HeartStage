@@ -36,6 +36,7 @@ public class Tag
     public static readonly string Monster = "Monster";
     public static readonly string Wall = "Wall";
     public static readonly string Tower = "Tower";
+    public static readonly string LobbyHomeObject = "LobbyHomeObject";
 }
 
 public class AddressableLabel

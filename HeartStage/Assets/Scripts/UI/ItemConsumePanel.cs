@@ -26,7 +26,7 @@ public class ItemConsumePanel : MonoBehaviour
         get { return itemCount; }
         set
         {
-            itemCount = value;
+            itemCount = Mathf.Clamp(value, 0, SaveLoadManager.Data.itemList[itemId]);
             countText.text = $"{itemCount}";
 
             if (itemData.item_type == ItemTypeID.Piece && itemCount < pieceData.piece_ingrd_amount)
@@ -53,10 +53,10 @@ public class ItemConsumePanel : MonoBehaviour
     public void ItemUse()
     {
         // 일단 조각만 사용가능하게
-        if(itemData.item_type == ItemTypeID.Piece)
+        if (itemData.item_type == ItemTypeID.Piece)
         {
             int makeCount = ItemCount / pieceData.piece_ingrd_amount;
-            if(ItemInvenHelper.TryConsumeItem(itemId, makeCount * pieceData.piece_ingrd_amount))
+            if (ItemInvenHelper.TryConsumeItem(itemId, makeCount * pieceData.piece_ingrd_amount))
             {
                 ItemInvenHelper.AddItem(pieceData.piece_result, makeCount);
                 ItemInfoPanel.instance.gameObject.SetActive(false);
@@ -75,8 +75,8 @@ public class ItemConsumePanel : MonoBehaviour
         itemData = DataTableManager.ItemTable.Get(itemId);
         var texture = ResourceManager.Instance.Get<Texture2D>(itemData.prefab);
         itemIcon.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
-       
-        if(itemData.item_type == ItemTypeID.Piece)
+
+        if (itemData.item_type == ItemTypeID.Piece)
         {
             ButtonInteractable(false);
             pieceData = DataTableManager.PieceTable.Get(itemId);
