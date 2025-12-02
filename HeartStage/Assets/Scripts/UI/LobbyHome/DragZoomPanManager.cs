@@ -20,7 +20,7 @@ public class DragZoomPanManager : MonoBehaviour
     private bool isPanning = false;
     private Transform dragTarget;
     private Vector2 lastPos;
-    private Vector3 dragOffset;   // 드래그 오프셋
+    private Vector3 dragOffset; // 드래그 오프셋
 
     private void Update()
     {
