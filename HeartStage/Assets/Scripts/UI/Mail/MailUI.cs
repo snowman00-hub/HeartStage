@@ -14,11 +14,14 @@ public class MailUI : GenericWindow
 
     private List<MailData> currentMails = new List<MailData>();
 
+    // UserId 캐싱용 프로퍼티
+    private string UserId => AuthManager.Instance?.UserId;
+
     private void Awake()
     {
         closeButton.onClick.AddListener(OnExitButtonClicked);
         deleteButton.onClick.AddListener(OnDeleteReadMailsClicked);
-        receiveAllButton.onClick.AddListener(OnReceiveAllItemsClicked);
+        receiveAllButton.onClick.AddListener(() => OnReceiveAllItemsClickedAsync().Forget());
     }
 
     private void OnEnable()
@@ -53,10 +56,9 @@ public class MailUI : GenericWindow
     // 유저의 모든 메일 로드
     public async UniTaskVoid LoadUserMails()
     {
-        if (AuthManager.Instance?.UserId == null) return;
+        if (string.IsNullOrEmpty(UserId)) return;
 
-        string userId = AuthManager.Instance.UserId;
-        currentMails = await MailManager.Instance.GetUserMailsAsync(userId);
+        currentMails = await MailManager.Instance.GetUserMailsAsync(UserId);
         RefreshMailList();
     }
 
@@ -108,14 +110,14 @@ public class MailUI : GenericWindow
     // 읽은 메일 삭제
     private async void OnDeleteReadMailsClicked()
     {
-        string userId = AuthManager.Instance.UserId;
+        if (string.IsNullOrEmpty(UserId)) return;
 
         for (int i = currentMails.Count - 1; i >= 0; i--)
         {
             var mail = currentMails[i];
             if (CanDeleteMail(mail))
             {
-                await MailManager.Instance.DeleteMailAsync(userId, mail.mailId);
+                await MailManager.Instance.DeleteMailAsync(UserId, mail.mailId);
                 currentMails.RemoveAt(i);
             }
         }
@@ -131,17 +133,13 @@ public class MailUI : GenericWindow
         return !hasRewards || mail.isRewarded;
     }
 
-    private void OnReceiveAllItemsClicked()
-    {
-        OnReceiveAllItemsClickedAsync().Forget();
-    }
-
-    // 모든 메일의 보상 일괄 수령
+    // 모든 메일의 보상 일괄 수령 (wrapper 메서드 제거)
     private async UniTaskVoid OnReceiveAllItemsClickedAsync()
     {
         SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);
 
-        string userId = AuthManager.Instance.UserId;
+        if (string.IsNullOrEmpty(UserId)) return;
+
         List<string> rewardedMailIds = new List<string>();
 
         foreach (var mail in currentMails)
@@ -166,29 +164,25 @@ public class MailUI : GenericWindow
         // 보상 수령 상태 업데이트
         if (rewardedMailIds.Count > 0)
         {
-            await MailManager.Instance.UpdateMultipleRewardStatusAsync(userId, rewardedMailIds);
+            await MailManager.Instance.UpdateMultipleRewardStatusAsync(UserId, rewardedMailIds);
             RefreshMailList();
         }
     }
 
-    // 메일 보상 수령 상태 업데이트
+    // 메일 보상 수령 상태 업데이트 (RefreshMailList 호출 제거 - MailInfoUI에서 이미 호출됨)
     public void UpdateMailRewardStatus(string mailId, bool isRewarded)
     {
         var mail = currentMails.Find(m => m.mailId == mailId);
         if (mail != null)
         {
             mail.isRewarded = isRewarded;
-            if (gameObject.activeInHierarchy)
-            {
-                RefreshMailList();
-            }
         }
     }
 
     // 새로운 메일이 실시간으로 수신되었을 때 호출
     private void OnNewMailReceived(MailData newMail)
     {
-        if (AuthManager.Instance?.UserId != newMail.receiverId) return;
+        if (UserId != newMail.receiverId) return;
 
         // 중복 메일 체크
         bool alreadyExists = currentMails.Exists(m => m.mailId == newMail.mailId);
@@ -209,5 +203,26 @@ public class MailUI : GenericWindow
     {
         SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Exit_Button_Click);
         Close();
+    }
+
+    // 메일 읽음 상태 업데이트
+    public void UpdateMailReadStatus(string mailId, bool isRead)
+    {
+        var mail = currentMails.Find(m => m.mailId == mailId);
+        if (mail != null)
+        {
+            mail.isRead = isRead;
+
+            // 해당 메일 프리팹만 업데이트 (전체 새로고침 대신 효율적 업데이트)
+            foreach (Transform child in mailContentParent)
+            {
+                var mailPrefab = child.GetComponent<MailPrefab>();
+                if (mailPrefab != null && mailPrefab.GetMailData()?.mailId == mailId)
+                {
+                    mailPrefab.Setup(mail);
+                    break;
+                }
+            }
+        }
     }
 }

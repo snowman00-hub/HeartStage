@@ -80,4 +80,9 @@ public class MailPrefab : MonoBehaviour
             currentMailSprite = null;
         }
     }
+
+    public MailData GetMailData()
+    {
+        return mailData;
+    }
 }
