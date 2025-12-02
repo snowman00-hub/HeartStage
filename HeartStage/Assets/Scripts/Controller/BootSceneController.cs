@@ -6,7 +6,7 @@ using UnityEngine.AddressableAssets;
 public class BootSceneController : MonoBehaviour
 {
     private static bool s_initialized = false;
-    private static UniTask s_initTask;
+    private static UniTask s_initTask = UniTask.CompletedTask;
     private static readonly string TitleScene = "Assets/Scenes/TitleScene.unity";
 
     private async void Start()
@@ -43,6 +43,7 @@ public class BootSceneController : MonoBehaviour
             await ResourceManager.Instance.PreloadLabelAsync(AddressableLabel.Stage);
             await ResourceManager.Instance.PreloadLabelAsync("SFX");
             await DataTableManager.Initialization;
+            await LiveConfigManager.Instance.InitializeAsync();
 
             BootStrap.IsInitialized = true;
         }

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class LobbyHomeWindow : MonoBehaviour
+public class LobbyHomeWindow : GenericWindow
 {
     private void OnEnable()
     {
