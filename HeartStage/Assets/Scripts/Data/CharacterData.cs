@@ -98,7 +98,7 @@ public class CharacterData : ScriptableObject
         projectile_AssetName = csv.projectile_AssetName;
         hitEffect_AssetName = csv.hitEffect_AssetName;
         card_imageName = csv.card_imageName;
-        icon_imageName = csv.card_imageName;
+        icon_imageName = csv.icon_imageName;
     }
 
     // ScriptableObject → CSV

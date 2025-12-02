@@ -1,4 +1,5 @@
 ﻿using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class LobbySceneController : MonoBehaviour
@@ -8,11 +9,16 @@ public class LobbySceneController : MonoBehaviour
     public WeeklyQuests weeklyQuestsComponent;
     public ArchivementQuests archivementQuestsComponent;
 
+    [Header("공지창 UI (씬에 있는 NoticeWindowRoot)")]
+    [SerializeField] private NoticeWindowUI noticeWindow;
+
 
     private async void Awake()
     {
         // 로비에서는 멈출 일 없으면 그냥 1 유지
         Time.timeScale = 1f;
+
+        var tasks = new List<UniTask>();
 
         // 1) 퀘스트 매니저 로직 초기화 (SaveLoad 끝난 상태라고 가정)
         if (QuestManager.Instance != null)
@@ -54,6 +60,17 @@ public class LobbySceneController : MonoBehaviour
             // 이미 초기화 된 상태라면 여기선 아무것도 안 해도 됨
             Debug.Log("[LobbySceneController] DailyQuests 이미 초기화됨. 로딩 스킵");
         }
+
+        if (noticeWindow != null)
+        {
+            var go = noticeWindow.gameObject;
+            bool wasActive = go.activeSelf;
+
+            go.SetActive(true);                        // 잠깐 켜서 Awake/레이아웃 돌리고
+            tasks.Add(noticeWindow.InitializeAsync()); // 리스트 생성
+            go.SetActive(wasActive);                   // 다시 원래 상태(false)로
+        }
+
 
         // 여기까지 오면
         // - needInitDaily == true 면 방금 로딩 끝난 상태
