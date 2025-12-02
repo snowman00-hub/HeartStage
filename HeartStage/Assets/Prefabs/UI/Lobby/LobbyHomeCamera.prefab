@@ -10,7 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 5767065109969472687}
   - component: {fileID: 8260848398388011980}
-  - component: {fileID: 3207009603167671797}
+  - component: {fileID: 1266406662776951976}
+  - component: {fileID: 4791317719237786370}
   m_Layer: 0
   m_Name: LobbyHomeCamera
   m_TagString: Untagged
@@ -68,7 +69,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 9.6
+  orthographic size: 7.94
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -84,11 +85,33 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!81 &3207009603167671797
-AudioListener:
+--- !u!114 &1266406662776951976
+MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6175971189391864491}
   m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee5be567d44526548a267d149cd463d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  zoomSpeed: 1
+  minSize: 1.5
+  maxSize: 7.94
+  cam: {fileID: 8260848398388011980}
+--- !u!114 &4791317719237786370
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6175971189391864491}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6e01497f8b9eb1448c3a8beed33ae37, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  panSpeed: 0.002
+  cam: {fileID: 8260848398388011980}

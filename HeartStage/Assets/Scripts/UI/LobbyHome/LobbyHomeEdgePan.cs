@@ -2,57 +2,84 @@
 
 public class LobbyHomeEdgePan : MonoBehaviour
 {
-    public RectTransform background;   // 움직일 로비 배경
-    public RectTransform dragRect;     // 드래그 중인 Rect
-    public RectTransform viewport;     // 배경이 보이는 부모(스크린 크기 역할)
-    public float moveSpeed = 400f;
-    public float edgePercent = 0.15f;
+    [SerializeField] private float panSpeed = 0.01f;
+    [SerializeField] private Camera cam;
+    [SerializeField] private SpriteRenderer background;
 
-    private float limitLeft;
-    private float limitRight;
-
-    private void Start()
-    {
-        CalcLimit();
-    }
-
-    private void CalcLimit()
-    {
-        float bgWidth = background.rect.width;
-        float vpWidth = viewport.rect.width;
-
-        float maxMove = bgWidth - vpWidth;
-
-        if (maxMove < 0) maxMove = 0;
-
-        // pivot 보정
-        float pivot = background.pivot.x;
-
-        limitLeft = -(maxMove * (1f - pivot));
-        limitRight = maxMove * pivot;
-    }
+    private Vector2 lastPos;
 
     private void Update()
     {
-        float screenWidth = Screen.width;
-        float leftArea = screenWidth * edgePercent;
-        float rightArea = screenWidth * (1f - edgePercent);
+#if UNITY_EDITOR
+        HandleEditorPan();
+#endif
+        HandleTouchPan();
+    }
 
-        Vector2 screenPos = RectTransformUtility.WorldToScreenPoint(null, dragRect.position);
+    // 에디터용
+    private void HandleEditorPan()
+    {
+        if (Input.GetMouseButtonDown(0))
+            lastPos = (Vector2)Input.mousePosition;
 
-        Vector2 pos = background.anchoredPosition;
-
-        if (screenPos.x < leftArea)
+        if (Input.GetMouseButton(0))
         {
-            pos.x += moveSpeed * Time.deltaTime;
+            Vector2 cur = (Vector2)Input.mousePosition;
+            Vector2 delta = cur - lastPos;
+
+            Vector3 move = new Vector3(-delta.x, -delta.y, 0f) * panSpeed * cam.orthographicSize;
+            transform.position += move;
+
+            ClampCamera();
+
+            lastPos = cur;
         }
-        else if (screenPos.x > rightArea)
+    }
+
+    // 핸드폰용
+    private void HandleTouchPan()
+    {
+        if (Input.touchCount == 1)
         {
-            pos.x -= moveSpeed * Time.deltaTime;
+            Touch t = Input.GetTouch(0);
+
+            if (t.phase == TouchPhase.Began)
+                lastPos = t.position;
+
+            if (t.phase == TouchPhase.Moved)
+            {
+                Vector2 cur = t.position;
+                Vector2 delta = cur - lastPos;
+
+                Vector3 move = new Vector3(-delta.x, -delta.y, 0f) * panSpeed * cam.orthographicSize;
+                transform.position += move;
+
+                ClampCamera();
+
+                lastPos = cur;
+            }
         }
+    }
 
-        pos.x = Mathf.Clamp(pos.x, limitLeft, limitRight);
+    // 배경 항상 찍도록 Clamp
+    public void ClampCamera()
+    {
+        float camHeight = cam.orthographicSize * 2f;
+        float camWidth = camHeight * cam.aspect;
 
-        background.anchoredPosition = pos;
+        float halfW = camWidth / 2f;
+        float halfH = camHeight / 2f;
+
+        Vector3 pos = transform.position;
+
+        pos.x = Mathf.Clamp(pos.x,
+            background.bounds.min.x + halfW,
+            background.bounds.max.x - halfW);
+
+        pos.y = Mathf.Clamp(pos.y,
+            background.bounds.min.y + halfH,
+            background.bounds.max.y - halfH);
+
+        transform.position = pos;
     }
 }
