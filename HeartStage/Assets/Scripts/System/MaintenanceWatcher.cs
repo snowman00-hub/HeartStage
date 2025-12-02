@@ -11,8 +11,6 @@ public class MaintenanceWatcher : MonoBehaviour
     [Header("런타임 점검 팝업 프리팹 (Canvas 포함)")]
     [SerializeField] private GameObject popupPrefab;   // RuntimeMaintenancePopup 프리팹
 
-    [SerializeField] private string titleSceneName = "TitleScene";
-
     private GameObject _popupInstance;
     private bool _handlingMaintenance = false;
 
@@ -30,6 +28,7 @@ public class MaintenanceWatcher : MonoBehaviour
 
     private void OnEnable()
     {
+        // 씬이 바뀔 때마다 현재 점검 상태 다시 체크
         SceneManager.sceneLoaded += OnSceneLoaded;
         WaitAndSubscribe().Forget();
     }
@@ -43,17 +42,14 @@ public class MaintenanceWatcher : MonoBehaviour
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
-    // sceneLoaded 이벤트 핸들러
+    // 씬 로드될 때마다 현재 maintenance 상태 한 번 재판단
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // 씬 바뀔 때마다 현재 Maintenance 상태 한 번 다시 확인
         if (LiveConfigManager.Instance == null)
             return;
 
         HandleMaintenanceChanged();
     }
-
-
 
     /// <summary>
     /// LiveConfigManager.Instance 생성될 때까지 기다렸다가 이벤트 구독.
@@ -68,25 +64,35 @@ public class MaintenanceWatcher : MonoBehaviour
         if (!isActiveAndEnabled)
             return;
 
-        // 혹시 중복 구독 방지
+        // 중복 구독 방지 후 다시 구독
         LiveConfigManager.Instance.OnMaintenanceChanged -= HandleMaintenanceChanged;
         LiveConfigManager.Instance.OnMaintenanceChanged += HandleMaintenanceChanged;
 
         Debug.Log("[MaintenanceWatcher] Subscribed to OnMaintenanceChanged");
+
+        // 초기 상태도 한 번 체크
+        HandleMaintenanceChanged();
     }
 
     private void HandleMaintenanceChanged()
     {
+        if (LiveConfigManager.Instance == null)
+            return;
+
         var m = LiveConfigManager.Instance.Maintenance;
         if (m == null)
             return;
 
-        bool isNow = IsMaintenanceNow(m);
-        Debug.Log($"[MaintenanceWatcher] HandleMaintenanceChanged: active={m.active}, isNow={isNow}");
+        var scene = SceneManager.GetActiveScene();
+        if (scene.name == "BootScene" || scene.name == "TitleScene")
+            return;
 
+        bool isNow = IsMaintenanceNow(m);
+        Debug.Log($"[MaintenanceWatcher] HandleMaintenanceChanged in {scene.name}: active={m.active}, isNow={isNow}");
+
+        // 지금은 점검 시간이 아님 → 팝업 있으면 닫고 타임스케일 복구
         if (!isNow)
         {
-            // 기존 로직 그대로…
             if (_popupInstance != null)
             {
                 Destroy(_popupInstance);
@@ -98,18 +104,15 @@ public class MaintenanceWatcher : MonoBehaviour
             return;
         }
 
-        // 점검 상태인 경우
-        if (_handlingMaintenance)
-            return;
+        // 여기부터는 "지금은 점검 상태"인 경우
 
-        var scene = SceneManager.GetActiveScene();
-        if (scene.name == titleSceneName || scene.name == "BootScene")
+        // 이미 점검 처리 중이면 또 만들 필요 없음
+        if (_handlingMaintenance && _popupInstance != null)
             return;
 
         _handlingMaintenance = true;
         ShowRuntimeMaintenancePopup(m);
     }
-
 
     private void ShowRuntimeMaintenancePopup(MaintenanceData m)
     {
@@ -141,13 +144,13 @@ public class MaintenanceWatcher : MonoBehaviour
 
             if (m.showRemainTime && !string.IsNullOrEmpty(m.endAt))
             {
-                if (System.DateTimeOffset.TryParse(m.endAt, out var end))
+                if (DateTimeOffset.TryParse(m.endAt, out var end))
                 {
-                    var now = System.DateTimeOffset.Now;
+                    var now = DateTimeOffset.Now;
                     if (end > now)
                     {
                         var remain = end - now;
-                        int min = (int)System.Math.Max(0, remain.TotalMinutes);
+                        int min = (int)Math.Max(0, remain.TotalMinutes);
                         msg += $"\n(점검 종료까지 약 {min}분 남았습니다.)";
                     }
                 }
@@ -169,7 +172,7 @@ public class MaintenanceWatcher : MonoBehaviour
 
     private async UniTaskVoid OnClickRuntimeMaintenanceOk()
     {
-        // 필요하면 마지막 저장:
+        // 필요하면 마지막 저장
         await SaveLoadManager.SaveToServer();
 
         // 종료 직전에 타임스케일 복구
@@ -182,14 +185,9 @@ public class MaintenanceWatcher : MonoBehaviour
         if (m == null)
             return false;
 
-        // 너가 Title에서 쓰는 시간 소스랑 맞춰주면 됨
-        // 서버 시간 쓸 거면 FirebaseTime, 아니면 DateTimeOffset.Now
         var now = FirebaseTime.GetServerTime();
-        // var now = DateTimeOffset.Now;
-
         return MaintenanceUtil.IsMaintenanceNow(m, now);
     }
-
 
     private void QuitApp()
     {

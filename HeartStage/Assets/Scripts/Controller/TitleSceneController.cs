@@ -84,7 +84,7 @@ public class TitleSceneController : MonoBehaviour
         // 1) 인트로 연출: 검은 화면 → 로고 → 둘이 같이 페이드아웃
         await IntroSequenceAsync();
 
-        // 2) 인트로 끝난 시점에서 버전 / 점검 상태 체크
+        // 2) 인트로 끝난 시점에서 버전 체크
         //    막혀야 하면 여기서 리턴해서 뒤 로직 안 타게 함.
         if (!CheckForceUpdateAndMaintenance())
         {
@@ -377,25 +377,49 @@ public class TitleSceneController : MonoBehaviour
             return false;
         }
 
-        // 2) 점검 모드 체크
-        if (IsInMaintenance(out string maintenanceMsg))
+        // 2) 점검 체크 (이미 점검 중이라면 뒤 로직 안 타게 컷)
+        var m = LiveConfigManager.Instance.Maintenance;
+        if (m != null)
         {
-            if (maintenancePopupRoot != null && maintenanceMessageText != null)
+            var now = FirebaseTime.GetServerTime();   // 서버 시간 기준
+            if (MaintenanceUtil.IsMaintenanceNow(m, now))
             {
-                maintenanceMessageText.text = maintenanceMsg;
-                maintenancePopupRoot.SetActive(true);
-            }
-            else if (statusText != null)
-            {
-                statusText.text = maintenanceMsg;
-            }
+                // 메시지 구성
+                string msg = string.IsNullOrEmpty(m.message)
+                    ? "현재 서버 점검 중입니다. 잠시 후 다시 접속해 주세요."
+                    : m.message;
 
-            return false;
+                // 남은 시간 표시 옵션
+                if (m.showRemainTime && !string.IsNullOrEmpty(m.endAt))
+                {
+                    if (DateTimeOffset.TryParse(m.endAt, out var end) && end > now)
+                    {
+                        var remain = end - now;
+                        int min = (int)Math.Max(0, remain.TotalMinutes);
+                        msg += $"\n(점검 종료까지 약 {min}분 남았습니다.)";
+                    }
+                }
+
+                // 타이틀 전용 점검 팝업 띄우기
+                if (maintenancePopupRoot != null && maintenanceMessageText != null)
+                {
+                    maintenanceMessageText.text = msg;
+                    maintenancePopupRoot.SetActive(true);
+                }
+                else if (statusText != null)
+                {
+                    statusText.text = msg;
+                }
+
+                // 여기서 흐름 끊기 → 로그인/로딩/Touch to Start 안 감
+                return false;
+            }
         }
 
         // 둘 다 아니면 계속 진행
         return true;
     }
+
 
     private bool IsForceUpdateNeeded(out string message)
     {
@@ -412,45 +436,6 @@ public class TitleSceneController : MonoBehaviour
         message =
             $"현재 버전({ClientVersion.VersionCode})은 더 이상 지원되지 않습니다.\n" +
             $"스토어에서 최신 버전으로 업데이트 후 이용해 주세요.";
-        return true;
-    }
-
-    private bool IsInMaintenance(out string message)
-    {
-        message = null;
-
-        if (LiveConfigManager.Instance == null)
-            return false;
-
-        var m = LiveConfigManager.Instance.Maintenance;
-        if (m == null)
-            return false;
-
-        var now = FirebaseTime.GetServerTime();
-
-        // 정말 점검 중인지 먼저 판단
-        if (!MaintenanceUtil.IsMaintenanceNow(m, now))
-        {
-            // 점검 아님
-            return false;
-        }
-
-        // 여기까지 왔으면 "점검 중"
-        message = string.IsNullOrEmpty(m.message)
-            ? "현재 서버 점검 중입니다. 잠시 후 다시 접속해 주세요."
-            : m.message;
-
-        // 남은 시간 표시 (선택)
-        if (m.showRemainTime && !string.IsNullOrEmpty(m.endAt))
-        {
-            if (DateTimeOffset.TryParse(m.endAt, out var end) && end > now)
-            {
-                var remain = end - now;
-                int min = (int)Math.Max(0, remain.TotalMinutes);
-                message += $"\n(점검 종료까지 약 {min}분 남았습니다.)";
-            }
-        }
-
         return true;
     }
 
