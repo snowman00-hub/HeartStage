@@ -18,44 +18,50 @@ public class NicknameWindow : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+
+        // 시작은 꺼진 상태
         gameObject.SetActive(false);
 
-        okButton.onClick.AddListener(() => OnClickOk().Forget());
-        cancelButton.onClick.AddListener(CloseInternal);
+        if (okButton != null)
+            okButton.onClick.AddListener(() => OnClickOk().Forget());
+
+        if (cancelButton != null)
+            cancelButton.onClick.AddListener(Close);
     }
 
     public void Open()
     {
+        if (SaveLoadManager.Data is SaveDataV1 data && inputField != null)
+        {
+            inputField.text = data.nickname;
+        }
+
+        if (messageText != null)
+            messageText.text = "사용할 닉네임을 입력해 주세요.";
+
         gameObject.SetActive(true);
-
-        if (SaveLoadManager.Data is SaveDataV1 data)
-        {
-            inputField.text = data.nickname;  // 기존 닉 있으면 보여주기
-        }
-        else
-        {
-            inputField.text = "";
-        }
-
-        messageText.text = "사용할 닉네임을 입력해 주세요";
-        inputField.ActivateInputField();
+        inputField?.ActivateInputField();
     }
 
-    // 모달 패널에서 직접 부를 내부용 Close
-    public void CloseInternal()
+    public void Close()
     {
         gameObject.SetActive(false);
+        ProfileWindow.Instance?.OnPopupClosed();
     }
 
-    // 프로필에서 "취소/확인"으로 닫을 때는 모달까지 같이 닫아야 함
-    private void CloseWithModal()
+    // 로딩에서 예열용
+    public void Prewarm()
     {
-        CloseInternal();
-        ProfileWindow.Instance?.HideModalPanel();
+        bool wasActive = gameObject.activeSelf;
+        Open();
+        gameObject.SetActive(wasActive);
     }
 
     private async UniTaskVoid OnClickOk()
     {
+        if (inputField == null || messageText == null)
+            return;
+
         string raw = inputField.text;
 
         messageText.text = "확인 중입니다...";
@@ -70,18 +76,10 @@ public class NicknameWindow : MonoBehaviour
 
         messageText.text = "닉네임이 변경되었습니다.";
 
-        // ✅ 프로필 텍스트 즉시 갱신
-        if (ProfileWindow.Instance != null)
-        {
-            ProfileWindow.Instance.RefreshAll();
-        }
+        // 프로필 UI / 로비 재화 UI 갱신
+        ProfileWindow.Instance?.RefreshAll();
+        LobbyManager.Instance?.MoneyUISet();
 
-        // ✅ 라이트 스틱 / 자원 UI 즉시 갱신
-        if (LobbyManager.Instance != null)
-        {
-            LobbyManager.Instance.MoneyUISet();
-        }
-
-        CloseWithModal();
+        Close();
     }
 }

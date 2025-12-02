@@ -12,6 +12,9 @@ public class LobbySceneController : MonoBehaviour
     [Header("공지창 UI (씬에 있는 NoticeWindowRoot)")]
     [SerializeField] private NoticeWindowUI noticeWindow;
 
+    [Header("프로필 UI")]
+    [SerializeField] private ProfileWindow profileWindow;
+
 
     private async void Awake()
     {
@@ -70,6 +73,14 @@ public class LobbySceneController : MonoBehaviour
             tasks.Add(noticeWindow.InitializeAsync()); // 리스트 생성
             go.SetActive(wasActive);                   // 다시 원래 상태(false)로
         }
+
+        if (profileWindow != null)
+        {
+            tasks.Add(profileWindow.PrewarmAsync());
+        }
+
+        if (tasks.Count > 0)
+            await UniTask.WhenAll(tasks);
 
 
         // 여기까지 오면

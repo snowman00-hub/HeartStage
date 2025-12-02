@@ -1,10 +1,9 @@
 ﻿using Cysharp.Threading.Tasks;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections.Generic;
+using System.Linq;
 
 public class ProfileWindow : MonoBehaviour
 {
@@ -25,7 +24,7 @@ public class ProfileWindow : MonoBehaviour
     [SerializeField] private Image profileIconImage;
     [SerializeField] private TMP_Text statusMessageText;
 
-    [Header("기록 박스 (메인 / 업적 / 팬미팅)")]
+    [Header("기록 박스")]
     [SerializeField] private TMP_Text mainStageText;
     [SerializeField] private TMP_Text achievementCountText;
     [SerializeField] private TMP_Text fanMeetingTimeText;
@@ -41,8 +40,8 @@ public class ProfileWindow : MonoBehaviour
     [SerializeField] private StatusMessageWindow statusMessageWindow;
     [SerializeField] private IconChangeWindow iconChangeWindow;
 
-    // 드랍다운 인덱스 → 타이틀 ID 매핑
-    private readonly List<int> _titleIdByIndex = new List<int>();
+    private readonly List<int> _titleIdByIndex = new();
+    private bool _prewarmed = false;
 
     private void Awake()
     {
@@ -50,6 +49,9 @@ public class ProfileWindow : MonoBehaviour
 
         if (root != null)
             root.SetActive(false);
+
+        if (modalPanel != null)
+            modalPanel.Hide();
 
         if (closeButton != null)
             closeButton.onClick.AddListener(Close);
@@ -65,9 +67,6 @@ public class ProfileWindow : MonoBehaviour
 
         if (titleDropdown != null)
             titleDropdown.onValueChanged.AddListener(OnTitleDropdownChanged);
-
-        if (modalPanel != null)
-            modalPanel.Hide();
     }
 
     private void OnEnable()
@@ -91,18 +90,32 @@ public class ProfileWindow : MonoBehaviour
         if (root != null)
             root.SetActive(false);
 
-        HideModalPanel();
-        modalPanel?.CloseAllPopups();
+        if (modalPanel != null)
+            modalPanel.Hide();
     }
 
-    public void ShowModalPanel()
+    /// <summary>로딩에서 한 번만 호출 – 전체 예열</summary>
+    public async UniTask PrewarmAsync()
     {
-        modalPanel?.Show();
-    }
+        if (_prewarmed)
+            return;
+        _prewarmed = true;
 
-    public void HideModalPanel()
-    {
-        modalPanel?.Hide();
+        if (root == null)
+            return;
+
+        bool wasRootActive = root.activeSelf;
+        root.SetActive(true);
+        RefreshAll();
+
+        // 팝업들 예열
+        nicknameWindow?.Prewarm();
+        statusMessageWindow?.Prewarm();
+        iconChangeWindow?.Prewarm();
+
+        await UniTask.Yield(); // 레이아웃 한 프레임 확보
+
+        root.SetActive(wasRootActive);
     }
 
     public void RefreshAll()
@@ -120,21 +133,16 @@ public class ProfileWindow : MonoBehaviour
 
     private void RefreshTopArea(SaveDataV1 data)
     {
-        // 닉네임
         if (nicknameText != null)
         {
             string name = ProfileNameUtil.GetEffectiveNickname(data);
             nicknameText.text = name;
         }
 
-        // 칭호 드랍다운
-        RefreshTitleDropdown(data);
-
-        // 팬 수
         if (fanCountText != null)
-        {
-            fanCountText.text = $"♥ 팬: {data.fanAmount}";
-        }
+            fanCountText.text = data.fanAmount.ToString("N0");
+
+        RefreshTitleDropdown(data);
     }
 
     private void RefreshTitleDropdown(SaveDataV1 data)
@@ -184,18 +192,10 @@ public class ProfileWindow : MonoBehaviour
 
     private void RefreshIconAndStatus(SaveDataV1 data)
     {
-        Debug.Log("[ProfileWindow] RefreshIconAndStatus START");
-
         if (profileIconImage != null)
         {
             string key = ResolveProfileIconKey(data);
-            Debug.Log($"[ProfileWindow] ResolveProfileIconKey => '{key}'");
-
-            var sprite = string.IsNullOrEmpty(key)
-                ? null
-                : ResourceManager.Instance.Get<Sprite>(key);
-
-            Debug.Log($"[ProfileWindow] Get<Sprite>('{key}') => {(sprite == null ? "NULL" : sprite.name)}");
+            var sprite = string.IsNullOrEmpty(key) ? null : ResourceManager.Instance.GetSprite(key);
 
             if (sprite != null)
             {
@@ -204,13 +204,8 @@ public class ProfileWindow : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning($"[ProfileWindow] 프로필 아이콘 로드 실패: {key}");
                 profileIconImage.enabled = false;
             }
-        }
-        else
-        {
-            Debug.LogWarning("[ProfileWindow] profileIconImage == null");
         }
 
         if (statusMessageText != null)
@@ -224,10 +219,9 @@ public class ProfileWindow : MonoBehaviour
 
     private string ResolveProfileIconKey(SaveDataV1 data)
     {
-        // 1) 이미 저장된 profileIconKey가 있고 실제 스프라이트도 있으면 그대로 사용
         if (!string.IsNullOrEmpty(data.profileIconKey))
         {
-            var cached = ResourceManager.Instance.Get<Sprite>(data.profileIconKey);
+            var cached = ResourceManager.Instance.GetSprite(data.profileIconKey);
             if (cached != null)
                 return data.profileIconKey;
         }
@@ -237,8 +231,6 @@ public class ProfileWindow : MonoBehaviour
 
         if (charTable != null && unlocked != null && unlocked.Count > 0)
         {
-            string.Join(", ", unlocked.Where(p => p.Value).Select(p => p.Key));
-
             foreach (var kv in unlocked)
             {
                 string charName = kv.Key;
@@ -248,31 +240,29 @@ public class ProfileWindow : MonoBehaviour
                     continue;
 
                 var row = charTable.GetByName(charName);
-
                 if (row == null)
                     continue;
 
                 string iconKey = row.icon_imageName;
-
                 if (string.IsNullOrEmpty(iconKey))
                     continue;
 
                 var sprite = ResourceManager.Instance.GetSprite(iconKey);
-
                 if (sprite == null)
                     continue;
 
-                // 여기 오면 진짜 성공
                 data.profileIconKey = iconKey;
-                
-        return iconKey;
+
+                if (!data.ownedProfileIconKeys.Contains(iconKey))
+                    data.ownedProfileIconKeys.Add(iconKey);
+
+                SaveLoadManager.SaveToServer().Forget();
+                return iconKey;
             }
         }
 
-        // 3) unlockedByName에서도 못 찾았으면 최후의 fallback
         const string fallback = "hanaicon";
-
-        var fallbackSprite = ResourceManager.Instance.GetSprite("hanaicon");
+        var fallbackSprite = ResourceManager.Instance.GetSprite(fallback);
         if (fallbackSprite != null)
         {
             data.profileIconKey = fallback;
@@ -280,57 +270,83 @@ public class ProfileWindow : MonoBehaviour
             return fallback;
         }
 
-        // 4) 진짜 아무것도 없으면 빈 문자열
         return string.Empty;
     }
-
 
     private void RefreshRecordBox(SaveDataV1 data)
     {
         if (mainStageText != null)
         {
             if (data.mainStageStep1 <= 0 && data.mainStageStep2 <= 0)
-                mainStageText.text = "메인 스테이지 진행도: 없음";
+                mainStageText.text = "--";
             else
-                mainStageText.text = $"메인 스테이지 진행도: {data.mainStageStep1}-{data.mainStageStep2}";
+                mainStageText.text = $"{data.mainStageStep1}-{data.mainStageStep2}";
         }
 
         if (achievementCountText != null)
         {
             int count = AchievementUtil.GetCompletedAchievementCount(data);
-            achievementCountText.text = $"달성한 업적: {count}개";
+            achievementCountText.text = $"{count}개";
         }
 
         if (fanMeetingTimeText != null)
-        {
             fanMeetingTimeText.text = FormatTimeMMSS(data.bestFanMeetingSeconds);
-        }
+    }
+
+    private string FormatTimeMMSS(int seconds)
+    {
+        if (seconds <= 0)
+            return "--:--";
+
+        int m = seconds / 60;
+        int s = seconds % 60;
+        return $"{m:00}:{s:00}";
     }
 
     private void OnClickChangeNickname()
     {
-        if (nicknameWindow != null)
+        if (nicknameWindow == null)
         {
-            nicknameWindow.Open();
-            ShowModalPanel();
+            Debug.LogWarning("[ProfileWindow] nicknameWindow 참조가 없습니다.");
+            return;
         }
+        modalPanel.Show();
+        nicknameWindow.Open();
     }
 
     private void OnClickChangeStatusMessage()
     {
-        if (statusMessageWindow != null)
+        if (statusMessageWindow == null)
         {
-            statusMessageWindow.Open();
-            ShowModalPanel();
+            Debug.LogWarning("[ProfileWindow] statusMessageWindow 참조가 없습니다.");
+            return;
         }
+        modalPanel.Show();
+        statusMessageWindow.Open();
     }
 
     private void OnClickChangeIcon()
     {
-        if (iconChangeWindow != null)
+        if (iconChangeWindow == null)
         {
-            iconChangeWindow.Open();
-            ShowModalPanel();
+            Debug.LogWarning("[ProfileWindow] iconChangeWindow 참조가 없습니다.");
+            return;
+        }
+        modalPanel.Show();
+        iconChangeWindow.Open();
+    }
+
+    // 팝업 하나가 닫힐 때마다 호출 → 모두 닫히면 모달도 닫기
+    public void OnPopupClosed()
+    {
+        bool anyOpen =
+            (nicknameWindow != null && nicknameWindow.IsOpen) ||
+            (statusMessageWindow != null && statusMessageWindow.IsOpen) ||
+            (iconChangeWindow != null && iconChangeWindow.IsOpen);
+
+        if (!anyOpen && modalPanel != null)
+        {
+            modalPanel.Hide();
         }
     }
 
@@ -348,7 +364,6 @@ public class ProfileWindow : MonoBehaviour
             return;
 
         int newTitleId = _titleIdByIndex[index];
-
         if (data.equippedTitleId == newTitleId)
             return;
 
@@ -358,15 +373,5 @@ public class ProfileWindow : MonoBehaviour
 
         int achievementCount = AchievementUtil.GetCompletedAchievementCount(data);
         await PublicProfileService.UpdateMyPublicProfileAsync(data, achievementCount);
-    }
-
-    private string FormatTimeMMSS(int seconds)
-    {
-        if (seconds <= 0)
-            return "팬미팅 진행시간: 없음";
-
-        int m = seconds / 60;
-        int s = seconds % 60;
-        return $"팬미팅 진행시간: {m:00}:{s:00}";
     }
 }

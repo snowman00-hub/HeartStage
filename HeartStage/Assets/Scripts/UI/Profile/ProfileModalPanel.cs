@@ -1,9 +1,9 @@
-﻿using UnityEngine;
+﻿using Unity.VisualScripting;
+using UnityEngine;
 using UnityEngine.EventSystems;
 
 public class ProfileModalPanel : MonoBehaviour, IPointerClickHandler
 {
-    [Header("모달 안의 팝업들")]
     [SerializeField] private NicknameWindow nicknameWindow;
     [SerializeField] private StatusMessageWindow statusMessageWindow;
     [SerializeField] private IconChangeWindow iconChangeWindow;
@@ -20,20 +20,30 @@ public class ProfileModalPanel : MonoBehaviour, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        // 배경 눌렀을 때만 작동 (자식 버튼/Image가 RaycastTarget이면 거기서 먼저 먹음)
-        CloseAllPopups();
-        Hide();
-    }
+        // 배경 클릭 시 열려 있는 창들 닫기
+        bool anyClosed = false;
 
-    public void CloseAllPopups()
-    {
         if (nicknameWindow != null && nicknameWindow.IsOpen)
-            nicknameWindow.CloseInternal();   // public으로 하나 만들어 둘 거임
+        {
+            nicknameWindow.Close();
+            anyClosed = true;
+        }
 
         if (statusMessageWindow != null && statusMessageWindow.IsOpen)
-            statusMessageWindow.CloseInternal();
+        {
+            statusMessageWindow.Close();
+            anyClosed = true;
+        }
 
         if (iconChangeWindow != null && iconChangeWindow.IsOpen)
-            iconChangeWindow.CloseInternal();
+        {
+            iconChangeWindow.Close();
+            anyClosed = true;
+        }
+
+        if (anyClosed)
+        {
+            Hide();
+        }
     }
 }

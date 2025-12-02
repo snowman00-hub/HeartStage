@@ -1,5 +1,4 @@
 ﻿using Cysharp.Threading.Tasks;
-using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,6 +7,7 @@ public class StatusMessageWindow : MonoBehaviour
 {
     public static StatusMessageWindow Instance;
 
+    [Header("UI")]
     [SerializeField] private TMP_InputField inputField;
     [SerializeField] private TMP_Text messageText;
     [SerializeField] private Button okButton;
@@ -18,38 +18,48 @@ public class StatusMessageWindow : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+
         gameObject.SetActive(false);
 
-        okButton.onClick.AddListener(() => OnClickOk().Forget());
-        cancelButton.onClick.AddListener(CloseInternal);
+        if (okButton != null)
+            okButton.onClick.AddListener(() => OnClickOk().Forget());
+
+        if (cancelButton != null)
+            cancelButton.onClick.AddListener(Close);
     }
 
     public void Open()
     {
-        gameObject.SetActive(true);
-
-        if (SaveLoadManager.Data is SaveDataV1 data)
+        if (SaveLoadManager.Data is SaveDataV1 data && inputField != null)
             inputField.text = data.statusMessage;
-        else
+        else if (inputField != null)
             inputField.text = "";
 
-        messageText.text = "상태 메시지를 입력해 주세요";
-        inputField.ActivateInputField();
+        if (messageText != null)
+            messageText.text = "상태 메시지를 입력해 주세요.";
+
+        gameObject.SetActive(true);
+        inputField?.ActivateInputField();
     }
 
-    public void CloseInternal()
+    public void Close()
     {
         gameObject.SetActive(false);
+        ProfileWindow.Instance?.OnPopupClosed();
     }
 
-    private void CloseWithModal()
+    public void Prewarm()
     {
-        CloseInternal();
-        ProfileWindow.Instance?.HideModalPanel();
+        bool wasActive = gameObject.activeSelf;
+        Open();
+        gameObject.SetActive(wasActive);
     }
 
     private async UniTaskVoid OnClickOk()
     {
+        if (inputField == null || messageText == null)
+            return;
+
         string raw = inputField.text;
 
         if (!NicknameValidator.ValidateStatus(raw, out string error))
@@ -70,9 +80,9 @@ public class StatusMessageWindow : MonoBehaviour
 
         int achievementCount = AchievementUtil.GetCompletedAchievementCount(data);
         await PublicProfileService.UpdateMyPublicProfileAsync(data, achievementCount);
-        // 프로필 UI 즉시 갱신
+
         ProfileWindow.Instance?.RefreshAll();
 
-        CloseWithModal();
+        Close();
     }
 }
