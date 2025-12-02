@@ -10,8 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5767065109969472687}
   - component: {fileID: 8260848398388011980}
-  - component: {fileID: 1266406662776951976}
-  - component: {fileID: 4791317719237786370}
+  - component: {fileID: 4409321494576647359}
   m_Layer: 0
   m_Name: LobbyHomeCamera
   m_TagString: Untagged
@@ -85,7 +84,7 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!114 &1266406662776951976
+--- !u!114 &4409321494576647359
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -94,24 +93,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 6175971189391864491}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ee5be567d44526548a267d149cd463d4, type: 3}
+  m_Script: {fileID: 11500000, guid: dbdbf584dbe6afd4996c269d684f6948, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  lobbyRawImage: {fileID: 0}
+  lobbyHomeCamera: {fileID: 8260848398388011980}
+  panSpeed: 0.0015
   zoomSpeed: 1
   minSize: 1.5
-  maxSize: 7.94
-  cam: {fileID: 8260848398388011980}
---- !u!114 &4791317719237786370
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6175971189391864491}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c6e01497f8b9eb1448c3a8beed33ae37, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  panSpeed: 0.002
-  cam: {fileID: 8260848398388011980}
+  edgeSize: 85
+  edgePanSpeed: 1
+  background: {fileID: 0}
