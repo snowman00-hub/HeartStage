@@ -417,30 +417,37 @@ public class TitleSceneController : MonoBehaviour
 
     private bool IsInMaintenance(out string message)
     {
+        message = null;
+
+        if (LiveConfigManager.Instance == null)
+            return false;
+
         var m = LiveConfigManager.Instance.Maintenance;
+        if (m == null)
+            return false;
+
         var now = FirebaseTime.GetServerTime();
 
-        if (MaintenanceUtil.IsMaintenanceNow(m, now))
+        // 정말 점검 중인지 먼저 판단
+        if (!MaintenanceUtil.IsMaintenanceNow(m, now))
         {
-            message = null;
+            // 점검 아님
             return false;
         }
 
+        // 여기까지 왔으면 "점검 중"
         message = string.IsNullOrEmpty(m.message)
             ? "현재 서버 점검 중입니다. 잠시 후 다시 접속해 주세요."
             : m.message;
 
-        // 남은 시간 표시 (원하면 FirebaseTime 기반으로 바꿀 수도 있음)
+        // 남은 시간 표시 (선택)
         if (m.showRemainTime && !string.IsNullOrEmpty(m.endAt))
         {
-            if (DateTimeOffset.TryParse(m.endAt, out var end))
+            if (DateTimeOffset.TryParse(m.endAt, out var end) && end > now)
             {
-                if (end > now)
-                {
-                    var remain = end - now;
-                    int min = (int)Math.Max(0, remain.TotalMinutes);
-                    message += $"\n(점검 종료까지 약 {min}분 남았습니다.)";
-                }
+                var remain = end - now;
+                int min = (int)Math.Max(0, remain.TotalMinutes);
+                message += $"\n(점검 종료까지 약 {min}분 남았습니다.)";
             }
         }
 

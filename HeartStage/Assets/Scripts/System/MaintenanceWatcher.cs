@@ -30,6 +30,7 @@ public class MaintenanceWatcher : MonoBehaviour
 
     private void OnEnable()
     {
+        SceneManager.sceneLoaded += OnSceneLoaded;
         WaitAndSubscribe().Forget();
     }
 
@@ -39,7 +40,20 @@ public class MaintenanceWatcher : MonoBehaviour
         {
             LiveConfigManager.Instance.OnMaintenanceChanged -= HandleMaintenanceChanged;
         }
+        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
+
+    // sceneLoaded 이벤트 핸들러
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // 씬 바뀔 때마다 현재 Maintenance 상태 한 번 다시 확인
+        if (LiveConfigManager.Instance == null)
+            return;
+
+        HandleMaintenanceChanged();
+    }
+
+
 
     /// <summary>
     /// LiveConfigManager.Instance 생성될 때까지 기다렸다가 이벤트 구독.
@@ -70,9 +84,9 @@ public class MaintenanceWatcher : MonoBehaviour
         bool isNow = IsMaintenanceNow(m);
         Debug.Log($"[MaintenanceWatcher] HandleMaintenanceChanged: active={m.active}, isNow={isNow}");
 
-        // 🔹 지금은 점검 시간이 아님 → 팝업 있으면 닫고 타임스케일 복구
         if (!isNow)
         {
+            // 기존 로직 그대로…
             if (_popupInstance != null)
             {
                 Destroy(_popupInstance);
@@ -84,13 +98,10 @@ public class MaintenanceWatcher : MonoBehaviour
             return;
         }
 
-        // 🔹 여기부터는 "지금은 점검 상태"인 경우
-
-        // 이미 점검 처리 중이면 또 만들 필요 없음
+        // 점검 상태인 경우
         if (_handlingMaintenance)
             return;
 
-        // TitleScene / BootScene 에서는 TitleSceneController가 처리하니까 패스
         var scene = SceneManager.GetActiveScene();
         if (scene.name == titleSceneName || scene.name == "BootScene")
             return;
@@ -171,33 +182,12 @@ public class MaintenanceWatcher : MonoBehaviour
         if (m == null)
             return false;
 
-        // 1) 운영자가 강제로 active = true 넣으면 무조건 점검
-        if (m.active)
-            return true;
+        // 너가 Title에서 쓰는 시간 소스랑 맞춰주면 됨
+        // 서버 시간 쓸 거면 FirebaseTime, 아니면 DateTimeOffset.Now
+        var now = FirebaseTime.GetServerTime();
+        // var now = DateTimeOffset.Now;
 
-        // 2) 시간 기반 점검 (startAt ~ endAt)
-        if (!string.IsNullOrEmpty(m.startAt))
-        {
-            if (DateTimeOffset.TryParse(m.startAt, out var start))
-            {
-                // now는 네가 쓰는 시간 소스에 맞게 (서버시간 쓰고 싶으면 그걸로 교체)
-                var now = DateTimeOffset.Now;
-                // var now = FirebaseTime.GetServerTimeOffset(); 이런 식으로 바꿔도 됨
-
-                if (string.IsNullOrEmpty(m.endAt))
-                {
-                    // endAt 없으면 "start 이후 계속 점검"으로 처리
-                    return now >= start;
-                }
-                else if (DateTimeOffset.TryParse(m.endAt, out var end))
-                {
-                    // start <= now <= end 구간이면 점검
-                    return now >= start && now <= end;
-                }
-            }
-        }
-
-        return false;
+        return MaintenanceUtil.IsMaintenanceNow(m, now);
     }
 
 
