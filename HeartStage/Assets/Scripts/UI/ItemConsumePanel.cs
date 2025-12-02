@@ -4,11 +4,21 @@ using UnityEngine.UI;
 
 public class ItemConsumePanel : MonoBehaviour
 {
+    public static ItemConsumePanel instance;
+
     [HideInInspector]
     public int itemId;
 
     public Image itemIcon;
     public TextMeshProUGUI countText;
+    public Button useButton;
+    public ItemAcquirePanel acquirePanel;
+
+    public Color buttonOriginColor;
+    public Color buttonDisabledColor;
+
+    private ItemCSVData itemData;
+    private PieceData pieceData;
 
     private int itemCount;
     public int ItemCount
@@ -18,17 +28,77 @@ public class ItemConsumePanel : MonoBehaviour
         {
             itemCount = value;
             countText.text = $"{itemCount}";
+
+            if (itemData.item_type == ItemTypeID.Piece && itemCount < pieceData.piece_ingrd_amount)
+            {
+                ButtonInteractable(false);
+            }
+            else
+            {
+                ButtonInteractable(true);
+            }
         }
+    }
+
+    private void Awake()
+    {
+        instance = this;
+    }
+
+    private void Start()
+    {
+        useButton.onClick.AddListener(ItemUse);
+    }
+
+    public void ItemUse()
+    {
+        // 일단 조각만 사용가능하게
+        if(itemData.item_type == ItemTypeID.Piece)
+        {
+            int makeCount = ItemCount / pieceData.piece_ingrd_amount;
+            if(ItemInvenHelper.TryConsumeItem(itemId, makeCount * pieceData.piece_ingrd_amount))
+            {
+                ItemInvenHelper.AddItem(pieceData.piece_result, makeCount);
+                ItemInfoPanel.instance.gameObject.SetActive(false);
+                gameObject.SetActive(false);
+                acquirePanel.Open(pieceData.piece_result, makeCount);
+            }
+        }
+
+        ItemInventoryUI.Instance.ShowInventoryWithSorting();
     }
 
     public void Open(int itemId)
     {
         gameObject.SetActive(true);
         this.itemId = itemId;
-        var itemData = DataTableManager.ItemTable.Get(itemId);
+        itemData = DataTableManager.ItemTable.Get(itemId);
         var texture = ResourceManager.Instance.Get<Texture2D>(itemData.prefab);
         itemIcon.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+       
+        if(itemData.item_type == ItemTypeID.Piece)
+        {
+            ButtonInteractable(false);
+            pieceData = DataTableManager.PieceTable.Get(itemId);
+        }
+        // pieceData 아래에 있게 하기
         ItemCount = 0;
+    }
+
+    private void ButtonInteractable(bool b)
+    {
+        var image = useButton.gameObject.GetComponent<Image>();
+
+        if (b)
+        {
+            useButton.interactable = true;
+            image.color = buttonOriginColor;
+        }
+        else
+        {
+            useButton.interactable = false;
+            image.color = buttonDisabledColor;
+        }
     }
 
     public void PlusCount()

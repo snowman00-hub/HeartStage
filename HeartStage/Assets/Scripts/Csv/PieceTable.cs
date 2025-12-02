@@ -8,6 +8,7 @@ public class PieceData
 {
     public int piece_ingrd { get; set; }
     public int piece_result { get; set; }
+    public int char_id { get; set; }
     public int piece_ingrd_amount { get; set; }
     public string info { get; set; }
 }

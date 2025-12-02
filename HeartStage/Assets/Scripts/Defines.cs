@@ -27,6 +27,7 @@ public static class DataTableIds
     public static string Quest => "QuestTable";
     public static string QuestType => "QuestTypeTable";
     public static string QuestProgress => "QuestProgressTable";
+    public static string Piece => "PieceTable";
 }
 
 public class Tag
