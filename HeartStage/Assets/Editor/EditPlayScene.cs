@@ -21,7 +21,7 @@ public static class EditPlayScene
             EditorPrefs.SetString(Key, currentScene);
 
             // Bootstrap 씬 강제 설정
-            var bootstrapScene = AssetDatabase.LoadAssetAtPath<SceneAsset>("Assets/Scenes/BootScene.unity"); 
+            var bootstrapScene = AssetDatabase.LoadAssetAtPath<SceneAsset>("Assets/Scenes/bootScene.unity"); 
             EditorSceneManager.playModeStartScene = bootstrapScene;
         }
     }

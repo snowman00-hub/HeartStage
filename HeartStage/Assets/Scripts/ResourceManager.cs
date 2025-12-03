@@ -67,4 +67,32 @@ public class ResourceManager : MonoBehaviour
             Debug.Log($"[ResourceManager] - {kvp.Key} ({kvp.Value?.GetType().Name})");
         }
     }
+
+    public Sprite GetSprite(string key)
+    {
+        if (!_assetCache.TryGetValue(key, out var obj) || obj == null)
+            return null;
+
+        // 이미 Sprite면 바로 리턴
+        if (obj is Sprite s)
+            return s;
+
+        // Texture2D면 여기서 Sprite로 생성해서 캐시에 갈아끼우기
+        if (obj is Texture2D tex)
+        {
+            var spr = Sprite.Create(
+                tex,
+                new Rect(0, 0, tex.width, tex.height),
+                new Vector2(0.5f, 0.5f),
+                100f, // pixelsPerUnit 적당한 값
+                0,
+                SpriteMeshType.Tight
+            );
+
+            _assetCache[key] = spr;   // 다음부터는 Sprite로 바로 꺼낼 수 있게 교체
+            return spr;
+        }
+
+        return null;
+    }
 }

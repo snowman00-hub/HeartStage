@@ -15,7 +15,7 @@ public class ArchivementQuests : MonoBehaviour, IQuestItemOwner
 
     private QuestTable QuestTable => DataTableManager.Get<QuestTable>(DataTableIds.Quest);
 
-    /// <summary>SaveLoadManager.Data 쪽에 있는 업적 상태</summary>
+    // SaveLoadManager.Data 쪽에 있는 업적 상태
     private AchievementQuestState State
     {
         get
@@ -41,12 +41,6 @@ public class ArchivementQuests : MonoBehaviour, IQuestItemOwner
         }
     }
 
-    /// <summary>
-    /// 업적 탭 초기화:
-    /// - SaveData 구조 보정
-    /// - QuestTable에서 업적 퀘스트 목록 가져오기
-    /// - 스크롤뷰에 아이템 생성 + 상태 반영
-    /// </summary>
     public async UniTask InitializeAsync()
     {
         InitStateStructure();
@@ -71,9 +65,6 @@ public class ArchivementQuests : MonoBehaviour, IQuestItemOwner
             State.completedQuestIds = new List<int>();
     }
 
-    /// <summary>
-    /// QuestTable에서 Quest_type == Achievement 인 애들만 모아옴
-    /// </summary>
     private void BuildAchievementQuestList()
     {
         _achievementQuestList.Clear();
@@ -98,9 +89,6 @@ public class ArchivementQuests : MonoBehaviour, IQuestItemOwner
         _achievementQuestList.Sort((a, b) => a.Quest_ID.CompareTo(b.Quest_ID));
     }
 
-    /// <summary>
-    /// 스크롤뷰에 업적 퀘스트 아이템 생성
-    /// </summary>
     private void CreateAchievementQuestItems()
     {
         // 이전 것들 정리
@@ -134,10 +122,6 @@ public class ArchivementQuests : MonoBehaviour, IQuestItemOwner
         }
     }
 
-    /// <summary>
-    /// SaveData 기준으로 모든 아이템 상태 갱신
-    /// (창 다시 열었을 때 등)
-    /// </summary>
     private void RefreshAllItemStatesFromSave()
     {
         if (_questItems == null || _questItems.Count == 0)
@@ -161,11 +145,6 @@ public class ArchivementQuests : MonoBehaviour, IQuestItemOwner
         }
     }
 
-    /// <summary>
-    /// IQuestItemOwner 구현:
-    /// - 업적 퀘스트 아이템에서 "완료" 버튼 눌렀을 때 호출
-    /// - 여기서 실제 보상 지급 + completed 등록 + 세이브
-    /// </summary>
     public async void OnQuestItemClickedComplete(QuestData questData, QuestItemUIBase itemUI)
     {
         if (questData == null || itemUI == null)
@@ -191,9 +170,6 @@ public class ArchivementQuests : MonoBehaviour, IQuestItemOwner
         itemUI.SetState(cleared: true, completed: true);
     }
 
-    /// <summary>
-    /// 나중에 QuestManager에서 "이 업적 조건 만족했다" 라고 알려줄 때 호출할 함수
-    /// </summary>
     public void OnAchievementQuestClearedExternally(QuestData questData)
     {
         if (questData == null)
@@ -224,10 +200,6 @@ public class ArchivementQuests : MonoBehaviour, IQuestItemOwner
         SaveAchievementStateAsync().Forget();
     }
 
-    /// <summary>
-    /// [전체 보상 받기] (업적 탭용)
-    /// - "조건은 만족했는데 아직 보상 안 받은 업적" 전부 수령
-    /// </summary>
     public void ClaimAllAvailableRewards()
     {
         if (_questItems == null)

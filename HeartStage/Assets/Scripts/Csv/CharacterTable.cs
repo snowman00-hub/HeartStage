@@ -41,6 +41,7 @@ public class CharacterCSVData
     public string projectile_AssetName { get; set; }
     public string hitEffect_AssetName { get; set; }
     public string card_imageName { get; set; }
+    public string icon_imageName { get; set; }
 }
 
 public class CharacterTable : DataTable
@@ -173,5 +174,27 @@ public class CharacterTable : DataTable
         }
 
         return result;
+    }
+
+    public string GetIconImageName(int charId)
+    {
+        if (table.TryGetValue(charId, out var data))
+        {
+            return data.icon_imageName;
+        }
+        return Unknown;
+    }
+
+    public string GetIconImageNameByName(string charName)
+    {
+        if (string.IsNullOrEmpty(charName))
+            return Unknown;
+
+        // char_name이 같은 가장 첫 번째 row 하나 찾기
+        var row = table.Values.FirstOrDefault(r => r.char_name == charName);
+        if (row != null)
+            return row.icon_imageName;
+
+        return Unknown;
     }
 }

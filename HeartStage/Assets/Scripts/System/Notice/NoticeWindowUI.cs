@@ -5,102 +5,88 @@ using UnityEngine.UI;
 
 public class NoticeWindowUI : MonoBehaviour
 {
-    [Header("루트 패널 (전체 공지창)")]
+    [Header("루트 패널")]
     [SerializeField] private GameObject root;
 
-    [Header("리스트 영역")]
-    [SerializeField] private RectTransform listContent;   // ScrollView Content
+    [Header("리스트 컨테이너 (ScrollView Content)")]
+    [SerializeField] private RectTransform listContent;
+
+    [Header("아이템 프리팹")]
     [SerializeField] private NoticeItemUI itemPrefab;
 
-    [Header("버튼")]
+    [Header("닫기 버튼")]
     [SerializeField] private Button closeButton;
 
-    private readonly List<NoticeItemUI> _items = new();
+    private bool _initialized = false;
+    private readonly List<NoticeItemUI> _spawned = new();
 
     private void Awake()
     {
         if (root != null)
-            root.SetActive(false);
+            root.SetActive(false);   // 처음엔 꺼두기
 
         if (closeButton != null)
         {
             closeButton.onClick.RemoveAllListeners();
-            closeButton.onClick.AddListener(OnClickClose);
+            closeButton.onClick.AddListener(Hide);
+        }
+    }
+
+    /// <summary>
+    /// 로비 로딩 중에 한 번 호출해서 리스트를 미리 만들어두는 함수.
+    /// </summary>
+    public async UniTask InitializeAsync()
+    {
+        if (_initialized)
+            return;
+
+        RebuildList();
+        _initialized = true;
+
+        // 레이아웃 한 프레임 돌리기용 (필수는 아님)
+        await UniTask.Yield();
+    }
+
+    private void RebuildList()
+    {
+        if (listContent == null || itemPrefab == null)
+            return;
+
+        foreach (var ui in _spawned)
+        {
+            if (ui != null)
+                Destroy(ui.gameObject);
+        }
+        _spawned.Clear();
+
+        var notices = LiveConfigManager.Instance?.Notices;
+        if (notices == null)
+            return;
+
+        foreach (var data in notices)
+        {
+            var item = Instantiate(itemPrefab, listContent);
+            item.Init(data);
+            _spawned.Add(item);
         }
     }
 
     public void Show()
     {
+        if (!_initialized)
+        {
+            // 혹시나 InitializeAsync를 못 탔을 경우를 대비한 방어 코드
+            RebuildList();
+            _initialized = true;
+        }
+
         if (root != null)
             root.SetActive(true);
-
-        RebuildList();
     }
 
     public void Hide()
     {
         if (root != null)
             root.SetActive(false);
-    }
-
-    private void RebuildList()
-    {
-        var mgr = LiveConfigManager.Instance;
-        if (mgr == null)
-        {
-            Debug.LogWarning("[NoticeWindowUI] LiveConfigManager.Instance 없음");
-            return;
-        }
-
-        var notices = mgr.Notices;
-
-        // 기존 카드 삭제
-        foreach (var item in _items)
-        {
-            if (item != null)
-                Destroy(item.gameObject);
-        }
-        _items.Clear();
-
-        if (notices == null || notices.Count == 0)
-            return;
-
-        foreach (var n in notices)
-        {
-            var item = Instantiate(itemPrefab, listContent);
-            // layoutRoot에 listContent 넣어주면, 카드가 펼쳐질 때 전체 컨텐츠 높이 재계산됨
-            item.Init(n);
-            _items.Add(item);
-        }
-
-        // 기본적으로 첫 번째 공지를 펼쳐두고 싶으면:
-        if (_items.Count > 0)
-        {
-            // 강제로 한 번 펼치기
-            // _items[0].ForceExpandIf원하면 여기에 추가 메서드 만들어 사용 가능
-        }
-    }
-
-    private void OnClickClose()
-    {
-        Hide();
-        UpdateLastSeenNoticeAsync().Forget();
-    }
-
-    private async UniTaskVoid UpdateLastSeenNoticeAsync()
-    {
-        var mgr = LiveConfigManager.Instance;
-        if (mgr == null || mgr.Notices == null || mgr.Notices.Count == 0)
-            return;
-
-        if (SaveLoadManager.Data == null)
-            return;
-
-        int maxId = mgr.Notices[0].id;
-        if (maxId <= SaveLoadManager.Data.lastSeenNoticeId)
-            return;
-
-        SaveLoadManager.Data.lastSeenNoticeId = maxId;
-        await SaveLoadManager.SaveToServer();
     }
 }
