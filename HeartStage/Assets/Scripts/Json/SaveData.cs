@@ -62,45 +62,29 @@ public class SaveDataV1 : SaveData
 
     // ================== 6. 프로필 / 소셜 ==================
 
-    // 닉네임 (""이면 아직 설정 전 → uid로 대체)
-    public string nickname = "";
+    public string nickname = "";                    // ""이면 uid 사용
+    public string statusMessage = "";               // 상태 메시지
+    public string profileIconKey = "";              // 현재 장착 아이콘
+    public List<string> ownedProfileIconKeys = new();
+    public int equippedTitleId = 0;                 // 장착 칭호
+    public List<int> ownedTitleIds = new();         // 획득 칭호
+    public int fanAmount = 0;                       // 팬 수
 
-    // 상태 메시지
-    public string statusMessage = "";
-
-    // 프로필 아이콘: Addressable assetName (예: "ProfileIcon_Default")
-    public string profileIconKey = "";
-
-    // 내가 가진 프로필 아이콘 키 목록
-    public List<string> ownedProfileIconKeys = new List<string>();
-
-    // 장착 중인 칭호 ID
-    public int equippedTitleId = 0;
-
-    // 팬 수 (프로필/로비에서 표시용)
-    public int fanAmount;
-
-    // 보유한 칭호 ID 목록 (TitleTable 기준)
-    public List<int> ownedTitleIds = new List<int>();
-
-    // 메인 스테이지 최고 진행도 (예: 3-3)
-    public int mainStageStep1 = 0;
+    public int mainStageStep1 = 0;                  // 3-2
     public int mainStageStep2 = 0;
 
-    // 팬미팅(팬 스테이지) 최고 기록 시간 (초)
-    public int bestFanMeetingSeconds = 0;
+    public int bestFanMeetingSeconds = 0;           // MM:SS로 변환해 표시
+    public int specialStageBestSeconds = 0;         // 지금은 공석 → 0이면 "--:--"
 
-    // 스페셜 스테이지 최고 기록 시간 (초)
-    //   - 지금은 공석(0)으로만 유지. UI에서 0이면 "--:--" 같이 비워 보여주기.
-    //   - 나중에 스페셜 기록 붙이면 여기 값 갱신해서 쓰면 됨.
-    public int specialStageBestSeconds = 0;
-
-    // 드림 에너지
     public int dreamEnergy = 0;
-    public int dreamSendDailyLimit = 20;
-    public int dreamSendTodayCount = 0;
-    public int dreamLastSendDate = 0;
 
+    // 드림 에너지 교환(선물) 관련
+    public int dreamSendDailyLimit = 20;            // 하루 최대 선물 횟수
+    public int dreamSendTodayCount = 0;             // 오늘 보낸 횟수
+    public int dreamLastSendDate = 0;               // yyyymmdd
+
+    // 친구 관련 (내가 맺은 친구들의 uid 리스트)
+    public List<string> friendUidList = new List<string>();
 
     // ================== 7. 공지 / 기타 ==================
     // 마지막으로 본 공지 ID (1부터 시작)
