@@ -34,12 +34,80 @@ public class MailManager : MonoBehaviour
     /// Firebase 초기화 및 글로벌 메일 리스너 등록
     private async void Start()
     {
-        // Firebase 초기화 대기
         await FirebaseInitializer.Instance.WaitForInitilazationAsync();
         db = FirebaseDatabase.DefaultInstance.RootReference;
 
         // 글로벌 메일 실시간 감지 시작
         FireBaseMailChanged();
+
+        // 게임 시작 시 미처리 글로벌 메일 확인
+        await CheckGlobalMailGameExit();
+
+        // 게임 재접속시 개인 메일함 확인 (오프라인 중 받은 메일 처리)
+        await CheckPersonalMailsOnLogin();
+    }
+
+    /// 게임 종료 시 미처리 글로벌 메일 확인
+    private async UniTask CheckGlobalMailGameExit()
+    {
+        try
+        {
+            var snapshot = await db.Child("globalMail").GetValueAsync();
+            if (snapshot.Exists && snapshot.Value != null)
+            {
+                var mailData = snapshot.Value as Dictionary<string, object>;
+                if (mailData != null && IsValidGlobalMail(mailData))
+                {
+                    Debug.Log("미처리 글로벌 메일 발견 - 처리 시작");
+
+                    var items = ParseItems(mailData);
+                    string title = mailData["title"].ToString();
+                    string content = mailData["content"].ToString();
+
+                    await CreateGlobalMailForCurrentUser(title, content, items);
+                    await SendGlobalMailToAllUsers(title, content, items);
+                    await DisableGlobalMail();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"미처리 글로벌 메일 확인 실패: {ex.Message}");
+        }
+    }
+
+    /// 게임 재접속시 개인 메일함 확인
+    private async UniTask CheckPersonalMailsOnLogin()
+    {
+        try
+        {
+            if (!IsAuthManagerValid()) return;
+
+            string userId = AuthManager.Instance.UserId;
+            Debug.Log($"[메일 확인] 유저 ID: {userId}");
+
+            var mails = await GetUserMailsAsync(userId);
+            Debug.Log($"[메일 확인] 총 메일 수: {mails.Count}");
+
+            // 읽지 않은 메일이 있으면 알림
+            var unreadMails = mails.Where(m => !m.isRead).ToList();
+            if (unreadMails.Count > 0)
+            {
+                Debug.Log($"오프라인 중 받은 메일 {unreadMails.Count}개 발견");
+                foreach (var mail in unreadMails)
+                {
+                    Debug.Log($"- 메일: {mail.title} (발송자: {mail.senderName})");
+                }
+            }
+            else
+            {
+                Debug.Log("읽지 않은 메일 없음");
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"개인 메일함 확인 실패: {ex.Message}");
+        }
     }
 
     /// Firebase의 globalMail 노드 변경사항을 실시간으로 감지
@@ -61,15 +129,75 @@ public class MailManager : MonoBehaviour
         var mailData = args.Snapshot.Value as Dictionary<string, object>;
         if (mailData == null) return;
 
-        // 유효한 글로벌 메일인지 확인 후 현재 유저에게 메일 생성
+        // 유효한 글로벌 메일인지 확인
         if (IsValidGlobalMail(mailData))
         {
             var items = ParseItems(mailData);
-            await CreateGlobalMailForCurrentUser(
-                mailData["title"].ToString(),
-                mailData["content"].ToString(),
-                items
-            );
+            string title = mailData["title"].ToString();
+            string content = mailData["content"].ToString();
+
+            // 현재 유저에게 즉시 메일 생성 (실시간 알림)
+            await CreateGlobalMailForCurrentUser(title, content, items);
+
+            // 모든 유저에게 메일 발송 (접속하지 않은 유저 포함)
+            await SendGlobalMailToAllUsers(title, content, items);
+
+            // 글로벌 메일 처리 완료 후 비활성화 
+            await DisableGlobalMail();
+        }
+    }
+
+    // 전체 유저 메일 발송 (미접속 포함)
+    private async UniTask SendGlobalMailToAllUsers(string title, string content, List<ItemAttachment> items)
+    {
+        try
+        {
+            var allUserIds = await GetAllUserIdsAsync();
+            if (allUserIds.Count == 0) return;
+
+            string globalMailId = $"mail_{title.GetHashCode():X8}";
+            int successCount = 0;
+            int skippedCount = 0;
+
+            foreach (string userId in allUserIds)
+            {
+                try
+                {
+                    // 이미 받은 메일인지 중복 체크
+                    var existingSnapshot = await db.Child("mails").Child(userId).Child(globalMailId).GetValueAsync();
+                    if (existingSnapshot.Exists)
+                    {
+                        skippedCount++;
+                        continue;
+                    }
+
+                    var globalMail = new MailData(
+                        mailId: globalMailId,
+                        senderId: "system",
+                        senderName: "운영팀",
+                        receiverId: userId,
+                        title: title,
+                        content: content,
+                        itemList: items
+                    )
+                    {
+                        timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                    };
+
+                    // 현재 유저가 아닌 경우만 OnMailReceived 이벤트 발생 안 함
+                    string json = JsonUtility.ToJson(globalMail);
+                    await db.Child("mails").Child(userId).Child(globalMailId).SetRawJsonValueAsync(json);
+                    successCount++;
+                }
+                catch 
+                { 
+                }
+            }
+
+            Debug.Log($"글로벌 메일 발송 완료: 성공 {successCount}명, 중복 스킵 {skippedCount}명");
+        }
+        catch
+        {
         }
     }
 
@@ -115,8 +243,8 @@ public class MailManager : MonoBehaviour
         if (!IsAuthManagerValid()) return;
 
         string userId = AuthManager.Instance.UserId;
-        // 제목 해시코드를 이용해 고유한 글로벌 메일 ID 생성
-        string globalMailId = $"global_{title.GetHashCode():X8}";
+        // 고유한 글로벌 메일 ID 생성
+        string globalMailId = $"mail_{title.GetHashCode():X8}";
 
         // 이미 받은 메일인지 중복 체크
         var existingSnapshot = await db.Child("mails").Child(userId).Child(globalMailId).GetValueAsync();
@@ -313,9 +441,8 @@ public class MailManager : MonoBehaviour
 
             return userIds;
         }
-        catch (Exception ex)
+        catch
         {
-            Debug.LogError($"전체 유저 목록 가져오기 실패: {ex.Message}");
             return new List<string>();
         }
     }
@@ -362,7 +489,7 @@ public class MailManager : MonoBehaviour
     }
 
     // 이런식으로 사용 
-    //private async UniTask SendBroadcastMail()
+    //private async UniTask SendAdminMail()
     //{
     //    var items = new List<ItemAttachment>
     //{
@@ -384,9 +511,33 @@ public class MailManager : MonoBehaviour
         {
             await db.Child("globalMail").Child("active").SetValueAsync(false);
         }
-        catch (Exception ex)
+        catch
         {
-            Debug.LogError($"글로벌 메일 비활성화 실패: {ex.Message}");
         }
     }
+
+
+
+    // 파이어베이스 에서 개인에게 줄때 개인 아이디 mails에 노드 추가해서 사용
+//  {
+//  "mailId": "unique_mail_id_123",
+//  "senderId": "admin",
+//  "senderName": "운영팀",
+//  "receiverId": "VlN8aEQSCNS9UP3WqUwm5oJliUZ2",
+//  "title": "개인 보상",
+//  "content": "특별 이벤트 참여 보상입니다.",
+//  "timestamp": 1733184000000,
+//  "isRead": false,
+//  "isRewarded": false,
+//  "itemList": [
+//    {
+//      "itemId": "7101",
+//      "count": 1000
+//    },
+//    {
+//    "itemId": "7102", 
+//      "count": 100
+//    }
+//  ]
+//  }
 }

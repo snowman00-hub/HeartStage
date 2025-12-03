@@ -24,7 +24,7 @@ public class MailData
         this.receiverId = receiverId;
         this.title = title;
         this.content = content;
-        this.timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        this.timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(); // 밀리초로 변경
         this.isRead = false;
         this.isRewarded = false;
         this.itemList = itemList ?? new List<ItemAttachment>();
