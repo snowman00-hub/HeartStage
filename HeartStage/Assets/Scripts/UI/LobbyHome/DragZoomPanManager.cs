@@ -92,6 +92,8 @@ public class DragZoomPanManager : MonoBehaviour
                 dragTarget = hit.collider.transform;
 
                 dragOffset = dragTarget.position - world;
+                // 캐릭터 드래그 할 때
+                dragTarget.GetComponent<LobbyCharacterAI>()?.OnDragStart();
             }
             // 아니면 카메라 이동
             else
@@ -124,6 +126,8 @@ public class DragZoomPanManager : MonoBehaviour
         // 클릭 종료
         if (Input.GetMouseButtonUp(0))
         {
+            dragTarget?.GetComponent<LobbyCharacterAI>()?.OnDragEnd();
+
             isDraggingObject = false;
             isPanning = false;
             dragTarget = null;
@@ -182,6 +186,8 @@ public class DragZoomPanManager : MonoBehaviour
                     dragTarget = hit.collider.transform;
 
                     dragOffset = dragTarget.position - world;
+                    // 캐릭터 드래그 할 때
+                    dragTarget.GetComponent<LobbyCharacterAI>()?.OnDragStart();
                 }
                 else
                 {
@@ -207,6 +213,8 @@ public class DragZoomPanManager : MonoBehaviour
 
             if (t.phase == TouchPhase.Ended)
             {
+                dragTarget?.GetComponent<LobbyCharacterAI>()?.OnDragEnd();
+
                 isDraggingObject = false;
                 isPanning = false;
                 dragTarget = null;

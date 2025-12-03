@@ -52,6 +52,8 @@ public class LobbyCharacterAI : MonoBehaviour
     private bool isRunning = true;
     private Tweener moveTween;
 
+    private bool isControlledByPlayer = false; // 드래그 중일 때
+
     private void Start()
     {
         animator = GetComponentInChildren<Animator>();
@@ -69,22 +71,30 @@ public class LobbyCharacterAI : MonoBehaviour
     {
         while (isRunning)
         {
+            if (isControlledByPlayer)
+            {
+                await UniTask.Yield();
+                continue;
+            }
+
+            // 행동할 액션 얻기
             LobbyAction action = GetWeightedRandomAction();
             float duration = action.GetRandomDuration();
-
-            ExecuteAction(action.actionType, duration);
-
+            // 행동 실행
+            ExecuteAction(action.actionType, duration);            
             await UniTask.Delay(TimeSpan.FromSeconds(duration));
 
-            // 행동 끝, 잠깐 대기
+            if (isControlledByPlayer) 
+                continue;
+            // 행동 끝난 후 잠시 대기
             KillMove();
             animator.SetTrigger(HashIdle);
-
             float wait = UnityEngine.Random.Range(afterDelayMin, afterDelayMax);
             await UniTask.Delay(TimeSpan.FromSeconds(wait));
         }
     }
 
+    // 비중에 따라 행동 얻기
     private LobbyAction GetWeightedRandomAction()
     {
         float total = 0f;
@@ -107,6 +117,7 @@ public class LobbyCharacterAI : MonoBehaviour
         return actions[0];
     }
 
+    // 행동 실행
     private void ExecuteAction(LobbyActionType type, float duration)
     {
         ResetAllTriggers();
@@ -140,36 +151,40 @@ public class LobbyCharacterAI : MonoBehaviour
         }
     }
 
+    // 움직임 멈추기
     private void KillMove()
     {
         if (moveTween != null && moveTween.IsActive())
             moveTween.Kill();
     }
 
+    // 랜덤하게 움직이기
     private void MoveRandomDirection(float speed, float duration)
     {
         KillMove();
-
+        // 움직임 가능한 곳에서만
         Bounds bounds = DragZoomPanManager.Instance.InnerBounds;
-
+        // 랜덤 방향 얻기
         Vector2 randomDir2D = UnityEngine.Random.insideUnitCircle.normalized;
         Vector3 randomDir3D = new(randomDir2D.x, randomDir2D.y, 0f);
+        // 목표 좌표
         Vector3 target = transform.position + randomDir3D * speed * duration;
-
+        // 보간
         target.x = Mathf.Clamp(target.x, bounds.min.x, bounds.max.x);
         target.y = Mathf.Clamp(target.y, bounds.min.y, bounds.max.y);
 
-        // Flip
+        // Flip(가는 방향으로 회전)
         if (randomDir3D.x != 0)
         {
             Vector3 scale = transform.localScale;
             scale.x = Mathf.Sign(randomDir3D.x) * Mathf.Abs(scale.x);
             transform.localScale = scale;
         }
-
+        // 이동
         moveTween = transform.DOMove(target, duration).SetEase(Ease.Linear);
     }
 
+    // 애니메이션 트리거 리셋
     private void ResetAllTriggers()
     {
         animator.ResetTrigger(HashIdle);
@@ -178,5 +193,19 @@ public class LobbyCharacterAI : MonoBehaviour
         animator.ResetTrigger(HashAttackPractice);
         animator.ResetTrigger(HashMeditation);
         animator.ResetTrigger(HashSurprised);
+    }
+
+    // 드래그 시작시
+    public void OnDragStart()
+    {
+        isControlledByPlayer = true;
+        KillMove();
+        animator.SetTrigger(HashIdle);
+    }
+
+    // 드래그 끝
+    public void OnDragEnd()
+    {
+        isControlledByPlayer = false;
     }
 }
