@@ -24,7 +24,19 @@ public class DragZoomPanManager : MonoBehaviour
     private Vector2 lastPos;
     private Vector3 dragOffset; // 드래그 오프셋
 
+    private float marginPercent = 0.1f; // 10% margin
     public Bounds BackgroundBounds => background.bounds;
+    public Bounds InnerBounds
+    {
+        get
+        {
+            Bounds original = background.bounds;
+            float ratio = 1f - (marginPercent * 2f);
+
+            Vector3 newSize = original.size * ratio;
+            return new Bounds(original.center, newSize);
+        }
+    }
 
     private void Awake()
     {
