@@ -27,8 +27,27 @@ public class MonsterProjectile : MonoBehaviour
             {
                 testObj.OnDamage(damage);
             }
+
+            PlayHitEffect(transform.position);
+
             PoolManager.Instance.Release(MonsterSpawner.GetMonsterProjectilePoolId(), gameObject);
             gameObject.SetActive(false);            
+        }
+    }
+
+    private void PlayHitEffect(Vector3 hitPosition)
+    {
+        GameObject hitEffectPrefab = ResourceManager.Instance.Get<GameObject>("monsterHitEffect");
+        if (hitEffectPrefab != null)
+        {
+            GameObject effect = Instantiate(hitEffectPrefab, hitPosition, Quaternion.identity);
+
+            ParticleSystem particles = effect.GetComponent<ParticleSystem>();
+            if (particles != null)
+            {
+                particles.Play();
+                Destroy(effect, particles.main.duration + particles.main.startLifetime.constantMax);
+            }
         }
     }
 }
