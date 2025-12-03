@@ -154,7 +154,6 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         }
     }
 
-
     public void Attack()
     {
         switch (monsterData.attType)
@@ -245,6 +244,9 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
             if (target != null)
             {
                 target.OnDamage(monsterData.att);
+
+                Vector3 contactPoint = GetColliderContactPoint(selfCollider, hit);
+                PlayHitEffect(contactPoint);
             }
         }
     }
@@ -271,6 +273,22 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
             }
 
             projectileObj.SetActive(true);
+        }
+    }
+
+    private void PlayHitEffect(Vector3 hitPosition)
+    {
+        GameObject hitEffectPrefab = ResourceManager.Instance.Get<GameObject>("monsterHitEffect");
+        if (hitEffectPrefab != null)
+        {
+            GameObject effect = Instantiate(hitEffectPrefab, hitPosition, Quaternion.identity);
+
+            ParticleSystem particles = effect.GetComponent<ParticleSystem>();
+            if(particles != null)
+            {
+                particles.Play();
+                Destroy(effect, particles.main.duration + particles.main.startLifetime.constantMax);
+            }
         }
     }
 
@@ -436,5 +454,14 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         {
             gameObject.SetActive(false);
         }
+    }
+
+    private Vector3 GetColliderContactPoint(Collider2D monsterCollider, Collider2D wallCollider)
+    {
+        Vector3 monsterPoint = Physics2D.ClosestPoint(wallCollider.transform.position, monsterCollider);
+        Vector3 wallPoint = Physics2D.ClosestPoint(monsterCollider.transform.position, wallCollider);
+        Vector3 contactPoint = (monsterPoint + wallPoint) * 0.5f;
+
+        return contactPoint;
     }
 }

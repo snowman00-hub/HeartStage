@@ -47,7 +47,7 @@ public class MailManager : MonoBehaviour
         await CheckPersonalMailsOnLogin();
     }
 
-    /// 게임 종료 시 미처리 글로벌 메일 확인
+    // 
     private async UniTask CheckGlobalMailGameExit()
     {
         try
@@ -99,14 +99,9 @@ public class MailManager : MonoBehaviour
                     Debug.Log($"- 메일: {mail.title} (발송자: {mail.senderName})");
                 }
             }
-            else
-            {
-                Debug.Log("읽지 않은 메일 없음");
-            }
         }
-        catch (Exception ex)
+        catch 
         {
-            Debug.LogError($"개인 메일함 확인 실패: {ex.Message}");
         }
     }
 
@@ -211,7 +206,7 @@ public class MailManager : MonoBehaviour
     }
 
 
-    /// 메일 데이터에서 아이템 목록을 파싱
+    // 메일 데이터에서 아이템 목록을 파싱
     private List<ItemAttachment> ParseItems(Dictionary<string, object> mailData)
     {
         var items = new List<ItemAttachment>();
@@ -236,7 +231,7 @@ public class MailManager : MonoBehaviour
         return items;
     }
 
-    /// 현재 로그인한 유저에게 글로벌 메일 생성
+    // 현재 로그인한 유저에게 글로벌 메일 생성
     private async UniTask CreateGlobalMailForCurrentUser(string title, string content, List<ItemAttachment> items)
     {
         // AuthManager 유효성 검사
@@ -268,13 +263,13 @@ public class MailManager : MonoBehaviour
         await SendMailAsync(globalMail);
     }
 
-    /// AuthManager 인스턴스와 UserId 유효성 검사
+    // AuthManager 인스턴스와 UserId 유효성 검사
     private bool IsAuthManagerValid()
     {
         return AuthManager.Instance != null && !string.IsNullOrEmpty(AuthManager.Instance.UserId);
     }
 
-    /// 글로벌 메일을 Firebase에 설정 (모든 유저가 받을 메일)
+    // 글로벌 메일을 Firebase에 설정 (모든 유저가 받을 메일)
     public async UniTask SetGlobalMail(string title, string content, List<ItemAttachment> items = null)
     {
         try
@@ -289,7 +284,7 @@ public class MailManager : MonoBehaviour
     }
 
 
-    /// Firebase에 저장할 글로벌 메일 데이터 구조 생성
+    // Firebase에 저장할 글로벌 메일 데이터 구조 생성
     private Dictionary<string, object> CreateGlobalMailData(string title, string content, List<ItemAttachment> items)
     {
         var itemsData = new List<Dictionary<string, object>>();
@@ -349,7 +344,7 @@ public class MailManager : MonoBehaviour
         }
     }
 
-    /// 메일을 Firebase에 전송/저장
+    // 메일을 Firebase에 전송/저장
     public async UniTask<bool> SendMailAsync(MailData mailData)
     {
         try
@@ -369,7 +364,7 @@ public class MailManager : MonoBehaviour
         }
     }
 
-    /// 메일을 읽음 상태로 표시
+    // 메일을 읽음 상태로 표시
     public async UniTask MarkAsReadAsync(string userId, string mailId)
     {
         try
@@ -379,7 +374,7 @@ public class MailManager : MonoBehaviour
         catch { }
     }
 
-    /// Firebase에서 메일 삭제
+    // Firebase에서 메일 삭제
     public async UniTask DeleteMailAsync(string userId, string mailId)
     {
         try
@@ -389,7 +384,7 @@ public class MailManager : MonoBehaviour
         catch { }
     }
 
-    /// 단일 메일의 보상 수령 상태 업데이트
+    // 단일 메일의 보상 수령 상태 업데이트
     public async UniTask UpdateRewardStatusAsync(string userId, string mailId, bool isRewarded)
     {
         try
@@ -402,7 +397,7 @@ public class MailManager : MonoBehaviour
         }
     }
 
-    /// 여러 메일의 보상 수령 상태를 한 번에 업데이트 
+    // 여러 메일의 보상 수령 상태를 한 번에 업데이트 
     public async UniTask UpdateMultipleRewardStatusAsync(string userId, List<string> mailIds)
     {
         try
@@ -422,7 +417,7 @@ public class MailManager : MonoBehaviour
         }
     }
 
-    /// 게임에 등록된 모든 유저 ID 목록 가져오기
+    // 게임에 등록된 모든 유저 ID 목록 가져오기
     public async UniTask<List<string>> GetAllUserIdsAsync()
     {
         try
@@ -447,7 +442,7 @@ public class MailManager : MonoBehaviour
         }
     }
 
-    /// 모든 유저에게 동일한 메일을 일괄 발송
+    /// 모든 유저에게 동일한 메일을 일괄 발송 (코드로만 호출)
     public async UniTask SendMailToAllUsers(string title, string content, List<ItemAttachment> items = null)
     {
         try
@@ -517,13 +512,12 @@ public class MailManager : MonoBehaviour
     }
 
 
-
-    // 파이어베이스 에서 개인에게 줄때 개인 아이디 mails에 노드 추가해서 사용
+    // 파이어베이스 에서 개인에게 줄때 개인 아이디 mails에 노드 추가해서 사용 키에 파이어베이스 키
 //  {
-//  "mailId": "unique_mail_id_123",
+//  "mailId": "unique_mail_id_123", // 키와 동일해야함 
 //  "senderId": "admin",
 //  "senderName": "운영팀",
-//  "receiverId": "VlN8aEQSCNS9UP3WqUwm5oJliUZ2",
+//  "receiverId": "VlN8aEQSCNS9UP3WqUwm5oJliUZ2", // 유저 아이디와 동일해야함
 //  "title": "개인 보상",
 //  "content": "특별 이벤트 참여 보상입니다.",
 //  "timestamp": 1733184000000,
