@@ -6,6 +6,9 @@ using UnityEngine.UI;
 
 public class IconChangeWindow : MonoBehaviour
 {
+    [Header("로비 아이콘")]
+    [SerializeField] private LobbyUI lobbyProfileIcon;
+
     [Header("리스트")]
     [SerializeField] private Transform contentRoot;
     [SerializeField] private GameObject iconItemPrefab;
@@ -34,9 +37,6 @@ public class IconChangeWindow : MonoBehaviour
 
     public void Open()
     {
-        if (IsOpen)
-            return;
-
         gameObject.SetActive(true);
         RebuildList();           // 열 때 한 번 새로 만들고
         InitSelectionFromSave(); // 세이브 기준으로 기본 선택 세팅
@@ -46,7 +46,7 @@ public class IconChangeWindow : MonoBehaviour
     {
         gameObject.SetActive(false);
 
-        // 🔥 여기서 ProfileWindow에 "팝업 닫혔다" 알려줘야 모달이 같이 꺼짐
+        // 여기서 ProfileWindow에 "팝업 닫혔다" 알려줘야 모달이 같이 꺼짐
         ProfileWindow.Instance?.OnPopupClosed();
     }
 
@@ -118,6 +118,8 @@ public class IconChangeWindow : MonoBehaviour
                     continue;
 
                 var sprite = ResourceManager.Instance.GetSprite(key);
+                Debug.Log($"[IconChangeWindow] key={key}, sprite={(sprite == null ? "NULL" : "OK")}");
+
                 if (sprite == null)
                     continue;
 
@@ -212,6 +214,8 @@ public class IconChangeWindow : MonoBehaviour
         await PublicProfileService.UpdateMyPublicProfileAsync(data, achievementCount);
 
         ProfileWindow.Instance?.RefreshAll();
+
+        lobbyProfileIcon?.RefreshProfileIcon();
 
         // 여기서 한 번만 Close() 호출 (OnClickApply에서는 호출 안함!)
         Close();

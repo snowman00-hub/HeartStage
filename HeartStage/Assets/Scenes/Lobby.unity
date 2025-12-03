@@ -206,7 +206,7 @@ GameObject:
   - component: {fileID: 25302782}
   - component: {fileID: 25302781}
   m_Layer: 5
-  m_Name: Image
+  m_Name: PlayerIcon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -251,7 +251,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: b4dd7ff07558f438c953077d8dddb4ad, type: 3}
+  m_Sprite: {fileID: 0}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -779,6 +779,7 @@ MonoBehaviour:
   homeUiButton: {fileID: 976424442}
   gachaButton: {fileID: 1709462180}
   QuestButton: {fileID: 1822951941}
+  playerProfileIcon: {fileID: 25302781}
 --- !u!1001 &103285415
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1319,6 +1320,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 339559873}
     m_Modifications:
+    - target: {fileID: 1447661571799067490, guid: 3a1b5f98f2c73b4429622e5f8a19014a, type: 3}
+      propertyPath: lobbyProfileIcon
+      value: 
+      objectReference: {fileID: 92845939}
     - target: {fileID: 4521037808023691239, guid: 3a1b5f98f2c73b4429622e5f8a19014a, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -1651,7 +1656,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5064140405613783153, guid: 894e0ef0e23831d48b53e3ec5ed177c9, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -6.999756
+      value: -6.9997253
       objectReference: {fileID: 0}
     - target: {fileID: 8312987104854722164, guid: 894e0ef0e23831d48b53e3ec5ed177c9, type: 3}
       propertyPath: m_Name
@@ -5657,7 +5662,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6965509346762293625, guid: 2c8b16240142db647aa3466bf68ba89f, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -14.0000305
+      value: -14.000061
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -5972,6 +5977,10 @@ PrefabInstance:
     - target: {fileID: 653497980070760745, guid: ea3fcdce46449c4469ab78e232fd0cb9, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1961935657368489812, guid: ea3fcdce46449c4469ab78e232fd0cb9, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -1.4999981
       objectReference: {fileID: 0}
     - target: {fileID: 2385523845889442291, guid: ea3fcdce46449c4469ab78e232fd0cb9, type: 3}
       propertyPath: m_AnchorMax.y
@@ -9670,6 +9679,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -200
       objectReference: {fileID: 0}
+    - target: {fileID: 6872166885125736015, guid: a4515a4d59966b24583b1f97cb925f31, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -2.6603394
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -11438,7 +11451,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5690712793982996515, guid: 54a3fcb6aca91e34cba21efc76ffbba5, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -1.500061
+      value: -1.5000305
       objectReference: {fileID: 0}
     - target: {fileID: 5701394859431835694, guid: 54a3fcb6aca91e34cba21efc76ffbba5, type: 3}
       propertyPath: m_AnchorMax.y
@@ -13245,6 +13258,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 339559873}
     m_Modifications:
+    - target: {fileID: 5315310933595838239, guid: 3c0ca2ba9a057df4c8fc4944699ea1e0, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 1.0000916
+      objectReference: {fileID: 0}
     - target: {fileID: 6665326178985690209, guid: 3c0ca2ba9a057df4c8fc4944699ea1e0, type: 3}
       propertyPath: m_Name
       value: PurchaseConfirmPanel

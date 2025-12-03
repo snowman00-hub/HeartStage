@@ -74,7 +74,7 @@ public class GachaManager : MonoBehaviour
         if (!alreadyOwned)
         {
             // 캐릭터 획득 처리     
-            SaveLoadManager.AcquireCharacter(selectedItem.Gacha_item, DataTableManager.CharacterTable);
+            CharacterHelper.AcquireCharacter(selectedItem.Gacha_item, DataTableManager.CharacterTable);
 
             // 뽑기 퀘스트 완료 처리
             QuestManager.Instance.OnGachaDraw();
@@ -139,7 +139,7 @@ public class GachaManager : MonoBehaviour
                     if (!alreadyOwned)
                     {
                         // 캐릭터 획득 처리     
-                        SaveLoadManager.AcquireCharacter(selectedItem.Gacha_item, DataTableManager.CharacterTable);
+                        CharacterHelper.AcquireCharacter(selectedItem.Gacha_item, DataTableManager.CharacterTable);
 
                         // 뽑기 퀘스트 완료 처리
                         QuestManager.Instance.OnGachaDraw();

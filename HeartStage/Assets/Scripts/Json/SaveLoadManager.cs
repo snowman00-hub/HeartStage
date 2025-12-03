@@ -103,26 +103,6 @@ public class SaveLoadManager
     }
 
     //캐릭터 획득 처리
-    public static void AcquireCharacter(int baseId, CharacterTable charTable)
-    {
-        var row = charTable.Get(baseId);
-        if (row == null)
-            return;
-
-        string name = row.char_name;
-
-        // 1) 도감/해금 true
-        Data.unlockedByName[name] = true;
-
-        // 2) 보유 id 등록
-        Data.ownedIds.Add(baseId);
-
-        // 3) exp 초기화
-        if (!Data.expById.ContainsKey(baseId))
-            Data.expById[baseId] = 0;
-
-        Save(); // 원하면 즉시 저장
-    }
 
     public static void ReplaceOwnedId(int currentId, int nextId, int remainExp)
     {

@@ -45,7 +45,7 @@ public class ItemAcquirePanel : MonoBehaviour
         itemImage.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
 
         // 캐릭터 얻기
-        SaveLoadManager.AcquireCharacter(characterID, DataTableManager.CharacterTable);
+        CharacterHelper.AcquireCharacter(characterID, DataTableManager.CharacterTable);
         //
         ItemInventoryUI.Instance.ShowInventoryWithSorting();
     }

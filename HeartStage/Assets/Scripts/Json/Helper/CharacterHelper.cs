@@ -7,28 +7,69 @@ public static class CharacterHelper
     private static List<int> OwnCharacterIds => SaveLoadManager.Data.ownedIds;
     private static Dictionary<int, int> CharacterExpById => SaveLoadManager.Data.expById;
     private static Dictionary<string, bool> UnlockedByName => SaveLoadManager.Data.unlockedByName;
+    private static List<string> OwnedProfileIconKeys => SaveLoadManager.Data.ownedProfileIconKeys;
 
     //캐릭터 획득 처리
     public static void AcquireCharacter(int baseId, CharacterTable charTable)
     {
+        var data = SaveLoadManager.Data;
+        if (data == null)
+        {
+            Debug.LogError("[CharacterHelper] SaveDataV1 가 null 입니다.");
+            return;
+        }
+
+        if (charTable == null)
+        {
+            Debug.LogError("[CharacterHelper] charTable 이 null 입니다.");
+            return;
+        }
+
         var row = charTable.Get(baseId);
         if (row == null)
+        {
+            Debug.LogError($"[CharacterHelper] CharacterTable.Get({baseId}) 실패");
             return;
+        }
 
         string name = row.char_name;
+        string iconKey = row.icon_imageName;
+
+        Debug.Log($"[CharacterHelper] AcquireCharacter baseId={baseId}, name={name}, iconKey={iconKey}");
 
         // 1) 도감/해금 true
         UnlockedByName[name] = true;
 
-        // 2) 보유 id 등록
-        OwnCharacterIds.Add(baseId);
+        // 2) 보유 id 등록 (중복 방지)
+        if (!OwnCharacterIds.Contains(baseId))
+            OwnCharacterIds.Add(baseId);
 
         // 3) exp 초기화
         if (!CharacterExpById.ContainsKey(baseId))
             CharacterExpById[baseId] = 0;
 
-        SaveLoadManager.SaveToServer().Forget(); // 원하면 즉시 저장
+        // 4) 프로필 아이콘 획득 처리
+        if (!string.IsNullOrEmpty(iconKey))
+        {
+            if (!OwnedProfileIconKeys.Contains(iconKey))
+            {
+                OwnedProfileIconKeys.Add(iconKey);
+                Debug.Log($"[CharacterHelper] OwnedProfileIconKeys 에 '{iconKey}' 추가. Count={OwnedProfileIconKeys.Count}");
+            }
+            else
+            {
+                Debug.Log($"[CharacterHelper] 이미 OwnedProfileIconKeys 에 '{iconKey}' 존재");
+            }
+        }
+        else
+        {
+            Debug.LogWarning($"[CharacterHelper] icon_imageName 이 비어있음. name={name}");
+        }
+
+        SaveLoadManager.Save();
+        SaveLoadManager.SaveToServer().Forget();
     }
+
 
     public static void ReplaceOwnedId(int currentId, int nextId, int remainExp)
     {
