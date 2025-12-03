@@ -36,6 +36,10 @@ public class SaveDataV1 : SaveData
     public Dictionary<int, int> characterDispatchCounts = new Dictionary<int, int>(); // 파견 중인 캐릭터 ID와 파견 횟수
     public string lastDispatchResetDate = ""; // 마지막 파견 리셋 날짜 
 
+    // 볼륨 설정
+    public float bgmVolume = 1f; // BGM 볼륨 (0~1)
+    public float sfxVolume = 1f; // SFX 볼륨 (0~1)
+
     // 마지막으로 본 공지 ID 1부터 시작함
     public int lastSeenNoticeId = 0;
     public SaveDataV1()
