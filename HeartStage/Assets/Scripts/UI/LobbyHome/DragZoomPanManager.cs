@@ -42,6 +42,10 @@ public class DragZoomPanManager : MonoBehaviour
     // Editor 입력 처리
     private void HandleEditorInput()
     {
+        // UI가 클릭 중이면 월드 조작 금지
+        if (UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
+            return;
+
         // 줌 처리
         float scroll = Input.mouseScrollDelta.y;
         if (Mathf.Abs(scroll) > 0.01f)
@@ -117,6 +121,11 @@ public class DragZoomPanManager : MonoBehaviour
     // 모바일 입력 처리
     private void HandleTouchInput()
     {
+        // UI 터치 점유 체크
+        if (Input.touchCount > 0 &&
+        UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId))
+            return;
+
         // 핀치 줌
         if (Input.touchCount == 2)
         {
