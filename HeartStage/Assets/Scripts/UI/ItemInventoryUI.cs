@@ -4,16 +4,15 @@ using UnityEngine;
 
 public class ItemTypeID
 {
-    public const int Consumable = 4;
-    public const int Cloth = 7;
-    public const int Piece = 9;
-    public const int PerfectPiece = 10;
+    public const int Equipment = 4;
+    public const int Cloth = 5;
+    public const int Piece = 6;
 }
 
 public enum ItemInventorySorting
 {
     All,
-    Consumable,
+    Equipment,
     Cloth,
     Piece
 }
@@ -46,8 +45,8 @@ public class ItemInventoryUI : MonoBehaviour
             case ItemInventorySorting.All:
                 ShowAll();
                 break;
-            case ItemInventorySorting.Consumable:
-                ShowConsumable();
+            case ItemInventorySorting.Equipment:
+                ShowEquipment();
                 break;
             case ItemInventorySorting.Cloth:
                 ShowCloth();
@@ -73,23 +72,21 @@ public class ItemInventoryUI : MonoBehaviour
     }
 
     // 소모품 보이기
-    public void ShowConsumable()
+    public void ShowEquipment()
     {
         ClearAll();
         var saveItemList = SaveLoadManager.Data.itemList;
         int index = 0;
         foreach (var item in saveItemList)
         {
-            var itemData = DataTableManager.ItemTable.Get(item.Key);
-            // 현재 4번, 10번 소모품
-            if (itemData.item_type != ItemTypeID.Consumable 
-                && itemData.item_type != ItemTypeID.PerfectPiece)
+            var itemData = DataTableManager.ItemTable.Get(item.Key);            
+            if (itemData.item_type != ItemTypeID.Equipment)                
                 continue;
 
             itemSlotList[index++].Init(item.Key, item.Value);
         }
 
-        currentSorting = ItemInventorySorting.Consumable;
+        currentSorting = ItemInventorySorting.Equipment;
     }
 
     // 의상 보이기

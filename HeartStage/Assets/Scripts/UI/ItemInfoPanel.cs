@@ -9,7 +9,7 @@ public class ItemInfoPanel : MonoBehaviour
 	public Image itemImage;
 	public TextMeshProUGUI itemName;
 	public TextMeshProUGUI itemDescription;
-    public Button useButton;
+    //public Button useButton;
     public ItemConsumePanel consumePanel;
     public ItemAcquirePanel acquirePanel;
 
@@ -26,7 +26,7 @@ public class ItemInfoPanel : MonoBehaviour
 
     private void Start()
     {
-        useButton.onClick.AddListener(OpenItemConsumePanel);
+        //useButton.onClick.AddListener(OpenItemConsumePanel);
     }
 
     // 아이템 설명창 띄우기
@@ -35,8 +35,8 @@ public class ItemInfoPanel : MonoBehaviour
         var data = DataTableManager.ItemTable.Get(itemId);
         LoadItemVisual(data);
 
-        bool usable = IsItemUsable(data);
-        ButtonInteractable(usable);
+        //bool usable = IsItemUsable(data);
+        //ButtonInteractable(usable);
     }
 
     // 이미지/텍스트 로드
@@ -52,23 +52,23 @@ public class ItemInfoPanel : MonoBehaviour
     }
 
     // 아이템 타입에 따라 사용할 수 있는지 판단
-    private bool IsItemUsable(ItemCSVData data)
-    {
-        switch (data.item_type)
-        {
-            case ItemTypeID.Piece:
-                return CanUsePiece(itemId);
+    //private bool IsItemUsable(ItemCSVData data)
+    //{
+    //    switch (data.item_type)
+    //    {
+    //        case ItemTypeID.Piece:
+    //            return CanUsePiece(itemId);
 
-            case ItemTypeID.PerfectPiece:
-                return CanUsePerfectPiece(itemId);
+    //        case ItemTypeID.PerfectPiece:
+    //            return CanUsePerfectPiece(itemId);
 
-            case ItemTypeID.Consumable:
-                return true;
+    //        case ItemTypeID.Consumable:
+    //            return true;
 
-            default:
-                return false;
-        }
-    }
+    //        default:
+    //            return false;
+    //    }
+    //}
 
     // 조각(Piece) 아이템 사용 가능 여부
     private bool CanUsePiece(int itemId)
@@ -99,35 +99,35 @@ public class ItemInfoPanel : MonoBehaviour
         return true;
     }
 
-    private void ButtonInteractable(bool active)
-    {
-        var buttonImage = useButton.gameObject.GetComponent<Image>();
+    //private void ButtonInteractable(bool active)
+    //{
+    //    var buttonImage = useButton.gameObject.GetComponent<Image>();
 
-        if (active)
-        {
-            buttonImage.color = buttonOriginColor;
-            useButton.interactable = true;
-        }
-        else
-        {
-            buttonImage.color = buttonDisabledColor;
-            useButton.interactable = false;
-        }
-    }
+    //    if (active)
+    //    {
+    //        buttonImage.color = buttonOriginColor;
+    //        useButton.interactable = true;
+    //    }
+    //    else
+    //    {
+    //        buttonImage.color = buttonDisabledColor;
+    //        useButton.interactable = false;
+    //    }
+    //}
 
-    private void OpenItemConsumePanel()
-    {
-        var data = DataTableManager.ItemTable.Get(itemId);
-        if (data.item_type == ItemTypeID.PerfectPiece)
-        {
-            var pieceData = DataTableManager.PieceTable.Get(data.item_id);
-            if(ItemInvenHelper.TryConsumeItem(itemId, pieceData.piece_ingrd_amount))
-            {
-                acquirePanel.AcquireCharacter(pieceData.char_id);
-                return;
-            }
-        }
+    //private void OpenItemConsumePanel()
+    //{
+    //    var data = DataTableManager.ItemTable.Get(itemId);
+    //    if (data.item_type == ItemTypeID.PerfectPiece)
+    //    {
+    //        var pieceData = DataTableManager.PieceTable.Get(data.item_id);
+    //        if(ItemInvenHelper.TryConsumeItem(itemId, pieceData.piece_ingrd_amount))
+    //        {
+    //            acquirePanel.AcquireCharacter(pieceData.char_id);
+    //            return;
+    //        }
+    //    }
 
-        consumePanel.Open(itemId);
-    }
+    //    consumePanel.Open(itemId);
+    //}
 }
