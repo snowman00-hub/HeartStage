@@ -310,8 +310,8 @@ public class ProfileWindow : MonoBehaviour
             Debug.LogWarning("[ProfileWindow] nicknameWindow 참조가 없습니다.");
             return;
         }
-        modalPanel.Show();
-        nicknameWindow.Open();
+
+        OpenPopupSafely(nicknameWindow).Forget();
     }
 
     private void OnClickChangeStatusMessage()
@@ -321,8 +321,8 @@ public class ProfileWindow : MonoBehaviour
             Debug.LogWarning("[ProfileWindow] statusMessageWindow 참조가 없습니다.");
             return;
         }
-        modalPanel.Show();
-        statusMessageWindow.Open();
+
+        OpenPopupSafely(statusMessageWindow).Forget();
     }
 
     private void OnClickChangeIcon()
@@ -332,8 +332,32 @@ public class ProfileWindow : MonoBehaviour
             Debug.LogWarning("[ProfileWindow] iconChangeWindow 참조가 없습니다.");
             return;
         }
-        modalPanel.Show();
-        iconChangeWindow.Open();
+
+        OpenPopupSafely(iconChangeWindow).Forget();
+    }
+
+    private async UniTaskVoid OpenPopupSafely(MonoBehaviour window)
+    {
+        // 1) 먼저 모달만 켠다
+        if (modalPanel != null)
+            modalPanel.Show();
+
+        // 2) 한 프레임 양보해서 이번 클릭 이벤트 완전히 끝나게 한 뒤
+        await UniTask.Yield();
+
+        // 3) 그 다음 팝업 오픈 (실제 타입에 따라 캐스팅해서 Open 호출)
+        switch (window)
+        {
+            case NicknameWindow nick:
+                nick.Open();
+                break;
+            case StatusMessageWindow status:
+                status.Open();
+                break;
+            case IconChangeWindow icon:
+                icon.Open();
+                break;
+        }
     }
 
     // 팝업 하나가 닫힐 때마다 호출 → 모두 닫히면 모달도 닫기
