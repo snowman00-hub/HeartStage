@@ -140,7 +140,7 @@ public class ProfileWindow : MonoBehaviour
         }
 
         if (fanCountText != null)
-            fanCountText.text = data.fanAmount.ToString("N0");
+            fanCountText.text = $"♥ 팬: {data.fanAmount}";
 
         RefreshTitleDropdown(data);
     }
@@ -278,15 +278,15 @@ public class ProfileWindow : MonoBehaviour
         if (mainStageText != null)
         {
             if (data.mainStageStep1 <= 0 && data.mainStageStep2 <= 0)
-                mainStageText.text = "--";
+                mainStageText.text = "메인 스테이지 진행도: 기록 없음";
             else
-                mainStageText.text = $"{data.mainStageStep1}-{data.mainStageStep2}";
+                mainStageText.text = $"메인 스테이지 진행도: {data.mainStageStep1}-{data.mainStageStep2}";
         }
 
         if (achievementCountText != null)
         {
             int count = AchievementUtil.GetCompletedAchievementCount(data);
-            achievementCountText.text = $"{count}개";
+            achievementCountText.text = $"업적 개수: {count}개";
         }
 
         if (fanMeetingTimeText != null)
@@ -296,11 +296,11 @@ public class ProfileWindow : MonoBehaviour
     private string FormatTimeMMSS(int seconds)
     {
         if (seconds <= 0)
-            return "--:--";
+            return "팬미팅 진행 시간: 기록 없음";
 
         int m = seconds / 60;
         int s = seconds % 60;
-        return $"{m:00}:{s:00}";
+        return $"팬미팅 진행 시간: {m:00}:{s:00}";
     }
 
     private void OnClickChangeNickname()

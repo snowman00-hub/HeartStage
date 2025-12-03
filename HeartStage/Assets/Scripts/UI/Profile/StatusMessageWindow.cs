@@ -1,12 +1,11 @@
 ﻿using Cysharp.Threading.Tasks;
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class StatusMessageWindow : MonoBehaviour
 {
-    public static StatusMessageWindow Instance;
-
     [Header("UI")]
     [SerializeField] private TMP_InputField inputField;
     [SerializeField] private TMP_Text messageText;
@@ -17,8 +16,6 @@ public class StatusMessageWindow : MonoBehaviour
 
     private void Awake()
     {
-        Instance = this;
-
         gameObject.SetActive(false);
 
         if (okButton != null)

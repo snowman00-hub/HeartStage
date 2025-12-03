@@ -6,8 +6,6 @@ using UnityEngine.UI;
 
 public class IconChangeWindow : MonoBehaviour
 {
-    public static IconChangeWindow Instance;
-
     [Header("리스트")]
     [SerializeField] private Transform contentRoot;
     [SerializeField] private GameObject iconItemPrefab;
@@ -18,23 +16,13 @@ public class IconChangeWindow : MonoBehaviour
 
     public bool IsOpen => gameObject.activeSelf;
 
-    // 기존 리스트 관리 + 선택용 리스트
     private readonly List<GameObject> _spawnedItems = new();
     private readonly List<IconChangeItemUI> _items = new();
 
-    // 현재 선택된 아이콘 key (적용 버튼 누르기 전까지 임시 상태)
     private string _selectedKey;
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-        Instance = this;
-
-        // 버튼 이벤트 연결
         if (applyButton != null)
             applyButton.onClick.AddListener(OnClickApply);
 

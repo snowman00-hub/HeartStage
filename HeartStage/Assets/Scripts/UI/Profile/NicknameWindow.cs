@@ -1,12 +1,11 @@
 ﻿using Cysharp.Threading.Tasks;
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class NicknameWindow : MonoBehaviour
 {
-    public static NicknameWindow Instance;
-
     [Header("UI")]
     [SerializeField] private TMP_InputField inputField;
     [SerializeField] private TMP_Text messageText;
@@ -17,9 +16,7 @@ public class NicknameWindow : MonoBehaviour
 
     private void Awake()
     {
-        Instance = this;
-
-        // 시작은 꺼진 상태
+        // 처음엔 창 꺼둔 상태에서 시작
         gameObject.SetActive(false);
 
         if (okButton != null)
@@ -46,6 +43,7 @@ public class NicknameWindow : MonoBehaviour
     public void Close()
     {
         gameObject.SetActive(false);
+        // "팝업 하나 닫혔음"을 ProfileWindow에 알려서 모달Panel 제어
         ProfileWindow.Instance?.OnPopupClosed();
     }
 
@@ -63,7 +61,6 @@ public class NicknameWindow : MonoBehaviour
             return;
 
         string raw = inputField.text;
-
         messageText.text = "확인 중입니다...";
 
         var (ok, error) = await NicknameService.TryChangeNicknameAsync(raw);
