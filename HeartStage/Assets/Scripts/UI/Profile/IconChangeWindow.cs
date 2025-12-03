@@ -12,44 +12,77 @@ public class IconChangeWindow : MonoBehaviour
     [SerializeField] private Transform contentRoot;
     [SerializeField] private GameObject iconItemPrefab;
 
+    [Header("버튼")]
+    [SerializeField] private Button applyButton;
+    [SerializeField] private Button closeButton;
+
     public bool IsOpen => gameObject.activeSelf;
 
+    // 기존 리스트 관리 + 선택용 리스트
     private readonly List<GameObject> _spawnedItems = new();
+    private readonly List<IconChangeItemUI> _items = new();
+
+    // 현재 선택된 아이콘 key (적용 버튼 누르기 전까지 임시 상태)
+    private string _selectedKey;
 
     private void Awake()
     {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
         Instance = this;
+
+        // 버튼 이벤트 연결
+        if (applyButton != null)
+            applyButton.onClick.AddListener(OnClickApply);
+
+        if (closeButton != null)
+            closeButton.onClick.AddListener(Close);
+
         gameObject.SetActive(false);
     }
 
     public void Open()
     {
+        if (IsOpen)
+            return;
+
         gameObject.SetActive(true);
-        RebuildList();
+        RebuildList();           // 열 때 한 번 새로 만들고
+        InitSelectionFromSave(); // 세이브 기준으로 기본 선택 세팅
     }
 
     public void Close()
     {
         gameObject.SetActive(false);
+
+        // 🔥 여기서 ProfileWindow에 "팝업 닫혔다" 알려줘야 모달이 같이 꺼짐
         ProfileWindow.Instance?.OnPopupClosed();
     }
+
+    // ===== Prewarm / RebuildList =====
 
     public void Prewarm()
     {
         bool wasActive = gameObject.activeSelf;
         gameObject.SetActive(true);
         RebuildList();
+        InitSelectionFromSave();
         gameObject.SetActive(wasActive);
     }
 
     private void RebuildList()
     {
+        // 기존 생성된 애들 정리
         foreach (var go in _spawnedItems)
         {
             if (go != null)
                 Destroy(go);
         }
         _spawnedItems.Clear();
+        _items.Clear();
 
         var data = SaveLoadManager.Data as SaveDataV1;
         if (data == null)
@@ -112,6 +145,7 @@ public class IconChangeWindow : MonoBehaviour
                 iconKeys.Add(fallback);
         }
 
+        // 아이템 생성 + IconChangeItemUI 연결
         foreach (var key in iconKeys)
         {
             var sprite = ResourceManager.Instance.GetSprite(key);
@@ -122,23 +156,57 @@ public class IconChangeWindow : MonoBehaviour
             go.SetActive(true);
             _spawnedItems.Add(go);
 
-            var image = go.GetComponentInChildren<Image>();
-            if (image != null)
-                image.sprite = sprite;
-
-            var text = go.GetComponentInChildren<TMP_Text>();
-            if (text != null)
-                text.text = key;
-
-            var btn = go.GetComponentInChildren<Button>();
-            if (btn != null)
+            var item = go.GetComponent<IconChangeItemUI>();
+            if (item != null)
             {
-                string capturedKey = key;
-                btn.onClick.AddListener(() => OnClickIcon(capturedKey).Forget());
+                item.Setup(this, key, sprite);
+                _items.Add(item);
             }
+        }
+
+        // 리스트 새로 만들고 나면 선택 상태도 재세팅
+        InitSelectionFromSave();
+    }
+
+    // ===== 선택 / 적용 로직 =====
+
+    private void InitSelectionFromSave()
+    {
+        var data = SaveLoadManager.Data as SaveDataV1;
+        if (data == null)
+            return;
+
+        _selectedKey = data.profileIconKey;
+
+        foreach (var item in _items)
+        {
+            bool selected = item.IconKey == _selectedKey;
+            item.SetSelected(selected);
         }
     }
 
+    // 아이콘 한 개 클릭했을 때(IconChangeItemUI에서 호출)
+    public void OnClickItem(IconChangeItemUI item)
+    {
+        _selectedKey = item.IconKey;
+
+        foreach (var i in _items)
+        {
+            i.SetSelected(i == item); // 선택된 애만 초록 테두리 ON
+        }
+    }
+
+    // 적용 버튼 눌렀을 때
+    private void OnClickApply()
+    {
+        if (string.IsNullOrEmpty(_selectedKey))
+            return;
+
+        // 실제 저장 + 프로필 반영 + 창닫기까지 여기서 처리
+        OnClickIcon(_selectedKey).Forget();
+    }
+
+    // 실제로 세이브/서버/프로필 반영하는 부분
     private async UniTaskVoid OnClickIcon(string key)
     {
         var data = SaveLoadManager.Data as SaveDataV1;
@@ -157,6 +225,7 @@ public class IconChangeWindow : MonoBehaviour
 
         ProfileWindow.Instance?.RefreshAll();
 
+        // 여기서 한 번만 Close() 호출 (OnClickApply에서는 호출 안함!)
         Close();
     }
 }
