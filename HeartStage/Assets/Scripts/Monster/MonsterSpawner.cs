@@ -599,6 +599,12 @@ public class MonsterSpawner : MonoBehaviour
     // 추가 오브젝트 풀 생성
     private void CreateAllPools()
     {
+        GameObject monsterHitEffectPrefab = ResourceManager.Instance.Get<GameObject>("monsterHitEffect");
+        if (monsterHitEffectPrefab != null)
+        {
+            PoolManager.Instance.CreatePool("monsterHitEffectPool", monsterHitEffectPrefab, 50, 100);
+        }
+
         PoolManager.Instance.CreatePool(MonsterProjectilePoolId, monsterProjectilePrefab, 100);
     }
 
