@@ -830,8 +830,9 @@ public class MonsterSpawner : MonoBehaviour
         if (isFirstClear)
         {
             SaveLoadManager.SaveToServer().Forget(); // 최초 클리어일 때만 저장
-            OnWaveCleared?.Invoke(); //이벤트 발생
         }
+
+        OnWaveCleared?.Invoke(); //이벤트 발생
     }
 
     // 현재 웨이브 스킵
