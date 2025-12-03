@@ -39,11 +39,11 @@ public class MailManager : MonoBehaviour
         db = FirebaseDatabase.DefaultInstance.RootReference;
 
         // 글로벌 메일 실시간 감지 시작
-        ListenForGlobalMail();
+        FireBaseMailChanged();
     }
 
     /// Firebase의 globalMail 노드 변경사항을 실시간으로 감지
-    private void ListenForGlobalMail()
+    private void FireBaseMailChanged()
     {
         if (db != null)
         {
@@ -51,7 +51,7 @@ public class MailManager : MonoBehaviour
         }
     }
 
-    /// 글로벌 메일 데이터 변경 시 호출되는 이벤트 핸들러
+    /// 글로벌 메일 데이터 변경 시 호출
     private async void OnGlobalMailChanged(object sender, ValueChangedEventArgs args)
     {
         // 에러 체크 및 null 검사
