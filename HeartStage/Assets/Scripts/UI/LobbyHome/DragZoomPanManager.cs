@@ -3,6 +3,8 @@ using UnityEngine.UI;
 
 public class DragZoomPanManager : MonoBehaviour
 {
+    public static DragZoomPanManager Instance;
+
     [SerializeField] private RawImage lobbyRawImage;
     [SerializeField] private Camera lobbyHomeCamera;
 
@@ -21,6 +23,13 @@ public class DragZoomPanManager : MonoBehaviour
     private Transform dragTarget;
     private Vector2 lastPos;
     private Vector3 dragOffset; // 드래그 오프셋
+
+    public Bounds BackgroundBounds => background.bounds;
+
+    private void Awake()
+    {
+        Instance = this;
+    }
 
     private void Update()
     {
