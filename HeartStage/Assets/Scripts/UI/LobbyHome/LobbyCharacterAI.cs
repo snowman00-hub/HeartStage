@@ -88,6 +88,10 @@ public class LobbyCharacterAI : MonoBehaviour
                 continue;
             // 행동 끝난 후 잠시 대기
             KillMove();
+
+            if (this == null) 
+                return;
+
             animator.SetTrigger(HashIdle);
             float wait = UnityEngine.Random.Range(afterDelayMin, afterDelayMax);
             await UniTask.Delay(TimeSpan.FromSeconds(wait));
