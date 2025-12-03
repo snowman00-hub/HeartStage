@@ -343,6 +343,16 @@ public class DragZoomPanManager : MonoBehaviour
         {
             lobbyHomeCamera.transform.position += camMove;
             ClampCamera();
+
+            // 카메라 이동 후 드래그 오브젝트 위치 재보정
+            if (isDraggingObject && dragTarget != null)
+            {
+                Vector3 worldPos;
+                if (TryGetWorldPositionFromRawImage(screenPos, out worldPos))
+                {
+                    dragTarget.position = worldPos + dragOffset;
+                }
+            }
         }
     }
 }

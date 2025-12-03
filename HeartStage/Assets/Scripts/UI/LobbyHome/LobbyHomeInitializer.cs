@@ -15,7 +15,7 @@ public class LobbyHomeInitializer : MonoBehaviour
 
         var ownCharacterIds = SaveLoadManager.Data.ownedIds;
         // 배경 바운더리
-        Bounds bounds = DragZoomPanManager.Instance.BackgroundBounds;
+        Bounds bounds = DragZoomPanManager.Instance.InnerBounds;
 
         foreach (var characterId in ownCharacterIds)
         {
@@ -26,10 +26,8 @@ public class LobbyHomeInitializer : MonoBehaviour
             Instantiate(imagePrefab, go.transform);
 
             // 랜덤 위치에서 등장
-            float tX = Random.Range(0.1f, 0.9f);
-            float tY = Random.Range(0.1f, 0.9f);
-            float x = Mathf.Lerp(bounds.min.x, bounds.max.x, tX);
-            float y = Mathf.Lerp(bounds.min.y, bounds.max.y, tY);
+            float x = Random.Range(bounds.min.x, bounds.max.x);
+            float y = Random.Range(bounds.min.y, bounds.max.y);
             go.transform.position = new Vector3(x, y, 0f);
         }
     }

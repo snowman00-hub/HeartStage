@@ -150,7 +150,7 @@ public class LobbyCharacterAI : MonoBehaviour
     {
         KillMove();
 
-        Bounds bounds = DragZoomPanManager.Instance.BackgroundBounds;
+        Bounds bounds = DragZoomPanManager.Instance.InnerBounds;
 
         Vector2 randomDir2D = UnityEngine.Random.insideUnitCircle.normalized;
         Vector3 randomDir3D = new(randomDir2D.x, randomDir2D.y, 0f);
