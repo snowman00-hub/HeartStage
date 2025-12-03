@@ -6,7 +6,7 @@ public class FanManager : MonoBehaviour
 {
     [SerializeField] private int fansPerWave = 4;
     [SerializeField] private float moveSpeed = 2f;
-    [SerializeField] private float fanSpacing = 1.5f;
+    private float fanSpacing = 1f; 
 
     private readonly string[] fanPrefabName =
     {
@@ -42,7 +42,7 @@ public class FanManager : MonoBehaviour
 
         var fanPrefab = ResourceManager.Instance.Get<GameObject>(selectedFanName);
 
-        if(fanPrefab == null)
+        if (fanPrefab == null)
         {
             return;
         }
@@ -55,8 +55,9 @@ public class FanManager : MonoBehaviour
             fanBehavior = fan.AddComponent<FanBehavior>();
         }
 
-        // 팬 설정
-        fanBehavior.SetupFan(fanIndex, moveSpeed, fanSpacing);
+        // 현재 총 팬 수를 고려해서 위치 계산
+        int currentTotalFans = activeFans.Count;
+        fanBehavior.SetupFan(fanIndex, moveSpeed, fanSpacing, currentTotalFans);
 
         activeFans.Add(fan);
     }

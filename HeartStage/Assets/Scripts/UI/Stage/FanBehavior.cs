@@ -3,7 +3,7 @@
 public class FanBehavior : MonoBehaviour
 {
     private readonly string Walk = "Walk";
-    private float walkSpeed = 2f;
+    private float walkSpeed = 1f;
     private Vector3 targetPosition;
     private Vector3 startPosition;
     private bool isWalking = false;
@@ -29,49 +29,76 @@ public class FanBehavior : MonoBehaviour
         switch (stagePosition)
         {
             case 1:
-                fanPosition = new Vector3(0f, 6f, 0f);
                 break;
             case 2:
-                fanPosition = new Vector3(0f, 1f, 0f); // 중앙 스테이지용 위치
                 break;
             case 3:
-                fanPosition = new Vector3(0f, -3f, 0f);
+                fanPosition = new Vector3(0f, -4f, 0f);
                 break;
             default:
-                fanPosition = new Vector3(0f, -3f, 0f);
+                fanPosition = new Vector3(0f, -4f, 0f);
                 break;
         }
 
         targetPosition = fanPosition;
     }
 
-    private void DownPosition(int fanIndex, float spacing)
-    {
-        // 짝수는 왼쪽, 홀수는 오른쪽에서 시작
-        bool startFromLeft = (fanIndex % 2) == 0;
-
-        // Y 위치는 목표 위치와 같게, X는 화면 밖에서 시작
-        float startX = startFromLeft ? -10f : 10f;
-
-        // 팬들이 겹치지 않도록 Y 위치에 약간의 랜덤 오프셋 추가
-        float yOffset = Random.Range(-spacing, spacing);
-
-        startPosition = new Vector3(startX, targetPosition.y + yOffset, 0f);
-        transform.position = startPosition;
-    }
-
-    public void SetupFan(int fanIndex, float speed, float spacing)
+    public void SetupFan(int fanIndex, float speed, float spacing, int currentTotalFans)
     {
         walkSpeed = speed;
 
-        // 스테이지 위치에 따른 목표 지점 설정
+        // 스테이지 위치에 따른 기본 목표 지점 설정
         SpawnFanPosition();
 
-        // 팬 인덱스에 따라 시작 위치 설정 (양쪽에서 번갈아가며)
-        DownPosition(fanIndex, spacing);
+        // 팬 인덱스와 기존 팬 수를 고려해서 최종 위치 설정
+        SetFinalPosition(fanIndex, spacing, currentTotalFans);
+
+        // 시작 위치 설정 (최종 위치 계산 후에 실행)
+        SetStartPosition(fanIndex);
 
         // 걷기 시작
         StartWalking();
+    }
+
+    private void SetFinalPosition(int fanIndex, float spacing, int currentTotalFans)
+    {
+        // 웨이브 단계 계산 (4명씩 한 웨이브)
+        int waveLevel = currentTotalFans / 4;
+
+        // 각 웨이브마다 기존 팬들의 바깥쪽에 배치하기 위한 오프셋
+        float baseOffset = waveLevel * 2f * spacing;
+
+        float xOffset = 0f;
+
+        if (fanIndex == 0) // 왼쪽 첫번째
+        {
+            xOffset = -(spacing * 0.5f + baseOffset);
+        }
+        else if (fanIndex == 1) // 왼쪽 두번째
+        {
+            xOffset = -(spacing * 1.5f + baseOffset);
+        }
+        else if (fanIndex == 2) // 오른쪽 첫번째  
+        {
+            xOffset = (spacing * 0.5f + baseOffset);
+        }
+        else if (fanIndex == 3) // 오른쪽 두번째
+        {
+            xOffset = (spacing * 1.5f + baseOffset);
+        }
+
+        targetPosition = new Vector3(targetPosition.x + xOffset, targetPosition.y, targetPosition.z);
+    }
+
+    private void SetStartPosition(int fanIndex)
+    {
+        // fanIndex 0, 1: 왼쪽에서 시작
+        // fanIndex 2, 3: 오른쪽에서 시작
+        bool startFromLeft = (fanIndex == 0 || fanIndex == 1);
+        float startX = startFromLeft ? -10f : 10f;
+
+        startPosition = new Vector3(startX, targetPosition.y, 0f);
+        transform.position = startPosition;
     }
 
     private void StartWalking()
