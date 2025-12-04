@@ -883,7 +883,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &8969975167319855117
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1181,11 +1181,16 @@ MonoBehaviour:
   receivedTabButton: {fileID: 8562004657021770354}
   sentTabButton: {fileID: 2761370676583091751}
   manageTabButton: {fileID: 7403854416239202322}
+  receivedTabImage: {fileID: 5086278273482538425}
+  sentTabImage: {fileID: 6785526498998616506}
+  manageTabImage: {fileID: 3910765551889702763}
+  selectedTabColor: {r: 1, g: 1, b: 1, a: 1}
+  unselectedTabColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   requestCountText: {fileID: 8312616931775024775}
   friendCountText: {fileID: 8350897129409289178}
   contentRoot: {fileID: 3595008668707201877}
-  itemPrefab: {fileID: 0}
-  closeButton: {fileID: 0}
+  itemPrefab: {fileID: 8979099501854092, guid: ecbb8c55ea66721468b9d203c4021d0a, type: 3}
+  closeButton: {fileID: 3781301661596282732}
   loadingPanel: {fileID: 0}
 --- !u!1 &4806072713336845077
 GameObject:
@@ -1957,7 +1962,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Content: {fileID: 3595008668707201877}
-  m_Horizontal: 1
+  m_Horizontal: 0
   m_Vertical: 1
   m_MovementType: 1
   m_Elasticity: 0.1

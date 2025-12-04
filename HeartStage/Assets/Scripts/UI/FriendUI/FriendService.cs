@@ -13,6 +13,9 @@ public static class FriendService
     // 최대 친구 수 제한
     public const int MAX_FRIEND_COUNT = 20;
 
+    // 최대 친구 요청 수 제한 (받은 + 보낸)
+    public const int MAX_REQUEST_COUNT = 20;
+
     // 동시성 제어
     private static bool _isProcessingRequest = false;
 
@@ -61,9 +64,7 @@ public static class FriendService
                 return false;
             }
 
-            // 친구 요청 전송
-            await requestRef.SetValueAsync(true);
-
+            // 친구 요청 전송 (양쪽에 저장)
             var updates = new Dictionary<string, object>
             {
                 [$"friendRequests/{targetUid}/{myUid}"] = true,
@@ -115,7 +116,7 @@ public static class FriendService
 
     /// <summary>
     /// 친구 요청 수락
-    /// friends 양쪽 추가 + friendRequests 삭제 + SaveData.friendUidList 추가
+    /// friends 양쪽 추가 + friendRequests 삭제 + sentRequests 삭제 + SaveData. friendUidList 추가
     /// </summary>
     public static async UniTask<bool> AcceptFriendRequestAsync(string fromUid)
     {
@@ -148,16 +149,22 @@ public static class FriendService
             {
                 Debug.Log("[FriendService] 이미 친구 상태입니다.");
                 // 요청은 삭제
-                await Root.Child("friendRequests").Child(myUid).Child(fromUid).SetValueAsync(null);
+                var cleanupUpdates = new Dictionary<string, object>
+                {
+                    [$"friendRequests/{myUid}/{fromUid}"] = null,
+                    [$"sentRequests/{fromUid}/{myUid}"] = null,
+                };
+                await Root.UpdateChildrenAsync(cleanupUpdates);
                 return false;
             }
 
-            // Firebase 업데이트 (friends 양방향 + 요청 삭제)
+            // Firebase 업데이트 (friends 양방향 + 요청 삭제 + 보낸 요청도 삭제)
             var updates = new Dictionary<string, object>
             {
                 [$"friends/{myUid}/{fromUid}"] = true,
                 [$"friends/{fromUid}/{myUid}"] = true,
                 [$"friendRequests/{myUid}/{fromUid}"] = null,
+                [$"sentRequests/{fromUid}/{myUid}"] = null,  // 상대방의 보낸 요청도 삭제
             };
 
             await Root.UpdateChildrenAsync(updates);
@@ -191,8 +198,14 @@ public static class FriendService
 
         try
         {
-            await Root.Child("friendRequests").Child(myUid).Child(fromUid)
-                .SetValueAsync(null);
+            // 요청 삭제 + 상대방의 보낸 요청도 삭제
+            var updates = new Dictionary<string, object>
+            {
+                [$"friendRequests/{myUid}/{fromUid}"] = null,
+                [$"sentRequests/{fromUid}/{myUid}"] = null,
+            };
+
+            await Root.UpdateChildrenAsync(updates);
 
             Debug.Log($"[FriendService] 친구 요청 거절 완료: {fromUid}");
             return true;
@@ -233,7 +246,6 @@ public static class FriendService
             {
                 data.friendUidList.Clear();
                 data.friendUidList.AddRange(result);
-                // 굳이 여기서 SaveToServer까지 안 해도 됨 (friends가 진짜 소스라서)
             }
 
             Debug.Log($"[FriendService] 친구 목록 로드 완료: {result.Count}명");
@@ -348,6 +360,33 @@ public static class FriendService
         {
             Debug.LogError($"[FriendService] CancelSentRequestAsync Error: {e}");
             return false;
+        }
+    }
+
+    /// <summary>
+    /// 받은 요청 수 + 보낸 요청 수 합계 가져오기
+    /// </summary>
+    public static async UniTask<(int received, int sent)> GetRequestCountsAsync()
+    {
+        string myUid = GetMyUid();
+        if (string.IsNullOrEmpty(myUid))
+            return (0, 0);
+
+        try
+        {
+            var receivedSnap = await Root.Child("friendRequests").Child(myUid).GetValueAsync();
+            var sentSnap = await Root.Child("sentRequests").Child(myUid).GetValueAsync();
+
+            int receivedCount = receivedSnap.Exists ? (int)receivedSnap.ChildrenCount : 0;
+            int sentCount = sentSnap.Exists ? (int)sentSnap.ChildrenCount : 0;
+
+            Debug.Log($"[FriendService] 요청 수 조회: 받은 {receivedCount}개, 보낸 {sentCount}개");
+            return (receivedCount, sentCount);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[FriendService] GetRequestCountsAsync Error: {e}");
+            return (0, 0);
         }
     }
 }

@@ -16,17 +16,24 @@ public class FriendManageWindow : MonoBehaviour
     [SerializeField] private MessageWindow messageWindow;
 
     [Header("탭 버튼")]
-    [SerializeField] private Button receivedTabButton;   // 받은 신청
-    [SerializeField] private Button sentTabButton;       // 보낸 신청
-    [SerializeField] private Button manageTabButton;     // 친구 관리
+    [SerializeField] private Button receivedTabButton;
+    [SerializeField] private Button sentTabButton;
+    [SerializeField] private Button manageTabButton;
+
+    [Header("탭 이미지 (선택 표시용)")]
+    [SerializeField] private Image receivedTabImage;
+    [SerializeField] private Image sentTabImage;
+    [SerializeField] private Image manageTabImage;
+    [SerializeField] private Color selectedTabColor = Color.white;
+    [SerializeField] private Color unselectedTabColor = Color.gray;
 
     [Header("상단 정보")]
-    [SerializeField] private TMP_Text requestCountText;  // 친구 신청: 20/20
-    [SerializeField] private TMP_Text friendCountText;   // 친구 수: 20/20
+    [SerializeField] private TMP_Text requestCountText;
+    [SerializeField] private TMP_Text friendCountText;
 
     [Header("리스트")]
     [SerializeField] private Transform contentRoot;
-    [SerializeField] private FriendManageItemUI itemPrefab;  // 공용 아이템 프리팹
+    [SerializeField] private FriendManageItemUI itemPrefab;
 
     [Header("버튼")]
     [SerializeField] private Button closeButton;
@@ -69,6 +76,7 @@ public class FriendManageWindow : MonoBehaviour
             root.SetActive(true);
 
         _currentTab = TabType.Received;
+        UpdateTabVisual();
         RefreshAsync().Forget();
     }
 
@@ -77,6 +85,11 @@ public class FriendManageWindow : MonoBehaviour
         if (root != null)
             root.SetActive(false);
 
+        // 닫을 때 FriendListWindow도 갱신하여 친구 수 동기화
+        if (friendListWindow != null)
+        {
+            friendListWindow.RefreshAsync().Forget();
+        }
         friendListWindow?.Show();
     }
 
@@ -92,7 +105,20 @@ public class FriendManageWindow : MonoBehaviour
             return;
 
         _currentTab = tab;
+        UpdateTabVisual();
         RefreshAsync().Forget();
+    }
+
+    private void UpdateTabVisual()
+    {
+        if (receivedTabImage != null)
+            receivedTabImage.color = _currentTab == TabType.Received ? selectedTabColor : unselectedTabColor;
+
+        if (sentTabImage != null)
+            sentTabImage.color = _currentTab == TabType.Sent ? selectedTabColor : unselectedTabColor;
+
+        if (manageTabImage != null)
+            manageTabImage.color = _currentTab == TabType.Manage ? selectedTabColor : unselectedTabColor;
     }
 
     private void ClearList()
@@ -145,20 +171,20 @@ public class FriendManageWindow : MonoBehaviour
 
     private async UniTask UpdateHeaderAsync()
     {
-        // 친구 수
-        var friendUids = await FriendService.GetMyFriendUidListAsync(syncLocal: true);
+        // 병렬로 로드
+        var (friendUids, requestCounts) = await UniTask.WhenAll(
+            FriendService.GetMyFriendUidListAsync(syncLocal: true),
+            FriendService.GetRequestCountsAsync()
+        );
+
         if (friendCountText != null)
             friendCountText.text = $"친구 수: {friendUids.Count}/{FriendService.MAX_FRIEND_COUNT}";
 
-        // 받은 요청 수 (TODO: 보낸 요청도 합산하려면 수정)
-        var received = await FriendService.GetReceivedRequestsAsync();
+        int totalRequests = requestCounts.received + requestCounts.sent;
         if (requestCountText != null)
-            requestCountText.text = $"친구 신청: {received.Count}/??";
+            requestCountText.text = $"친구 신청: {totalRequests}/{FriendService.MAX_REQUEST_COUNT}";
     }
 
-    /// <summary>
-    /// 받은 신청 탭
-    /// </summary>
     private async UniTask ShowReceivedRequestsAsync()
     {
         var requests = await FriendService.GetReceivedRequestsAsync();
@@ -166,16 +192,13 @@ public class FriendManageWindow : MonoBehaviour
         foreach (var fromUid in requests)
         {
             var item = Instantiate(itemPrefab, contentRoot);
-            item.Setup(fromUid, FriendManageItemUI.Mode.ReceivedRequest, OnItemActionCompleted);
+            item.Setup(fromUid, FriendManageItemUI.Mode.ReceivedRequest, OnItemActionCompleted, messageWindow);
             _spawned.Add(item);
         }
 
         Debug.Log($"[FriendManageWindow] 받은 신청 {requests.Count}개 표시");
     }
 
-    /// <summary>
-    /// 보낸 신청 탭
-    /// </summary>
     private async UniTask ShowSentRequestsAsync()
     {
         var requests = await FriendService.GetSentRequestsAsync();
@@ -183,16 +206,13 @@ public class FriendManageWindow : MonoBehaviour
         foreach (var toUid in requests)
         {
             var item = Instantiate(itemPrefab, contentRoot);
-            item.Setup(toUid, FriendManageItemUI.Mode.SentRequest, OnItemActionCompleted);
+            item.Setup(toUid, FriendManageItemUI.Mode.SentRequest, OnItemActionCompleted, messageWindow);
             _spawned.Add(item);
         }
 
         Debug.Log($"[FriendManageWindow] 보낸 신청 {requests.Count}개 표시");
     }
 
-    /// <summary>
-    /// 친구 관리 탭
-    /// </summary>
     private async UniTask ShowFriendListAsync()
     {
         var friendUids = await FriendService.GetMyFriendUidListAsync(syncLocal: false);
@@ -200,7 +220,7 @@ public class FriendManageWindow : MonoBehaviour
         foreach (var friendUid in friendUids)
         {
             var item = Instantiate(itemPrefab, contentRoot);
-            item.Setup(friendUid, FriendManageItemUI.Mode.FriendManage, OnItemActionCompleted);
+            item.Setup(friendUid, FriendManageItemUI.Mode.FriendManage, OnItemActionCompleted, messageWindow);
             _spawned.Add(item);
         }
 

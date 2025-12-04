@@ -29,6 +29,9 @@ public class MessageWindow : MonoBehaviour
     [SerializeField] private Image confirmButtonFrame;
     [SerializeField] private Image cancelButtonFrame;
 
+    [Header("윈도우 프레임")]
+    [SerializeField] private Image windowFrame;
+
     [Header("색상 설정")]
     [SerializeField] private Color successColor = Color.green;
     [SerializeField] private Color failColor = Color.red;
@@ -65,7 +68,6 @@ public class MessageWindow : MonoBehaviour
             cancelButton.onClick.AddListener(OnClickCancel);
         }
 
-        // 기본 이미지 설정
         if (singleButtonImage == null && singleButton != null)
             singleButtonImage = singleButton.targetGraphic as Image;
 
@@ -76,7 +78,7 @@ public class MessageWindow : MonoBehaviour
             cancelButtonImage = cancelButton.targetGraphic as Image;
     }
 
-    #region 1개 버튼 (기존)
+    #region 1개 버튼
 
     public void Open(string title, string message)
     {
@@ -152,56 +154,43 @@ public class MessageWindow : MonoBehaviour
 
     private void SetSingleButtonMode(Color buttonColor)
     {
-        // 1개 버튼 표시
         if (singleButton != null)
             singleButton.gameObject.SetActive(true);
 
-        // 2개 버튼 숨김
         if (twoButtonContainer != null)
             twoButtonContainer.SetActive(false);
 
-        // 버튼 색상 적용
         ApplyButtonColor(singleButtonImage, singleButtonFrame, singleButtonLabel, buttonColor);
+        ApplyWindowFrameColor(buttonColor);
 
-        // 콜백 초기화
         _onConfirm = null;
         _onCancel = null;
     }
 
     private void SetTwoButtonMode(string confirmText, string cancelText)
     {
-        // 1개 버튼 숨김
         if (singleButton != null)
             singleButton.gameObject.SetActive(false);
 
-        // 2개 버튼 표시
         if (twoButtonContainer != null)
             twoButtonContainer.SetActive(true);
 
-        // 버튼 텍스트 설정
         if (confirmButtonLabel != null)
             confirmButtonLabel.text = confirmText;
 
         if (cancelButtonLabel != null)
             cancelButtonLabel.text = cancelText;
 
-        // 확인 버튼 색상
         ApplyButtonColor(confirmButtonImage, confirmButtonFrame, confirmButtonLabel, confirmColor);
-
-        // 취소 버튼 색상
         ApplyButtonColor(cancelButtonImage, cancelButtonFrame, cancelButtonLabel, cancelColor);
+        ApplyWindowFrameColor(neutralColor);
     }
 
-    /// <summary>
-    /// 버튼 색상 적용 (버튼 이미지 + 프레임)
-    /// </summary>
     private void ApplyButtonColor(Image buttonImage, Image buttonFrame, TextMeshProUGUI label, Color baseColor)
     {
-        // 버튼 이미지
         if (buttonImage != null)
             buttonImage.color = baseColor;
 
-        // 버튼 프레임 (어둡게)
         if (buttonFrame != null)
         {
             buttonFrame.color = new Color(
@@ -212,14 +201,26 @@ public class MessageWindow : MonoBehaviour
             );
         }
 
-        // 라벨
         if (label != null)
             label.color = Color.white;
     }
 
+    private void ApplyWindowFrameColor(Color baseColor)
+    {
+        if (windowFrame != null)
+        {
+            windowFrame.color = new Color(
+                baseColor.r * frameDarkenFactor,
+                baseColor.g * frameDarkenFactor,
+                baseColor.b * frameDarkenFactor,
+                windowFrame.color.a
+            );
+        }
+    }
+
     #endregion
 
-    #region 버튼 클릭 핸들러
+    #region 버튼 클릭
 
     private void OnClickConfirm()
     {

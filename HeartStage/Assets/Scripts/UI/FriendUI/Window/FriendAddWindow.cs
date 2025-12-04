@@ -17,8 +17,8 @@ public class FriendAddWindow : MonoBehaviour
     [SerializeField] private MessageWindow messageWindow;
 
     [Header("상단 정보")]
-    [SerializeField] private TMP_Text friendCountText;    // 친구 수: 20/20
-    [SerializeField] private TMP_Text requestCountText;   // 친구 신청: 20/20
+    [SerializeField] private TMP_Text friendCountText;    // 친구 수: 0/20
+    [SerializeField] private TMP_Text requestCountText;   // 친구 신청: 0/20
 
     [Header("리스트")]
     [SerializeField] private Transform contentRoot;       // 아이템 부모
@@ -38,9 +38,10 @@ public class FriendAddWindow : MonoBehaviour
     private readonly List<FriendAddItemUI> _spawned = new();
     private bool _isRefreshing = false;
 
-    // 캐시된 추천 후보 및 받은 요청 (로컬 데이터 기준)
+    // 캐시된 추천 후보 및 요청 수 (로컬 데이터 기준)
     private List<PublicProfileSummary> _cachedCandidates;
-    private List<string> _cachedReceivedRequests;
+    private int _cachedReceivedCount;
+    private int _cachedSentCount;
     private bool _isPrewarmed = false;
 
     private void Awake()
@@ -56,13 +57,13 @@ public class FriendAddWindow : MonoBehaviour
         if (refreshButton != null)
             refreshButton.onClick.AddListener(() => RefreshAsync().Forget());
 
-        // 🔍 검색 버튼은 이제 별도 검색창만 연다
         if (searchButton != null)
             searchButton.onClick.AddListener(OnClickOpenSearchWindow);
 
         if (loadingPanel != null)
             loadingPanel.SetActive(false);
     }
+
     public void Open()
     {
         if (root != null)
@@ -78,6 +79,7 @@ public class FriendAddWindow : MonoBehaviour
             RefreshAsync().Forget();
         }
     }
+
     private void ShowCachedData()
     {
         ClearList();
@@ -99,7 +101,6 @@ public class FriendAddWindow : MonoBehaviour
         // 캐시 사용 완료
         _isPrewarmed = false;
         _cachedCandidates = null;
-        _cachedReceivedRequests = null;
 
         Debug.Log($"[FriendAddWindow] 캐시 데이터로 표시 완료: {_spawned.Count}명");
     }
@@ -117,8 +118,8 @@ public class FriendAddWindow : MonoBehaviour
 
         if (requestCountText != null)
         {
-            int requestCount = _cachedReceivedRequests?.Count ?? 0;
-            requestCountText.text = $"친구 신청: {requestCount}/??";
+            int totalRequests = _cachedReceivedCount + _cachedSentCount;
+            requestCountText.text = $"친구 신청: {totalRequests}/{FriendService.MAX_REQUEST_COUNT}";
         }
     }
 
@@ -135,9 +136,7 @@ public class FriendAddWindow : MonoBehaviour
         if (root != null)
             root.SetActive(true);
     }
-    /// <summary>
-    /// 리스트 클리어
-    /// </summary>
+
     private void ClearList()
     {
         foreach (var item in _spawned)
@@ -154,24 +153,25 @@ public class FriendAddWindow : MonoBehaviour
 
         try
         {
-            // 병렬로 로드 - WhenAll 튜플 반환 사용
-            var (candidates, receivedRequests) = await UniTask.WhenAll(
+            // 병렬로 로드
+            var (candidates, requestCounts) = await UniTask.WhenAll(
                 FriendSearchService.GetRandomCandidatesAsync(randomCandidateCount),
-                FriendService.GetReceivedRequestsAsync()
+                FriendService.GetRequestCountsAsync()
             );
 
             _cachedCandidates = candidates;
-            _cachedReceivedRequests = receivedRequests;
+            _cachedReceivedCount = requestCounts.received;
+            _cachedSentCount = requestCounts.sent;
 
             _isPrewarmed = true;
-            Debug.Log($"[FriendAddWindow] Prewarm 완료: 추천 {_cachedCandidates.Count}명, 받은 요청 {_cachedReceivedRequests.Count}개");
+            Debug.Log($"[FriendAddWindow] Prewarm 완료: 추천 {_cachedCandidates.Count}명, 받은 요청 {_cachedReceivedCount}개, 보낸 요청 {_cachedSentCount}개");
         }
         catch (System.Exception e)
         {
             Debug.LogError($"[FriendAddWindow] PrewarmAsync Error: {e}");
         }
     }
-    // RefreshAsync 수정 - 캐시 활용
+
     public async UniTask RefreshAsync()
     {
         if (_isRefreshing) return;
@@ -212,7 +212,7 @@ public class FriendAddWindow : MonoBehaviour
         if (_isPrewarmed && _cachedCandidates != null)
         {
             candidates = _cachedCandidates;
-            _isPrewarmed = false; // 한 번 사용 후 리셋
+            _isPrewarmed = false;
         }
         else
         {
@@ -234,34 +234,26 @@ public class FriendAddWindow : MonoBehaviour
         if (SaveLoadManager.Data is not SaveDataV1 data)
             return;
 
-        // 친구 수
-        var friendUids = await FriendService.GetMyFriendUidListAsync(syncLocal: true);
+        // 병렬로 로드
+        var (friendUids, requestCounts) = await UniTask.WhenAll(
+            FriendService.GetMyFriendUidListAsync(syncLocal: true),
+            FriendService.GetRequestCountsAsync()
+        );
+
         if (friendCountText != null)
         {
             friendCountText.text = $"친구 수: {friendUids.Count}/{FriendService.MAX_FRIEND_COUNT}";
         }
 
-        // 받은 요청 수 (캐시 활용)
-        List<string> receivedRequests;
-        if (_cachedReceivedRequests != null)
-        {
-            receivedRequests = _cachedReceivedRequests;
-            _cachedReceivedRequests = null; // 사용 후 클리어
-        }
-        else
-        {
-            receivedRequests = await FriendService.GetReceivedRequestsAsync();
-        }
-
         if (requestCountText != null)
         {
-            requestCountText.text = $"친구 신청: {receivedRequests.Count}/??";
+            int totalRequests = requestCounts.received + requestCounts.sent;
+            requestCountText.text = $"친구 신청: {totalRequests}/{FriendService.MAX_REQUEST_COUNT}";
         }
     }
 
     /// <summary>
     /// 검색 결과를 받아서 리스트에 표시
-    /// (FriendSearchWindow에서 호출)
     /// </summary>
     public void ShowSearchResults(List<PublicProfileSummary> results)
     {
@@ -283,16 +275,12 @@ public class FriendAddWindow : MonoBehaviour
         Debug.Log($"[FriendAddWindow] 검색 결과 {results.Count}명을 리스트에 표시했습니다.");
     }
 
-    /// <summary>
-    /// 닉네임 검색창 열기 (친구 수 초과 시 MessageWindow로 알림)
-    /// </summary>
     private void OnClickOpenSearchWindow()
     {
         if (!FriendService.CanAddMoreFriends())
         {
             Debug.Log($"[FriendAddWindow] 친구가 이미 {FriendService.MAX_FRIEND_COUNT}명입니다.");
 
-            // ✏️ 이 부분 수정
             if (messageWindow != null)
             {
                 messageWindow.OpenFail(
@@ -303,7 +291,6 @@ public class FriendAddWindow : MonoBehaviour
             return;
         }
 
-        // ✏️ 이 부분 수정
         if (friendSearchWindow != null)
         {
             friendSearchWindow.Open();
