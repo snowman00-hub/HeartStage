@@ -196,6 +196,12 @@ public class MonsterMovement : MonoBehaviour
                 continue;
             }
 
+            var boss = other.GetComponent<MonsterBehavior>();
+            if(boss != null && boss.IsBossMonster())
+            {
+                continue;
+            }
+
             // 이동 방향
             bool isInFront = false;
             float dx = Mathf.Abs(other.transform.position.x - transform.position.x);
@@ -238,10 +244,24 @@ public class MonsterMovement : MonoBehaviour
     // 좌우 분리 힘 계산
     private Vector3 GetHorizontalSeparationForce()
     {
+
+        // 보스 몬스터는 아예 separation 계산을 하지 않음
+        var monsterBehavior = GetComponent<MonsterBehavior>();
+        if (monsterBehavior != null && monsterBehavior.IsBossMonster())
+        {
+            return Vector3.zero;
+        }
+
         Vector3 forceSum = Vector3.zero;
         foreach (var other in allActiveMonsters)
         {
             if (other == this || other == null || !other.gameObject.activeInHierarchy)
+            {
+                continue;
+            }
+
+            var boss = other.GetComponent<MonsterBehavior>();
+            if(boss != null && boss.IsBossMonster())
             {
                 continue;
             }

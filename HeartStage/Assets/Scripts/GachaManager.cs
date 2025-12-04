@@ -44,7 +44,6 @@ public class GachaManager : MonoBehaviour
         // 재화 차감
         if (!ItemInvenHelper.TryConsumeItem(ItemID.HeartStick, 50))
         {
-            Debug.Log("재화가 부족합니다.");
             return null;
         }
 
@@ -52,7 +51,6 @@ public class GachaManager : MonoBehaviour
         var gachaItems = GachaTable.GetGachaByType(gachaTypeId);
         if (gachaItems == null || gachaItems.Count == 0)
         {
-            Debug.LogError($"가챠 타입 {gachaTypeId}의 아이템이 없습니다.");
             return null;
         }
 
@@ -60,38 +58,48 @@ public class GachaManager : MonoBehaviour
         var selectedItem = DrawRandomItem(gachaItems);
         if (selectedItem == null)
         {
-            Debug.LogError("가챠 뽑기에 실패했습니다.");
             return null;
         }
 
         var characterData = DataTableManager.CharacterTable.Get(selectedItem.Gacha_item);
-        if (characterData == null)
-        {
-            return null;
-        }
+        bool isCharacter = characterData != null;
+        bool alreadyOwned = false;
 
-        bool alreadyOwned = SaveLoadManager.Data.unlockedByName.TryGetValue(characterData.char_name, out bool isUnlocked) && isUnlocked;
-        if (!alreadyOwned)
+        if (isCharacter)
         {
-            // 캐릭터 획득 처리     
-            CharacterHelper.AcquireCharacter(selectedItem.Gacha_item, DataTableManager.CharacterTable);
+            alreadyOwned = SaveLoadManager.Data.unlockedByName.TryGetValue(characterData.char_name, out bool isUnlocked) && isUnlocked;
 
-            // 뽑기 퀘스트 완료 처리
-            QuestManager.Instance.OnGachaDraw();
+            if (!alreadyOwned)
+            {
+                // 캐릭터 획득 처리 
+                CharacterHelper.AcquireCharacter(selectedItem.Gacha_item, DataTableManager.CharacterTable);
+                QuestManager.Instance.OnGachaDraw();
+            }
+            else
+            {
+                // 중복 캐릭터 보상 처리
+                if (selectedItem.Gacha_have > 0)
+                {
+                    var itemData = DataTableManager.ItemTable.Get(selectedItem.Gacha_have);
+                    if (itemData != null)
+                    {
+                        ItemInvenHelper.AddItem(selectedItem.Gacha_have, selectedItem.Gacha_have_amount);
+                        QuestManager.Instance.OnGachaDraw();
+                        Debug.Log($"중복 보상 아이템 획득: {itemData.item_name} x{selectedItem.Gacha_have_amount}");
+                    }
+                }
+            }
         }
         else
         {
-            if (selectedItem.Gacha_have > 0)
-            {
-                var itemData = DataTableManager.ItemTable.Get(selectedItem.Gacha_have);
-                if (itemData != null)
-                {
-                    ItemInvenHelper.AddItem(selectedItem.Gacha_have, 1); // 중복 보상 아이템 추가
+            // 일반 아이템 획득 처리
+            ItemInvenHelper.AddItem(selectedItem.Gacha_item, selectedItem.Gacha_item_amount);
+            QuestManager.Instance.OnGachaDraw();
 
-                    //뽑기 퀘스트 완료 처리
-                    QuestManager.Instance.OnGachaDraw();
-                    Debug.Log($"중복 보상 아이템 획득: {itemData.item_name}");
-                }
+            var itemData = DataTableManager.ItemTable.Get(selectedItem.Gacha_item);
+            if (itemData != null)
+            {
+                Debug.Log($"아이템 획득: {itemData.item_name} x{selectedItem.Gacha_item_amount}");
             }
         }
 
@@ -99,7 +107,7 @@ public class GachaManager : MonoBehaviour
         return new GachaResult
         {
             gachaData = selectedItem,
-            characterData = DataTableManager.CharacterTable.Get(selectedItem.Gacha_item),
+            characterData = characterData,
             isDuplicate = alreadyOwned
         };
     }
@@ -132,9 +140,12 @@ public class GachaManager : MonoBehaviour
             if (selectedItem != null)
             {
                 var characterData = DataTableManager.CharacterTable.Get(selectedItem.Gacha_item);
-                if (characterData != null)
+                bool isCharacter = characterData != null;
+                bool alreadyOwned = false;
+
+                if (isCharacter)
                 {
-                    bool alreadyOwned = SaveLoadManager.Data.unlockedByName.TryGetValue(characterData.char_name, out bool isUnlocked) && isUnlocked;
+                    alreadyOwned = SaveLoadManager.Data.unlockedByName.TryGetValue(characterData.char_name, out bool isUnlocked) && isUnlocked;
 
                     if (!alreadyOwned)
                     {
@@ -151,16 +162,30 @@ public class GachaManager : MonoBehaviour
                             var itemData = DataTableManager.ItemTable.Get(selectedItem.Gacha_have);
                             if (itemData != null)
                             {
-                                ItemInvenHelper.AddItem(selectedItem.Gacha_have, 1); // 중복 보상 아이템 추가
+                                ItemInvenHelper.AddItem(selectedItem.Gacha_have, selectedItem.Gacha_have_amount); // 중복 보상 아이템 추가
 
                                 //뽑기 퀘스트 완료 처리
                                 QuestManager.Instance.OnGachaDraw();
-                                Debug.Log($"중복 보상 아이템 획득: {itemData.item_name}");
+                                Debug.Log($"중복 보상 아이템 획득: {itemData.item_name} x{selectedItem.Gacha_have_amount}");
 
                             }
                         }
                     }
                     result.Add(new GachaResult(selectedItem, characterData, alreadyOwned));
+                }
+
+                else
+                {
+                    ItemInvenHelper.AddItem(selectedItem.Gacha_item, selectedItem.Gacha_item_amount);
+                    QuestManager.Instance.OnGachaDraw();
+
+                    var itemData = DataTableManager.ItemTable.Get(selectedItem.Gacha_item);
+                    if(itemData != null)
+                    {
+                        Debug.Log($"아이템 획득: {itemData.item_name} x{selectedItem.Gacha_item_amount}");
+
+                    }
+                    result.Add(new GachaResult(selectedItem, null, false));
                 }
             }
         }

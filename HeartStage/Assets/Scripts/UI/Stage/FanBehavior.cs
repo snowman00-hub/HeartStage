@@ -3,6 +3,8 @@
 public class FanBehavior : MonoBehaviour
 {
     private readonly string Walk = "Walk";
+    private readonly string Idle = "Idle"; 
+
     private float walkSpeed = 1f;
     private Vector3 targetPosition;
     private Vector3 startPosition;
@@ -55,6 +57,8 @@ public class FanBehavior : MonoBehaviour
 
         // 시작 위치 설정 (최종 위치 계산 후에 실행)
         SetStartPosition(fanIndex);
+
+        SetFanSpriteDirection(fanIndex);
 
         // 걷기 시작
         StartWalking();
@@ -118,6 +122,25 @@ public class FanBehavior : MonoBehaviour
         if (Vector3.Distance(transform.position, targetPosition) < 0.1f)
         {
             isWalking = false;
+            animator.SetTrigger("Idle");
+        }
+    }
+
+    private void SetFanSpriteDirection(int fanIndex)
+    {
+        bool comingRight = (fanIndex == 2 || fanIndex == 3);
+
+        if (comingRight)
+        {
+            Vector3 scale = transform.localScale;
+            scale.x = -Mathf.Abs(scale.x);
+            transform.localScale = scale;
+        }
+        else
+        {
+            Vector3 scale = transform.localScale;
+            scale.x = Mathf.Abs(scale.x);
+            transform.localScale = scale;
         }
     }
 }

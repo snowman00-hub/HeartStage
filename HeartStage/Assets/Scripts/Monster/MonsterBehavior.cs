@@ -42,8 +42,9 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     {
         monsterData = data;
         isDead = false;
-
         attackCooldown = 0f;
+
+        ClearDebuff();
 
         if (heartPrefab != null)
         {
@@ -63,6 +64,12 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         }
 
         isBoss = IsBossMonster(data.id);
+
+        if(isBoss)
+        {
+            gameObject.layer = LayerMask.NameToLayer("Boss");
+        }
+
         InitHealthBar();
 
         if (animator == null)
@@ -499,4 +506,21 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 
         return contactPoint;
     }
+
+    private void ClearDebuff()
+    {
+        var allEffects = GetComponents<EffectBase>();
+
+        if (allEffects != null && allEffects.Length > 0)
+        {
+            foreach (var effect in allEffects)
+            {
+                if (effect != null)
+                {
+                    DestroyImmediate(effect);
+                }
+            }
+        }
+    }
+
 }

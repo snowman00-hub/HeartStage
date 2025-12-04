@@ -519,11 +519,12 @@ public class MailManager : MonoBehaviour
         {
             var items = new List<ItemAttachment>
         {
-            new ItemAttachment("7101", 1000),
-            new ItemAttachment("7102", 100)
+            new ItemAttachment("7101", 10000),
+            new ItemAttachment("7102", 10000)
         };
 
-            await MailManager.Instance.SendMailToAllUsers(
+            await MailManager.Instance.SendMailToAllUsers
+            (
                 "환영 합니다!",
                 "접속 보상 선물입니다.",
                 items
