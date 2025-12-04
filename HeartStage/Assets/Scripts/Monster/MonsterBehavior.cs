@@ -64,6 +64,12 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         }
 
         isBoss = IsBossMonster(data.id);
+
+        if(isBoss)
+        {
+            gameObject.layer = LayerMask.NameToLayer("Boss");
+        }
+
         InitHealthBar();
 
         if (animator == null)
@@ -516,4 +522,5 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
             }
         }
     }
+
 }
