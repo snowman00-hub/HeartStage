@@ -1,7 +1,6 @@
 ﻿using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using System;
-using UnityEditor.Animations;
 using UnityEngine;
 
 public enum LobbyActionType
@@ -40,7 +39,7 @@ public class LobbyCharacterAI : MonoBehaviour
     private static readonly int HashMeditation = Animator.StringToHash("Meditation");
     private static readonly int HashSurprised = Animator.StringToHash("Surprised");
 
-    public AnimatorController aniController;
+    public RuntimeAnimatorController aniController;
     public float walkSpeed = 2f;
     public float runSpeed = 3f;
 

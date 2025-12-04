@@ -1,14 +1,12 @@
 ﻿using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using Cysharp.Threading.Tasks; // DebugOverlaySceneManager.OpenSkillTest().Forget() 용
 
 /// <summary>
 /// 테스트 전용 HUD
 /// - StageManager / MonsterSpawner 코드는 건드리지 않고
 /// - TestStageManager(브리지)에서 SetWaveCount / SetRemainMonsterCount만 호출해주면 됨
 /// </summary>
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
 public class TestSceneHUD : MonoBehaviour
 {
     [Header("Label")]
@@ -150,4 +148,3 @@ public class TestSceneHUD : MonoBehaviour
         Debug.Log($"[TestSceneHUD] {msg}");
     }
 }
-#endif
