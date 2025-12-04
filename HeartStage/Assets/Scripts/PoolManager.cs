@@ -40,14 +40,18 @@ public class PoolManager : MonoBehaviour
            createFunc: () =>
            {
                var obj = Instantiate(prefab, parentGo.transform);
+               obj.SetActive(false);
                return obj;
            },
-           actionOnGet: obj => obj.SetActive(true),
+           actionOnGet: obj =>
+           {
+               if (obj != null)
+                   obj.SetActive(true);
+           },
            actionOnRelease: obj =>
            {
-               if (obj == null || obj.Equals(null)) 
-                   return;
-               obj.SetActive(false);
+               if (obj != null)
+                   obj.SetActive(false);
            },
            actionOnDestroy: obj => Destroy(obj),
            collectionCheck: false,
@@ -57,7 +61,6 @@ public class PoolManager : MonoBehaviour
 
         poolDict.Add(id, pool);
         WarmUp(id, defaultCapacity);
-
     }
 
     // 가져가기

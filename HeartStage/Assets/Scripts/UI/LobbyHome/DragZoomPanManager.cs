@@ -47,8 +47,9 @@ public class DragZoomPanManager : MonoBehaviour
     {
 #if UNITY_EDITOR
         HandleEditorInput();
-#endif
+#else
         HandleTouchInput();
+#endif
     }
 
     // Editor 입력 처리
@@ -137,9 +138,8 @@ public class DragZoomPanManager : MonoBehaviour
     // 모바일 입력 처리
     private void HandleTouchInput()
     {
-        // UI 터치 점유 체크
-        if (Input.touchCount > 0 &&
-        UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId))
+        // UI가 클릭 중이면 월드 조작 금지
+        if (Input.touchCount > 0 && UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId))
             return;
 
         // 핀치 줌
@@ -203,7 +203,7 @@ public class DragZoomPanManager : MonoBehaviour
                 {
                     DragObject(t.position);
                     // 가장자리 체크
-                    HandleDragEdgeScroll(Input.mousePosition);
+                    HandleDragEdgeScroll(t.position);
                 }
                 else if (isPanning)
                 {

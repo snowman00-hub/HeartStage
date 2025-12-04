@@ -44,7 +44,7 @@ public abstract class BaseProjectileSkill : MonoBehaviour, ISkillBehavior
         SetupParticle(particleGo, clone);
 
         // 오브젝트 풀 생성
-        PoolManager.Instance.CreatePool(poolId, clone, 10, 30);
+        PoolManager.Instance.CreatePool(poolId, clone);
         Destroy(clone);
 
         // 히트 이펙트 풀 생성

@@ -5,6 +5,8 @@ public class SettingPanelUI : GenericWindow
 {
     [SerializeField] private Slider sfxVolumeSlider;
     [SerializeField] private Slider bgmVolumeSlider;
+    [SerializeField] private Toggle highFrmeToggle;
+    [SerializeField] private Toggle lowFrmeToggle;
 
     [SerializeField] private Button closeButton;
 
@@ -19,6 +21,9 @@ public class SettingPanelUI : GenericWindow
         {
             bgmVolumeSlider.onValueChanged.AddListener(OnBGMVolumeChanged);
         }
+
+        highFrmeToggle.onValueChanged.AddListener(OnToggle60Changed);
+        lowFrmeToggle.onValueChanged.AddListener(OnToggle30Changed);
 
         closeButton.onClick.AddListener(onClickCloseButtonClicked);
     }
@@ -74,5 +79,21 @@ public class SettingPanelUI : GenericWindow
     {
         SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Exit_Button_Click);
     }
-}
 
+    private void OnToggle30Changed(bool isOn)
+    {
+        if (isOn)
+            SetFPS(30);
+    }
+
+    private void OnToggle60Changed(bool isOn)
+    {
+        if (isOn)
+            SetFPS(60);
+    }
+
+    private void SetFPS(int fps)
+    {
+        Application.targetFrameRate = fps;
+    }
+}

@@ -30,8 +30,17 @@ public class ActiveSkillManager : MonoBehaviour
     // 등록된 스킬들 쿨타임 자동으로 관리
     private void Update()
     {
-        foreach (var timer in activeTimers)
+        for (int i = activeTimers.Count - 1; i >= 0; i--)
         {
+            var timer = activeTimers[i];
+
+            // 캐스터가 없어졌으면 자동 해제
+            if (timer == null || timer.Caster == null)
+            {
+                activeTimers.RemoveAt(i);
+                continue;
+            }
+
             timer.UpdateTimer(Time.deltaTime);
 
             if (timer.IsReady())
