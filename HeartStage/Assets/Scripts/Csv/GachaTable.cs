@@ -11,6 +11,8 @@ public class GachaData
     public int Gacha_item { get; set; }   
     public int Gacha_per { get; set; }    
     public int Gacha_have { get; set; }
+    public int Gacha_have_amount { get; set; }
+    public int Gacha_item_amount { get; set; }
 }
 
 public class GachaTable : DataTable

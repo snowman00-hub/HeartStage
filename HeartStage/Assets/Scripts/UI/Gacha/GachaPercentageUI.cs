@@ -37,6 +37,11 @@ public class GachaPercentageUI : GenericWindow
 
         foreach (var gachaType in allGachaTypes)
         {
+            if(gachaType.Gacha_type_ID == 1) // 튜토리얼 제외
+            {
+                continue;
+            }
+
             var gachaItems = GachaTable.GetGachaByType(gachaType.Gacha_type_ID);
 
             if(gachaItems == null || gachaItems.Count == 0)

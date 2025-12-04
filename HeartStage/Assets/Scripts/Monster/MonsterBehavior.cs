@@ -42,8 +42,9 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
     {
         monsterData = data;
         isDead = false;
-
         attackCooldown = 0f;
+
+        ClearDebuff();
 
         if (heartPrefab != null)
         {
@@ -498,5 +499,21 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         Vector3 contactPoint = (monsterPoint + wallPoint) * 0.5f;
 
         return contactPoint;
+    }
+
+    private void ClearDebuff()
+    {
+        var allEffects = GetComponents<EffectBase>();
+
+        if (allEffects != null && allEffects.Length > 0)
+        {
+            foreach (var effect in allEffects)
+            {
+                if (effect != null)
+                {
+                    DestroyImmediate(effect);
+                }
+            }
+        }
     }
 }

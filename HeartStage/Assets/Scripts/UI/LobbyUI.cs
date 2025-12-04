@@ -31,26 +31,30 @@ public class LobbyUI : MonoBehaviour
 
     private void OnStageUiButtonClicked()
     {
-        windowManager.Open(WindowType.StageSelect);
         SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);
+
+        windowManager.Open(WindowType.StageSelect);
     }
 
     private void OnLobbyHomeUiButtonClicked()
     {
-        windowManager.Open(WindowType.LobbyHome);
         SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);
+
+        windowManager.OpenOverlay(WindowType.LobbyHome);
     }
 
     private void OnGachaButtonClicked()
     {
-        windowManager.OpenOverlay(WindowType.Gacha);
         SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);
+
+        windowManager.OpenOverlay(WindowType.Gacha);
     }
 
     private void OnQuestButtonClicked()
     {
-        windowManager.OpenOverlay(WindowType.Quest);
         SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);
+
+        windowManager.OpenOverlay(WindowType.Quest);
     }
 
     /// SaveData의 profileIconKey 기준으로 로비 프로필 아이콘 갱신

@@ -48,27 +48,39 @@ public class GachaResultUI : GenericWindow
 
     private void DisPlayResult()
     {
-        if (gachaResult.characterData == null)
-        {
-            return;
-        }
-
         var characterData = gachaResult.characterData;
         var gachaData = gachaResult.gachaData;
 
-        if (gachaData.Gacha_have > 0 && gachaResult.isDuplicate)
+        if(characterData != null)
         {
-            var itemData = DataTableManager.ItemTable.Get(gachaData.Gacha_have);
+            if (gachaData.Gacha_have > 0 && gachaResult.isDuplicate)
+            {
+                var itemData = DataTableManager.ItemTable.Get(gachaData.Gacha_have);
+                if (itemData != null)
+                {
+                    SetImage(itemData.prefab);
+                    SetCharacterNameText($"{itemData.item_name} x{gachaData.Gacha_have_amount}");
+                    return;
+                }
+            }
+
+            SetImage(characterData.card_imageName);
+            SetCharacterNameText(characterData.char_name);
+        }
+
+        else
+        {
+            var itemData = DataTableManager.ItemTable.Get(gachaData.Gacha_item);
             if (itemData != null)
             {
                 SetImage(itemData.prefab);
-                SetCharacterNameText(itemData.item_name);
-                return;
+                SetCharacterNameText($"{itemData.item_name}x{gachaData.Gacha_item_amount}");
+            }
+            else
+            {
+                SetCharacterNameText($"아이템 ID: {gachaData.Gacha_item}");
             }
         }
-
-        SetImage(characterData.card_imageName);
-        SetCharacterNameText(characterData.char_name);
     }
 
     private void SetImage(string imageName)

@@ -1,4 +1,5 @@
-﻿using TMPro;
+﻿using NUnit.Framework.Interfaces;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -18,26 +19,38 @@ public class Gacha5TryResultPrefabUI : MonoBehaviour
         var gachaData = gachaResult.gachaData;
         var characterData = gachaResult.characterData;
 
-        if (characterData == null)
+        if (characterData != null)
         {
-            return;
+            // 중복일 때 아이템 표시
+            if (gachaResult.isDuplicate && gachaData.Gacha_have > 0)
+            {
+                var itemData = DataTableManager.ItemTable.Get(gachaData.Gacha_have);
+                if (itemData != null)
+                {
+                    SetImage(itemData.prefab);
+                    SetCharacterNameText($"{itemData.item_name} x{gachaData.Gacha_have_amount}");
+                    return;
+                }
+            }
+
+            SetImage(characterData.card_imageName);
+            SetCharacterNameText(characterData.char_name);
         }
 
-        // 중복일 때 아이템 표시
-        if (gachaResult.isDuplicate && gachaData.Gacha_have > 0)
+        else
         {
-            var itemData = DataTableManager.ItemTable.Get(gachaData.Gacha_have);
-            if (itemData != null)
+            var itemData = DataTableManager.ItemTable.Get(gachaData.Gacha_item);
+            if(itemData != null)
             {
                 SetImage(itemData.prefab);
-                SetCharacterNameText(itemData.item_name);
-                return;
+                SetCharacterNameText($"{itemData.item_name} x{gachaData.Gacha_item_amount}");
+            }
+            else
+            {
+                Debug.LogWarning($"아이템 데이터를 찾을 수 없습니다: {gachaData.Gacha_item}");
+                SetCharacterNameText($"아이템 ID: {gachaData.Gacha_item}");
             }
         }
-
-        // 새로운 캐릭터일 때
-        SetImage(characterData.card_imageName);
-        SetCharacterNameText(characterData.char_name);
     }
 
     private void SetCharacterNameText(string name)
