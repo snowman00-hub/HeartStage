@@ -1802,7 +1802,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 9.6
+  orthographic size: 11.88
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -3775,6 +3775,53 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1876694838}
   m_CullTransparentMesh: 1
+--- !u!1 &1886183637
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1886183638}
+  - component: {fileID: 1886183639}
+  m_Layer: 0
+  m_Name: FanManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1886183638
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1886183637}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -75.88691, y: 2298.1326, z: 14.812289}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1886183639
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1886183637}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7735a31c04c85534d8b7246277967de2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fansPerWave: 4
+  moveSpeed: 2
+  fanSpacing: 0.5
 --- !u!1001 &1888274804
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6528,6 +6575,10 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 17635682}
+    - target: {fileID: 6652202650195639339, guid: a9896f9f7c9626845bd7bdf75b7c1781, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0.99993896
+      objectReference: {fileID: 0}
     - target: {fileID: 7543450384802164251, guid: a9896f9f7c9626845bd7bdf75b7c1781, type: 3}
       propertyPath: m_Name
       value: StageUI
@@ -6684,7 +6735,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 805425678950857380, guid: 5ee854a9e09ab224eac2c8afdd373674, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0.00008267469
+      value: 0.0000028594945
       objectReference: {fileID: 0}
     - target: {fileID: 808235204874162976, guid: 5ee854a9e09ab224eac2c8afdd373674, type: 3}
       propertyPath: m_AnchorMax.y
@@ -7389,3 +7440,4 @@ SceneRoots:
   - {fileID: 2093073518}
   - {fileID: 2107419785}
   - {fileID: 1639264852}
+  - {fileID: 1886183638}

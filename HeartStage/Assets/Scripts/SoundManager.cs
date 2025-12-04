@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
 
@@ -52,6 +53,7 @@ public class SoundManager : MonoBehaviour
             Destroy(gameObject);
         }
 
+        LoadVolumeSettings();
         CreateHitSoundPool();
     }
 
@@ -212,10 +214,38 @@ public class SoundManager : MonoBehaviour
         lastHitSoundTime = Time.time;
     }
 
+
+    // AudioMixer를 통한 볼륨 조절
     public void SetSFXVolumeByMixer(float volume)
     {
         // 0~1 값을 dB로 변환 (-80dB ~ 0dB)
         float dB = volume > 0 ? Mathf.Log10(volume) * 20 : -80f;
         audioMixer.SetFloat("SFXVolume", dB);
+
+        SaveLoadManager.Data.sfxVolume = volume;
+        SaveLoadManager.SaveToServer().Forget();
+    }
+
+    public void SetBGMVolumeByMixer(float volume)
+    {
+        float dB = volume > 0 ? Mathf.Log10(volume) * 20 : -80f;
+        audioMixer.SetFloat("BGMVolume", dB);
+
+        SaveLoadManager.Data.bgmVolume = volume;
+        SaveLoadManager.SaveToServer().Forget();
+    }
+
+    // 게임 시작 시 저장된 볼륨 설정 불러오기
+    public void LoadVolumeSettings()
+    {
+        float bgmVolume = SaveLoadManager.Data.bgmVolume;
+        float sfxVolume = SaveLoadManager.Data.sfxVolume;
+
+        // AudioMixer에만 적용 (서버 저장 안함)
+        float bgmDB = bgmVolume > 0 ? Mathf.Log10(bgmVolume) * 20 : -80f;
+        float sfxDB = sfxVolume > 0 ? Mathf.Log10(sfxVolume) * 20 : -80f;
+
+        audioMixer.SetFloat("BGMVolume", bgmDB);
+        audioMixer.SetFloat("SFXVolume", sfxDB);
     }
 }

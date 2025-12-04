@@ -1,0 +1,78 @@
+﻿using UnityEngine;
+using UnityEngine.UI;
+
+public class SettingPanelUI : GenericWindow
+{
+    [SerializeField] private Slider sfxVolumeSlider;
+    [SerializeField] private Slider bgmVolumeSlider;
+
+    [SerializeField] private Button closeButton;
+
+    private void Awake()
+    {
+        if (sfxVolumeSlider != null)
+        {
+            sfxVolumeSlider.onValueChanged.AddListener(OnSFXVolumeChanged);
+        }
+
+        if (bgmVolumeSlider != null)
+        {
+            bgmVolumeSlider.onValueChanged.AddListener(OnBGMVolumeChanged);
+        }
+
+        closeButton.onClick.AddListener(onClickCloseButtonClicked);
+    }
+
+    public override void Open()
+    {
+        base.Open();
+        LoadCurrentVolumeSettings();
+    }
+    public override void Close()
+    {
+        base.Close();
+    }
+
+    private void OnSFXVolumeChanged(float value)
+    {
+       SoundManager.Instance.SetSFXVolumeByMixer(value);
+    }
+
+    private void OnBGMVolumeChanged(float value)
+    {
+        SoundManager.Instance.SetBGMVolumeByMixer(value);
+    }
+
+    private void LoadCurrentVolumeSettings()
+    {
+        if(sfxVolumeSlider != null)
+        {
+            sfxVolumeSlider.value = SaveLoadManager.Data.sfxVolume;
+        }
+
+        if(bgmVolumeSlider != null)
+        {
+            bgmVolumeSlider.value = SaveLoadManager.Data.bgmVolume;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        // 이벤트 리스너 해제
+        if (sfxVolumeSlider != null)
+        {
+            sfxVolumeSlider.onValueChanged.RemoveListener(OnSFXVolumeChanged);
+        }
+
+        if (bgmVolumeSlider != null)
+        {
+            bgmVolumeSlider.onValueChanged.RemoveListener(OnBGMVolumeChanged);
+        }
+    }
+
+    private void onClickCloseButtonClicked()
+    {
+        SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Exit_Button_Click);
+    }
+}
+

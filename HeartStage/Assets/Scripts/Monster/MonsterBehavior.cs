@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Cysharp.Threading.Tasks;
+using UnityEngine;
 
 public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 {
@@ -154,7 +155,6 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         }
     }
 
-
     public void Attack()
     {
         switch (monsterData.attType)
@@ -245,6 +245,9 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
             if (target != null)
             {
                 target.OnDamage(monsterData.att);
+
+                Vector3 contactPoint = GetColliderContactPoint(selfCollider, hit);
+                PlayHitEffect(contactPoint);
             }
         }
     }
@@ -272,6 +275,56 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
 
             projectileObj.SetActive(true);
         }
+    }
+
+    private void PlayHitEffect(Vector3 hitPosition)
+    {
+        PlayHitEffectAsync(hitPosition).Forget();
+    }
+
+    private async UniTask PlayHitEffectAsync(Vector3 hitPos)
+    {
+        if(PoolManager.Instance == null)
+        {
+            return;
+        }
+
+        var hitGo = PoolManager.Instance.Get("monsterHitEffectPool");
+        if (hitGo == null)
+        {
+            return;
+        }
+
+        hitGo.transform.position = hitPos;
+        hitGo.transform.rotation = Quaternion.identity;
+
+        hitGo.SetActive(true);
+
+        var particle = hitGo.GetComponent<ParticleSystem>();
+        if(particle == null)
+        {
+            PoolManager.Instance.Release("monsterHitEffectPool", hitGo);
+        }
+
+        particle.Clear();
+        particle.Play();
+
+        try
+        {
+            // 파티클 재생이 끝날 때까지 대기 (캐릭터와 동일한 방식)
+            await UniTask.WaitUntil(
+                () => particle == null || particle.IsAlive() == false,
+                PlayerLoopTiming.Update,
+                this.GetCancellationTokenOnDestroy()
+            );
+        }
+        catch
+        {
+        }
+
+        // 풀로 반환
+        if (PoolManager.Instance != null && hitGo != null)
+            PoolManager.Instance.Release("monsterHitEffectPool", hitGo);
     }
 
     private Vector3 GetAttackDirectionStageType()
@@ -436,5 +489,14 @@ public class MonsterBehavior : MonoBehaviour, IAttack, IDamageable
         {
             gameObject.SetActive(false);
         }
+    }
+
+    private Vector3 GetColliderContactPoint(Collider2D monsterCollider, Collider2D wallCollider)
+    {
+        Vector3 monsterPoint = Physics2D.ClosestPoint(wallCollider.transform.position, monsterCollider);
+        Vector3 wallPoint = Physics2D.ClosestPoint(monsterCollider.transform.position, wallCollider);
+        Vector3 contactPoint = (monsterPoint + wallPoint) * 0.5f;
+
+        return contactPoint;
     }
 }

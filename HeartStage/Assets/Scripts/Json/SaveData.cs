@@ -89,7 +89,10 @@ public class SaveDataV1 : SaveData
     // ================== 7. 공지 / 기타 ==================
     // 마지막으로 본 공지 ID (1부터 시작)
     public int lastSeenNoticeId = 0;
-
+    
+    // ================== 8. 볼륨  ==================
+    public float bgmVolume = 1f; // BGM 볼륨 (0~1)
+    public float sfxVolume = 1f; // SFX 볼륨 (0~1)
 
     // ================== 생성자 / 버전업 ==================
     public SaveDataV1()

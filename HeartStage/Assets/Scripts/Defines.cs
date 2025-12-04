@@ -63,6 +63,7 @@ public enum WindowType
     MonitoringReward = 10,
     MailUI = 11,
     MailInfoUI = 12,
+    SettingPanel = 13,
 
     // 인게임 윈도우
     VictoryDefeat = 50, // 위에 추가해도 안바뀌게 큰 값으로 해두기
