@@ -141,6 +141,7 @@ public class MailUI : GenericWindow
         if (string.IsNullOrEmpty(UserId)) return;
 
         List<string> rewardedMailIds = new List<string>();
+        List<string> readMailIds = new List<string>();
 
         foreach (var mail in currentMails)
         {
@@ -158,15 +159,30 @@ public class MailUI : GenericWindow
 
                 mail.isRewarded = true;
                 rewardedMailIds.Add(mail.mailId);
+
+                if (!mail.isRead)
+                {
+                    mail.isRead = true;
+                    readMailIds.Add(mail.mailId);
+                }
             }
         }
 
         // 보상 수령 상태 업데이트
         if (rewardedMailIds.Count > 0)
         {
-            await MailManager.Instance.UpdateMultipleRewardStatusAsync(UserId, rewardedMailIds);
-            RefreshMailList();
+            await MailManager.Instance.UpdateMultipleRewardStatusAsync(UserId, rewardedMailIds);            
         }
+
+        if (readMailIds.Count > 0)
+        {
+            foreach (string mailId in readMailIds)
+            {
+                await MailManager.Instance.MarkAsReadAsync(UserId, mailId);
+            }
+        }
+
+        RefreshMailList();
     }
 
     // 메일 보상 수령 상태 업데이트 (RefreshMailList 호출 제거 - MailInfoUI에서 이미 호출됨)

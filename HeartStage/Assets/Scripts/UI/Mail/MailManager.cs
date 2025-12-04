@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class MailManager : MonoBehaviour
 {
@@ -17,7 +18,7 @@ public class MailManager : MonoBehaviour
     public event Action<List<MailData>> OnMailsLoaded;    // 메일 목록 로드 완료 시
     public event Action<MailData> OnMailReceived;         // 새 메일 수신 시
 
-
+    [SerializeField] private Button mailTextButton;
     private void Awake()
     {
         if (Instance == null)
@@ -29,6 +30,8 @@ public class MailManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+
+        mailTextButton.onClick.AddListener(OnTestButtonClicked);
     }
 
     /// Firebase 초기화 및 글로벌 메일 리스너 등록
@@ -391,9 +394,8 @@ public class MailManager : MonoBehaviour
         {
             await db.Child("mails").Child(userId).Child(mailId).Child("isRewarded").SetValueAsync(isRewarded);
         }
-        catch (Exception ex)
+        catch 
         {
-            Debug.LogError($"보상 상태 업데이트 실패: {ex.Message}");
         }
     }
 
@@ -422,8 +424,8 @@ public class MailManager : MonoBehaviour
     {
         try
         {
-            // saveData 노드에서 모든 유저 정보 조회
-            var snapshot = await db.Child("saveData").GetValueAsync();
+            // users 노드에서 모든 유저 정보 조회
+            var snapshot = await db.Child("users").GetValueAsync();
             var userIds = new List<string>();
 
             if (snapshot.Exists)
@@ -436,7 +438,7 @@ public class MailManager : MonoBehaviour
 
             return userIds;
         }
-        catch
+        catch 
         {
             return new List<string>();
         }
@@ -449,13 +451,15 @@ public class MailManager : MonoBehaviour
         {
             // 모든 유저 ID 가져오기
             var allUserIds = await GetAllUserIdsAsync();
-            if (allUserIds.Count == 0) return;
+
+            if (allUserIds.Count == 0)
+            {
+                return;
+            }
 
             // null 체크 및 기본값 설정
             items ??= new List<ItemAttachment>();
 
-            int successCount = 0;
-            // 각 유저에게 개별 메일 전송
             foreach (string userId in allUserIds)
             {
                 try
@@ -468,36 +472,73 @@ public class MailManager : MonoBehaviour
                         title: title,
                         content: content,
                         itemList: items
-                    );
+                    )
+                    {
+                        timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                    };
 
-                    if (await SendMailAsync(broadcastMail))
-                        successCount++;
+                    await SendMailAsync(broadcastMail);
                 }
-                catch { }  // 개별 유저 전송 실패 시 무시하고 계속 진행
+                catch 
+                {
+                }
             }
 
-            Debug.Log($"전체 메일 발송 완료: 성공 {successCount}명");
         }
         catch
         {
         }
     }
 
-    // 이런식으로 사용 
-    //private async UniTask SendAdminMail()
-    //{
-    //    var items = new List<ItemAttachment>
-    //{
-    //    new ItemAttachment("7101", 1000), // 골드 1000개
-    //    new ItemAttachment("7102", 100)   // 다이아 100개
-    //};
+    // 우편 테스트 버튼
+    private async UniTask SendAdminMail()
+    {
+        // AuthManager 체크
+        if (AuthManager.Instance == null)
+        {
+            return;
+        }
 
-    //    await MailManager.Instance.SendMailToAllUsers(
-    //        "긴급 공지사항",
-    //        "서버 점검 보상을 지급합니다.",
-    //        items
-    //    );
-    //}
+        if (!AuthManager.Instance.IsInitialized)
+        {
+            return;
+        }
+
+        if (!AuthManager.Instance.IsLoggedIn)
+        {
+            return;
+        }
+
+        // Firebase 데이터베이스 체크
+        if (db == null)
+        {
+            return;
+        }
+
+        try
+        {
+            var items = new List<ItemAttachment>
+        {
+            new ItemAttachment("7101", 1000),
+            new ItemAttachment("7102", 100)
+        };
+
+            await MailManager.Instance.SendMailToAllUsers(
+                "환영 합니다!",
+                "접속 보상 선물입니다.",
+                items
+            );
+        }
+        catch 
+        {
+        }
+    }
+
+    private void OnTestButtonClicked()
+    {
+        SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);
+        SendAdminMail().Forget();
+    }
 
     // 글로벌 메일 비활성화 
     public async UniTask DisableGlobalMail()
@@ -510,7 +551,6 @@ public class MailManager : MonoBehaviour
         {
         }
     }
-
 
     // 파이어베이스 에서 개인에게 줄때 개인 아이디 mails에 노드 추가해서 사용 키에 파이어베이스 키
 //  {
