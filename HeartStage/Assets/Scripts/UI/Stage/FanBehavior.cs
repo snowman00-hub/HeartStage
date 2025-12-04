@@ -58,6 +58,8 @@ public class FanBehavior : MonoBehaviour
         // 시작 위치 설정 (최종 위치 계산 후에 실행)
         SetStartPosition(fanIndex);
 
+        SetFanSpriteDirection(fanIndex);
+
         // 걷기 시작
         StartWalking();
     }
@@ -121,6 +123,24 @@ public class FanBehavior : MonoBehaviour
         {
             isWalking = false;
             animator.SetTrigger("Idle");
+        }
+    }
+
+    private void SetFanSpriteDirection(int fanIndex)
+    {
+        bool comingRight = (fanIndex == 2 || fanIndex == 3);
+
+        if (comingRight)
+        {
+            Vector3 scale = transform.localScale;
+            scale.x = -Mathf.Abs(scale.x);
+            transform.localScale = scale;
+        }
+        else
+        {
+            Vector3 scale = transform.localScale;
+            scale.x = Mathf.Abs(scale.x);
+            transform.localScale = scale;
         }
     }
 }
