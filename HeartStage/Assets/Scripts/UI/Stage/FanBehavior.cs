@@ -3,6 +3,8 @@
 public class FanBehavior : MonoBehaviour
 {
     private readonly string Walk = "Walk";
+    private readonly string Idle = "Idle"; 
+
     private float walkSpeed = 1f;
     private Vector3 targetPosition;
     private Vector3 startPosition;
@@ -118,6 +120,7 @@ public class FanBehavior : MonoBehaviour
         if (Vector3.Distance(transform.position, targetPosition) < 0.1f)
         {
             isWalking = false;
+            animator.SetTrigger("Idle");
         }
     }
 }
