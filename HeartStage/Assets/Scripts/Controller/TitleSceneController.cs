@@ -3,7 +3,6 @@ using System;
 using System.Threading;
 using TMPro;
 using UnityEngine;
-using static UnityEngine.Rendering.DebugUI.Table;
 
 [DisallowMultipleComponent]
 public class TitleSceneController : MonoBehaviour
@@ -92,8 +91,8 @@ public class TitleSceneController : MonoBehaviour
         }
 
         // 3) 로그인 UI 켜기
-        if (loginUIRoot != null)
-            loginUIRoot.SetActive(true);
+        //if (loginUIRoot != null)
+        //    loginUIRoot.SetActive(true);
 
         // 4) 로딩/로그인/세이브/출석 처리
         await PostLoginFlowAsync();
@@ -198,6 +197,7 @@ public class TitleSceneController : MonoBehaviour
         // 2) 초기화는 됐는데 아직 로그인 안 되어 있으면 → 로그인 필요
         if (!AuthManager.Instance.IsLoggedIn)
         {
+            loginUIRoot.SetActive(true);
             SetStatus("로그인이 필요합니다", animateDots: false);
 
             await UniTask.WaitUntil(() =>
