@@ -56,9 +56,13 @@ public class WindowManager : MonoBehaviour
         if (!IsValidWindow(id))
             return;
 
+        if (id == WindowType.LobbyHome && currentWindow == WindowType.LobbyHome
+            && windows[currentWindow].gameObject.activeSelf)
+            return;
+
         // 현재 윈도우 닫기
         if (IsValidWindow(currentWindow))
-        {
+        {            
             windows[currentWindow].Close();
         }
 

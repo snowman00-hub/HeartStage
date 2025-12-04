@@ -173,7 +173,7 @@ public abstract class BaseProjectileSkill : MonoBehaviour, ISkillBehavior
     }
 
     // 밀집된 몬스터 위치 얻기
-    protected Vector3 GetCenterInMonsters()
+    protected virtual Vector3 GetCenterInMonsters()
     {
         var objs = GameObject.FindGameObjectsWithTag(Tag.Monster);
         if (objs.Length == 0)

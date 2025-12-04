@@ -109,6 +109,7 @@ public class StageManager : MonoBehaviour
 
     public void GoLobby()
     {
+        WindowManager.currentWindow = WindowType.LobbyHome;
         LoadSceneManager.Instance.GoLobby();
     }
 

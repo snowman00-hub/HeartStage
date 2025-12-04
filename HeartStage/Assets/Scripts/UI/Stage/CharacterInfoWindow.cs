@@ -11,6 +11,7 @@ public class CharacterInfoWindow : GenericWindow
     public Image characterImage;
     public TextMeshProUGUI characterName;
     public Image attributeIcon;
+    public Image activeSkillIcon;
     public TextMeshProUGUI rankText; // 나중에 별로 변경
     public TextMeshProUGUI passiveDescText;
     public TextMeshProUGUI activeDescText;
@@ -41,7 +42,7 @@ public class CharacterInfoWindow : GenericWindow
         // 캐릭터 속성 아이콘 변경
         CharacterAttributeIcon.ChangeIcon(attributeIcon, data.char_type);
         // 랭크 세팅
-        rankText.text = $"{data.char_rank}";
+        rankText.text = $"{data.char_rank} 등급";
         // 패시브 스킬 정보 세팅하기
         var skillIds = data.GetSkillIds();
         var passiveSkills = skillIds.Where(x => x > 32000).ToList();
@@ -81,10 +82,14 @@ public class CharacterInfoWindow : GenericWindow
         {
             var skillData = DataTableManager.SkillTable.Get(activeSkills[0]);
             activeDescText.text = skillData.GetFormattedInfo();
+            var texture2d = ResourceManager.Instance.Get<Texture2D>(skillData.icon_prefab);
+            activeSkillIcon.sprite = Sprite.Create(texture2d, new Rect(0, 0, texture2d.width, texture2d.height), new Vector2(0.5f, 0.5f));
+            activeSkillIcon.enabled = true;
         }
         else
         {
             activeDescText.text = string.Empty;
+            activeSkillIcon.enabled = false;
         }
     }
 }
