@@ -234,7 +234,7 @@ public class CharacterDetailPanel : MonoBehaviour
         var lvdata = DataTableManager.LevelUpTable.Get(charId);
         if (lvdata == null)
         {
-            levelUpCostText.text = "트레이닝 포인트: -";
+            levelUpCostText.text = "-최대 레벨-";
             levelUpButton.interactable = false;
             levelUpButton.onClick.RemoveAllListeners();
             return;
@@ -264,7 +264,7 @@ public class CharacterDetailPanel : MonoBehaviour
         var rankdata = DataTableManager.RankUpTable.Get(charId);
         if (rankdata == null)
         {
-            rankUpCostText.text = "조각: -";
+            rankUpCostText.text = "-최대 랭크-";
             rankUpButton.interactable = false;
             rankUpButton.onClick.RemoveAllListeners();
             return;
@@ -294,7 +294,7 @@ public class CharacterDetailPanel : MonoBehaviour
         if (lvdata == null)
         {
             if (levelUpCostText != null)
-                levelUpCostText.text = "트레이닝 포인트: -";
+                levelUpCostText.text = "-최대 레벨-";
 
             if (levelUpButton != null)
             {
