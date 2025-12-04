@@ -236,32 +236,32 @@ public class EncyclopediaWindow : MonoBehaviour
 
         switch (sortIndex)
         {
-            case 0: // 등급순
+            case 0: // 등급순 (높은 등급 먼저)
                 {
-                    int c = A.char_rank.CompareTo(B.char_rank);
+                    int c = B.char_rank.CompareTo(A.char_rank);  // ← A, B 순서 바꿈
                     if (c != 0) return c;
-                    c = A.char_lv.CompareTo(B.char_lv);
+                    c = B.char_lv.CompareTo(A.char_lv);          // ← A, B 순서 바꿈
                     if (c != 0) return c;
                     return string.CompareOrdinal(nameA, nameB);
                 }
-            case 1: // 레벨순
+            case 1: // 레벨순 (높은 레벨 먼저)
                 {
-                    int c = A.char_lv.CompareTo(B.char_lv);
+                    int c = B.char_lv.CompareTo(A.char_lv);      // ← A, B 순서 바꿈
                     if (c != 0) return c;
-                    c = A.char_rank.CompareTo(B.char_rank);
+                    c = B.char_rank.CompareTo(A.char_rank);      // ← A, B 순서 바꿈
                     if (c != 0) return c;
                     return string.CompareOrdinal(nameA, nameB);
                 }
-            case 2: // 이름순
+            case 2: // 이름순 (가나다순 - 이건 그대로)
                 return string.CompareOrdinal(nameA, nameB);
 
             case 3: // 속성순
                 {
-                    int c = A.char_type.CompareTo(B.char_type);
+                    int c = A.char_type.CompareTo(B.char_type);  // 속성은 보통 오름차순
                     if (c != 0) return c;
-                    c = A.char_rank.CompareTo(B.char_rank);
+                    c = B.char_rank.CompareTo(A.char_rank);      // ← 등급은 내림차순
                     if (c != 0) return c;
-                    c = A.char_lv.CompareTo(B.char_lv);
+                    c = B.char_lv.CompareTo(A.char_lv);          // ← 레벨도 내림차순
                     if (c != 0) return c;
                     return string.CompareOrdinal(nameA, nameB);
                 }
