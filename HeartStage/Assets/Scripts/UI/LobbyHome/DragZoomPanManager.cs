@@ -3,6 +3,8 @@ using UnityEngine.UI;
 
 public class DragZoomPanManager : MonoBehaviour
 {
+    public static DragZoomPanManager Instance;
+
     [SerializeField] private RawImage lobbyRawImage;
     [SerializeField] private Camera lobbyHomeCamera;
 
@@ -22,6 +24,25 @@ public class DragZoomPanManager : MonoBehaviour
     private Vector2 lastPos;
     private Vector3 dragOffset; // 드래그 오프셋
 
+    private float marginPercent = 0.1f; // 10% margin
+    public Bounds BackgroundBounds => background.bounds;
+    public Bounds InnerBounds
+    {
+        get
+        {
+            Bounds original = background.bounds;
+            float ratio = 1f - (marginPercent * 2f);
+
+            Vector3 newSize = original.size * ratio;
+            return new Bounds(original.center, newSize);
+        }
+    }
+
+    private void Awake()
+    {
+        Instance = this;
+    }
+
     private void Update()
     {
 #if UNITY_EDITOR
@@ -33,6 +54,10 @@ public class DragZoomPanManager : MonoBehaviour
     // Editor 입력 처리
     private void HandleEditorInput()
     {
+        // UI가 클릭 중이면 월드 조작 금지
+        if (UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
+            return;
+
         // 줌 처리
         float scroll = Input.mouseScrollDelta.y;
         if (Mathf.Abs(scroll) > 0.01f)
@@ -67,6 +92,8 @@ public class DragZoomPanManager : MonoBehaviour
                 dragTarget = hit.collider.transform;
 
                 dragOffset = dragTarget.position - world;
+                // 캐릭터 드래그 할 때
+                dragTarget.GetComponent<LobbyCharacterAI>()?.OnDragStart();
             }
             // 아니면 카메라 이동
             else
@@ -99,6 +126,8 @@ public class DragZoomPanManager : MonoBehaviour
         // 클릭 종료
         if (Input.GetMouseButtonUp(0))
         {
+            dragTarget?.GetComponent<LobbyCharacterAI>()?.OnDragEnd();
+
             isDraggingObject = false;
             isPanning = false;
             dragTarget = null;
@@ -108,6 +137,11 @@ public class DragZoomPanManager : MonoBehaviour
     // 모바일 입력 처리
     private void HandleTouchInput()
     {
+        // UI 터치 점유 체크
+        if (Input.touchCount > 0 &&
+        UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId))
+            return;
+
         // 핀치 줌
         if (Input.touchCount == 2)
         {
@@ -152,6 +186,8 @@ public class DragZoomPanManager : MonoBehaviour
                     dragTarget = hit.collider.transform;
 
                     dragOffset = dragTarget.position - world;
+                    // 캐릭터 드래그 할 때
+                    dragTarget.GetComponent<LobbyCharacterAI>()?.OnDragStart();
                 }
                 else
                 {
@@ -177,6 +213,8 @@ public class DragZoomPanManager : MonoBehaviour
 
             if (t.phase == TouchPhase.Ended)
             {
+                dragTarget?.GetComponent<LobbyCharacterAI>()?.OnDragEnd();
+
                 isDraggingObject = false;
                 isPanning = false;
                 dragTarget = null;
@@ -313,6 +351,16 @@ public class DragZoomPanManager : MonoBehaviour
         {
             lobbyHomeCamera.transform.position += camMove;
             ClampCamera();
+
+            // 카메라 이동 후 드래그 오브젝트 위치 재보정
+            if (isDraggingObject && dragTarget != null)
+            {
+                Vector3 worldPos;
+                if (TryGetWorldPositionFromRawImage(screenPos, out worldPos))
+                {
+                    dragTarget.position = worldPos + dragOffset;
+                }
+            }
         }
     }
 }

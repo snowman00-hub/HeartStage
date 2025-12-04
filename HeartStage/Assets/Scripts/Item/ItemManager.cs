@@ -28,13 +28,6 @@ public class ItemManager : MonoBehaviour
 
     private void Start()
     {
-        // 아이템테이블 데이터 -> SO에 덮어쓰기
-        itemDB = DataTableManager.ItemTable.GetAll();
-        foreach (var item in itemDB)
-        {
-            item.Value.UpdateData(DataTableManager.ItemTable.Get(item.Value.item_id));
-        }
-
         inventoryItemTarget = GetUIToWorldPosition(itemBagTr);
         expItemTarget = GetUIToWorldPosition(ExpTargetTr);
         PoolManager.Instance.CreatePool(ItemPoolId, DropItem, 60);

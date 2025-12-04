@@ -2,13 +2,10 @@
 
 public class LobbyHomeWindow : GenericWindow
 {
+    public LobbyHomeInitializer initializer;
+
     private void OnEnable()
     {
-        Init();
-    }
-
-    private void Init()
-    {
-
+        initializer.Init();
     }
 }
