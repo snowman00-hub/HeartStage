@@ -64,6 +64,14 @@ public static class FriendService
             // 친구 요청 전송
             await requestRef.SetValueAsync(true);
 
+            var updates = new Dictionary<string, object>
+            {
+                [$"friendRequests/{targetUid}/{myUid}"] = true,
+                [$"sentRequests/{myUid}/{targetUid}"] = true,
+            };
+
+            await Root.UpdateChildrenAsync(updates);
+
             Debug.Log($"[FriendService] 친구 요청 전송 완료: {targetUid}");
             return true;
         }
@@ -282,5 +290,64 @@ public static class FriendService
             return false;
 
         return data.friendUidList.Count < MAX_FRIEND_COUNT;
+    }
+
+    /// <summary>
+    /// 내가 보낸 친구 요청 목록
+    /// </summary>
+    public static async UniTask<List<string>> GetSentRequestsAsync()
+    {
+        string myUid = GetMyUid();
+        var result = new List<string>();
+        if (string.IsNullOrEmpty(myUid))
+            return result;
+
+        try
+        {
+            var snap = await Root.Child("sentRequests").Child(myUid).GetValueAsync();
+            if (!snap.Exists) return result;
+
+            foreach (var child in snap.Children)
+            {
+                string toUid = child.Key;
+                result.Add(toUid);
+            }
+
+            Debug.Log($"[FriendService] 보낸 친구 요청: {result.Count}개");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[FriendService] GetSentRequestsAsync Error: {e}");
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// 보낸 친구 요청 취소
+    /// </summary>
+    public static async UniTask<bool> CancelSentRequestAsync(string toUid)
+    {
+        string myUid = GetMyUid();
+        if (string.IsNullOrEmpty(myUid) || string.IsNullOrEmpty(toUid))
+            return false;
+
+        try
+        {
+            var updates = new Dictionary<string, object>
+            {
+                [$"friendRequests/{toUid}/{myUid}"] = null,
+                [$"sentRequests/{myUid}/{toUid}"] = null,
+            };
+
+            await Root.UpdateChildrenAsync(updates);
+
+            Debug.Log($"[FriendService] 보낸 요청 취소 완료: {toUid}");
+            return true;
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[FriendService] CancelSentRequestAsync Error: {e}");
+            return false;
+        }
     }
 }
