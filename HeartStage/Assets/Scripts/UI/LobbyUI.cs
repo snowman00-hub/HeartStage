@@ -10,6 +10,8 @@ public class LobbyUI : MonoBehaviour
     [SerializeField] private Button stageUiButton;
     [SerializeField] private Button homeUiButton;
     [SerializeField] private Button gachaButton;
+    [SerializeField] private Button storeButton;
+    [SerializeField] private Button characterDictButton;
     [SerializeField] private Button QuestButton;
 
     [Header("ImageIcon")]
@@ -20,6 +22,8 @@ public class LobbyUI : MonoBehaviour
         stageUiButton.onClick.AddListener(OnStageUiButtonClicked);
         homeUiButton.onClick.AddListener(OnLobbyHomeUiButtonClicked);
         gachaButton.onClick.AddListener(OnGachaButtonClicked);
+        storeButton.onClick.AddListener(OnShopUiButtonClicked);
+        characterDictButton.onClick.AddListener(OnCharacterDictUiButtonClicked);
         QuestButton.onClick.AddListener(OnQuestButtonClicked);
     }
 
@@ -29,28 +33,40 @@ public class LobbyUI : MonoBehaviour
         RefreshProfileIcon();
     }
 
+    private void OnShopUiButtonClicked()
+    {
+        SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);
+        windowManager.Open(WindowType.Shopping);
+    }
+
+    private void OnCharacterDictUiButtonClicked()
+    {
+        SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);
+        windowManager.Open(WindowType.CharacterDict);
+    }
+
     private void OnStageUiButtonClicked()
     {
-        windowManager.Open(WindowType.StageSelect);
         SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);
+        windowManager.Open(WindowType.StageSelect);
     }
 
     private void OnLobbyHomeUiButtonClicked()
     {
-        windowManager.Open(WindowType.LobbyHome);
         SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);
+        windowManager.Open(WindowType.LobbyHome);
     }
 
     private void OnGachaButtonClicked()
     {
-        windowManager.OpenOverlay(WindowType.Gacha);
         SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);
+        windowManager.Open(WindowType.Gacha);
     }
 
     private void OnQuestButtonClicked()
     {
-        windowManager.OpenOverlay(WindowType.Quest);
         SoundManager.Instance.PlaySFX(SoundName.SFX_UI_Button_Click);
+        windowManager.OpenOverlay(WindowType.Quest);
     }
 
     /// SaveData의 profileIconKey 기준으로 로비 프로필 아이콘 갱신

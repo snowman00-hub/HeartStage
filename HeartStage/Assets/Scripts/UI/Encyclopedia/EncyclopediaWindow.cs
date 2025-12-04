@@ -3,7 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class EncyclopediaWindow : MonoBehaviour
+public class EncyclopediaWindow : GenericWindow
 {
     [Header("버튼 슬롯들")]
     public CharacterButtonView[] CharacterButtons;
