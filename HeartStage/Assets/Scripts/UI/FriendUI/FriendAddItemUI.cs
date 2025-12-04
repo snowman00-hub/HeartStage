@@ -14,7 +14,7 @@ public class FriendAddItemUI : MonoBehaviour
 
     [Header("아이콘")]
     [SerializeField] private Image iconImage;
-    [SerializeField] private Button iconButton;  // 추가: 아이콘 버튼
+    [SerializeField] private Button iconButton;
 
     [Header("버튼")]
     [SerializeField] private Button requestButton;
@@ -24,6 +24,7 @@ public class FriendAddItemUI : MonoBehaviour
 
     private PublicProfileSummary _profileData;
     private CancellationTokenSource _cts;
+    private MessageWindow _messageWindow;
 
     private void OnDestroy()
     {
@@ -31,15 +32,15 @@ public class FriendAddItemUI : MonoBehaviour
         _cts?.Dispose();
     }
 
-    public void Setup(PublicProfileSummary profileData)
+    public void Setup(PublicProfileSummary profileData, MessageWindow messageWindow = null)
     {
         _profileData = profileData;
+        _messageWindow = messageWindow;
 
         _cts?.Cancel();
         _cts?.Dispose();
         _cts = new CancellationTokenSource();
 
-        // 닉네임 (uid면 "하트스테이지팬"으로 표시)
         if (nicknameText != null)
             nicknameText.text = GetDisplayNickname(profileData.nickname, profileData.uid);
 
@@ -49,7 +50,6 @@ public class FriendAddItemUI : MonoBehaviour
         if (lastLoginText != null)
             lastLoginText.text = "최근 접속 시간\n방금 전";
 
-        // 아이콘 설정
         if (iconImage != null)
         {
             var sprite = ResourceManager.Instance.Get<Sprite>(profileData.profileIconKey);
@@ -63,14 +63,12 @@ public class FriendAddItemUI : MonoBehaviour
             }
         }
 
-        // 아이콘 버튼 클릭 → 프로필 창 열기
         if (iconButton != null)
         {
             iconButton.onClick.RemoveAllListeners();
             iconButton.onClick.AddListener(OnClickIcon);
         }
 
-        // 버튼 설정
         if (requestButton != null)
         {
             requestButton.onClick.RemoveAllListeners();
@@ -82,27 +80,15 @@ public class FriendAddItemUI : MonoBehaviour
             requestButtonText.text = "친구\n신청";
     }
 
-    /// <summary>
-    /// 아이콘 클릭 시 프로필 창 열기
-    /// </summary>
     private void OnClickIcon()
     {
         if (_profileData == null || string.IsNullOrEmpty(_profileData.uid))
             return;
 
         if (FriendProfileWindow.Instance != null)
-        {
             FriendProfileWindow.Instance.Open(_profileData.uid);
-        }
-        else
-        {
-            Debug.LogWarning("[FriendAddItemUI] FriendProfileWindow. Instance가 null입니다.");
-        }
     }
 
-    /// <summary>
-    /// 닉네임이 uid와 같으면 "하트스테이지팬" 반환
-    /// </summary>
     private string GetDisplayNickname(string nickname, string uid)
     {
         if (string.IsNullOrEmpty(nickname) || nickname == uid)
@@ -121,6 +107,7 @@ public class FriendAddItemUI : MonoBehaviour
             return;
 
         requestButton.interactable = false;
+        string displayName = GetDisplayNickname(_profileData.nickname, _profileData.uid);
 
         try
         {
@@ -129,18 +116,21 @@ public class FriendAddItemUI : MonoBehaviour
 
             if (success)
             {
-                Debug.Log($"[FriendAddItemUI] 친구 요청 전송 성공: {_profileData.nickname}");
-
                 if (requestButtonText != null)
                     requestButtonText.text = "신청\n완료";
 
                 if (FriendAddWindow.Instance != null)
                     FriendAddWindow.Instance.OnFriendRequestSent();
+
+                // 성공 메시지
+                _messageWindow?.OpenSuccess("친구 신청", $"{displayName}님에게\n친구 신청을 보냈습니다!");
             }
             else
             {
-                Debug.Log($"[FriendAddItemUI] 친구 요청 전송 실패: {_profileData.nickname}");
                 requestButton.interactable = true;
+
+                // 실패 메시지 (이미 친구이거나 이미 요청을 보낸 경우)
+                _messageWindow?.OpenFail("친구 신청 실패", $"{displayName}님에게 이미 친구 신청을 보냈거나\n이미 친구 상태입니다.");
             }
         }
         catch (OperationCanceledException)
@@ -151,6 +141,8 @@ public class FriendAddItemUI : MonoBehaviour
         {
             Debug.LogError($"[FriendAddItemUI] OnClickRequestAsync Error: {e}");
             requestButton.interactable = true;
+
+            _messageWindow?.OpenFail("오류", "친구 신청 중 오류가 발생했습니다.");
         }
     }
 

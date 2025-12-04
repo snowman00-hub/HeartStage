@@ -8,9 +8,9 @@ public class FriendManageItemUI : MonoBehaviour
 {
     public enum Mode
     {
-        ReceivedRequest,  // 받은 신청 (수락/거절)
-        SentRequest,      // 보낸 신청 (취소)
-        FriendManage      // 친구 관리 (삭제)
+        ReceivedRequest,
+        SentRequest,
+        FriendManage
     }
 
     [Header("텍스트")]
@@ -20,10 +20,10 @@ public class FriendManageItemUI : MonoBehaviour
 
     [Header("아이콘")]
     [SerializeField] private Image iconImage;
-    [SerializeField] private Button iconButton;  // 추가: 아이콘 버튼
+    [SerializeField] private Button iconButton;
 
     [Header("버튼")]
-    [SerializeField] private Button actionButton;  // X 버튼 1개
+    [SerializeField] private Button actionButton;
 
     private string _targetUid;
     private string _nickname;
@@ -39,24 +39,21 @@ public class FriendManageItemUI : MonoBehaviour
         _messageWindow = messageWindow;
         _nickname = "하트스테이지팬";
 
-        // 기본값
         if (fanAmountText != null)
-            fanAmountText.text = "팬: ??? ";
+            fanAmountText.text = "팬: ???";
 
         if (nicknameText != null)
             nicknameText.text = "로딩 중...";
 
         if (lastLoginText != null)
-            lastLoginText.text = "로딩 중... ";
+            lastLoginText.text = "로딩 중...";
 
-        // 아이콘 버튼 클릭 → 프로필 창 열기
         if (iconButton != null)
         {
             iconButton.onClick.RemoveAllListeners();
             iconButton.onClick.AddListener(OnClickIcon);
         }
 
-        // 버튼 설정
         if (actionButton != null)
         {
             actionButton.onClick.RemoveAllListeners();
@@ -64,26 +61,16 @@ public class FriendManageItemUI : MonoBehaviour
             actionButton.interactable = true;
         }
 
-        // 프로필 로드
         LoadProfileAsync().Forget();
     }
 
-    /// <summary>
-    /// 아이콘 클릭 시 프로필 창 열기
-    /// </summary>
     private void OnClickIcon()
     {
         if (string.IsNullOrEmpty(_targetUid))
             return;
 
         if (FriendProfileWindow.Instance != null)
-        {
             FriendProfileWindow.Instance.Open(_targetUid);
-        }
-        else
-        {
-            Debug.LogWarning("[FriendManageItemUI] FriendProfileWindow. Instance가 null입니다.");
-        }
     }
 
     private string GetDisplayNickname(string nickname, string uid)
@@ -132,9 +119,6 @@ public class FriendManageItemUI : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// X 버튼 클릭 → MessageWindow 팝업
-    /// </summary>
     private void OnClickAction()
     {
         if (_messageWindow == null)
@@ -148,7 +132,7 @@ public class FriendManageItemUI : MonoBehaviour
             case Mode.ReceivedRequest:
                 _messageWindow.OpenTwoButton(
                     "친구 신청",
-                    $"{_nickname}님의 친구 신청을\n어떻게 하시겠습니까? ",
+                    $"{_nickname}님의 친구 신청을\n어떻게 하시겠습니까?",
                     "수락",
                     "거절",
                     onConfirm: () => AcceptRequestAsync().Forget(),
@@ -169,7 +153,7 @@ public class FriendManageItemUI : MonoBehaviour
             case Mode.FriendManage:
                 _messageWindow.OpenTwoButton(
                     "친구 삭제",
-                    $"{_nickname}님을 친구 목록에서\n삭제하시겠습니까? ",
+                    $"{_nickname}님을 친구 목록에서\n삭제하시겠습니까?",
                     "삭제",
                     "취소",
                     onConfirm: () => RemoveFriendAsync().Forget()
@@ -189,11 +173,12 @@ public class FriendManageItemUI : MonoBehaviour
 
             if (success)
             {
-                Debug.Log($"[FriendManageItemUI] 친구 요청 수락: {_targetUid}");
+                _messageWindow?.OpenSuccess("친구 수락", $"{_nickname}님과 친구가 되었습니다!");
                 _onCompleted?.Invoke();
             }
             else
             {
+                _messageWindow?.OpenFail("수락 실패", "친구 수가 최대치이거나\n이미 친구 상태입니다.");
                 if (actionButton != null)
                     actionButton.interactable = true;
             }
@@ -201,6 +186,7 @@ public class FriendManageItemUI : MonoBehaviour
         catch (Exception e)
         {
             Debug.LogError($"[FriendManageItemUI] AcceptRequestAsync Error: {e}");
+            _messageWindow?.OpenFail("오류", "친구 수락 중 오류가 발생했습니다.");
             if (actionButton != null)
                 actionButton.interactable = true;
         }
@@ -217,11 +203,12 @@ public class FriendManageItemUI : MonoBehaviour
 
             if (success)
             {
-                Debug.Log($"[FriendManageItemUI] 친구 요청 거절: {_targetUid}");
+                _messageWindow?.OpenSuccess("신청 거절", $"{_nickname}님의 친구 신청을\n거절했습니다.");
                 _onCompleted?.Invoke();
             }
             else
             {
+                _messageWindow?.OpenFail("거절 실패", "요청 처리 중 문제가 발생했습니다.");
                 if (actionButton != null)
                     actionButton.interactable = true;
             }
@@ -229,6 +216,7 @@ public class FriendManageItemUI : MonoBehaviour
         catch (Exception e)
         {
             Debug.LogError($"[FriendManageItemUI] DeclineRequestAsync Error: {e}");
+            _messageWindow?.OpenFail("오류", "요청 거절 중 오류가 발생했습니다.");
             if (actionButton != null)
                 actionButton.interactable = true;
         }
@@ -245,11 +233,12 @@ public class FriendManageItemUI : MonoBehaviour
 
             if (success)
             {
-                Debug.Log($"[FriendManageItemUI] 보낸 요청 취소: {_targetUid}");
+                _messageWindow?.OpenSuccess("신청 취소", $"{_nickname}님에게 보낸\n친구 신청을 취소했습니다.");
                 _onCompleted?.Invoke();
             }
             else
             {
+                _messageWindow?.OpenFail("취소 실패", "요청 처리 중 문제가 발생했습니다.");
                 if (actionButton != null)
                     actionButton.interactable = true;
             }
@@ -257,6 +246,7 @@ public class FriendManageItemUI : MonoBehaviour
         catch (Exception e)
         {
             Debug.LogError($"[FriendManageItemUI] CancelRequestAsync Error: {e}");
+            _messageWindow?.OpenFail("오류", "요청 취소 중 오류가 발생했습니다.");
             if (actionButton != null)
                 actionButton.interactable = true;
         }
@@ -273,11 +263,12 @@ public class FriendManageItemUI : MonoBehaviour
 
             if (success)
             {
-                Debug.Log($"[FriendManageItemUI] 친구 삭제: {_targetUid}");
+                _messageWindow?.OpenSuccess("친구 삭제", $"{_nickname}님을\n친구 목록에서 삭제했습니다.");
                 _onCompleted?.Invoke();
             }
             else
             {
+                _messageWindow?.OpenFail("삭제 실패", "친구 삭제 중 문제가 발생했습니다.");
                 if (actionButton != null)
                     actionButton.interactable = true;
             }
@@ -285,6 +276,7 @@ public class FriendManageItemUI : MonoBehaviour
         catch (Exception e)
         {
             Debug.LogError($"[FriendManageItemUI] RemoveFriendAsync Error: {e}");
+            _messageWindow?.OpenFail("오류", "친구 삭제 중 오류가 발생했습니다.");
             if (actionButton != null)
                 actionButton.interactable = true;
         }

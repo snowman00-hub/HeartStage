@@ -142,18 +142,23 @@ public class FriendManageWindow : MonoBehaviour
         try
         {
             ClearList();
-            await UpdateHeaderAsync();
+
+            // 중앙 캐시 갱신
+            await FriendService.RefreshAllCacheAsync();
+
+            // 헤더는 캐시에서
+            RefreshHeader();
 
             switch (_currentTab)
             {
                 case TabType.Received:
-                    await ShowReceivedRequestsAsync();
+                    ShowReceivedRequests();
                     break;
                 case TabType.Sent:
-                    await ShowSentRequestsAsync();
+                    ShowSentRequests();
                     break;
                 case TabType.Manage:
-                    await ShowFriendListAsync();
+                    ShowFriendList();
                     break;
             }
         }
@@ -168,26 +173,19 @@ public class FriendManageWindow : MonoBehaviour
             _isRefreshing = false;
         }
     }
-
-    private async UniTask UpdateHeaderAsync()
+    private void RefreshHeader()
     {
-        // 병렬로 로드
-        var (friendUids, requestCounts) = await UniTask.WhenAll(
-            FriendService.GetMyFriendUidListAsync(syncLocal: true),
-            FriendService.GetRequestCountsAsync()
-        );
-
         if (friendCountText != null)
-            friendCountText.text = $"친구 수: {friendUids.Count}/{FriendService.MAX_FRIEND_COUNT}";
+            friendCountText.text = $"친구 수: {FriendService.CachedFriendCount}/{FriendService.MAX_FRIEND_COUNT}";
 
-        int totalRequests = requestCounts.received + requestCounts.sent;
         if (requestCountText != null)
-            requestCountText.text = $"친구 신청: {totalRequests}/{FriendService.MAX_REQUEST_COUNT}";
+            requestCountText.text = $"친구 신청: {FriendService.CachedTotalRequestCount}/{FriendService.MAX_REQUEST_COUNT}";
     }
 
-    private async UniTask ShowReceivedRequestsAsync()
+    // 캐시에서 바로 표시 (서버 호출 없음)
+    private void ShowReceivedRequests()
     {
-        var requests = await FriendService.GetReceivedRequestsAsync();
+        var requests = FriendService.GetCachedReceivedRequests();
 
         foreach (var fromUid in requests)
         {
@@ -199,9 +197,9 @@ public class FriendManageWindow : MonoBehaviour
         Debug.Log($"[FriendManageWindow] 받은 신청 {requests.Count}개 표시");
     }
 
-    private async UniTask ShowSentRequestsAsync()
+    private void ShowSentRequests()
     {
-        var requests = await FriendService.GetSentRequestsAsync();
+        var requests = FriendService.GetCachedSentRequests();
 
         foreach (var toUid in requests)
         {
@@ -213,9 +211,9 @@ public class FriendManageWindow : MonoBehaviour
         Debug.Log($"[FriendManageWindow] 보낸 신청 {requests.Count}개 표시");
     }
 
-    private async UniTask ShowFriendListAsync()
+    private void ShowFriendList()
     {
-        var friendUids = await FriendService.GetMyFriendUidListAsync(syncLocal: false);
+        var friendUids = FriendService.GetCachedFriendUids();
 
         foreach (var friendUid in friendUids)
         {
@@ -229,6 +227,8 @@ public class FriendManageWindow : MonoBehaviour
 
     private void OnItemActionCompleted()
     {
+        // 액션 후 캐시 무효화하고 다시 로드
+        FriendService.InvalidateCache();
         RefreshAsync().Forget();
     }
 }

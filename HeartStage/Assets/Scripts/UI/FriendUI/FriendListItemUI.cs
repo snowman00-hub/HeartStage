@@ -21,14 +21,14 @@ public class FriendListItemUI : MonoBehaviour
     [SerializeField] private Button visitHouseButton;
 
     private string _friendUid;
+    private string _displayNickname;
     private CancellationTokenSource _cts;
+    private MessageWindow _messageWindow;
 
     private void Awake()
     {
         if (iconImage == null)
             Debug.LogError($"[FriendListItemUI] iconImage가 연결되지 않았습니다!", this);
-        if (iconButton == null)
-            Debug.LogWarning($"[FriendListItemUI] iconButton이 연결되지 않았습니다!", this);
     }
 
     private void OnDestroy()
@@ -37,7 +37,7 @@ public class FriendListItemUI : MonoBehaviour
         _cts?.Dispose();
     }
 
-    public void Setup(string friendUid)
+    public void Setup(string friendUid, MessageWindow messageWindow = null)
     {
         if (string.IsNullOrEmpty(friendUid))
         {
@@ -46,19 +46,19 @@ public class FriendListItemUI : MonoBehaviour
         }
 
         _friendUid = friendUid;
+        _messageWindow = messageWindow;
+        _displayNickname = "하트스테이지팬";
 
         _cts?.Cancel();
         _cts?.Dispose();
         _cts = new CancellationTokenSource();
 
-        // 기본 표시값
         if (nicknameText != null)
             nicknameText.text = "로딩 중...";
 
         if (fanAmountText != null)
-            fanAmountText.text = "로딩 중... ";
+            fanAmountText.text = "로딩 중...";
 
-        // 기본 아이콘 (GetSprite 사용!)
         if (iconImage != null)
         {
             var defaultSprite = ResourceManager.Instance?.GetSprite("ProfileIcon_Default");
@@ -66,14 +66,12 @@ public class FriendListItemUI : MonoBehaviour
                 iconImage.sprite = defaultSprite;
         }
 
-        // 아이콘 버튼 클릭
         if (iconButton != null)
         {
             iconButton.onClick.RemoveAllListeners();
             iconButton.onClick.AddListener(OnClickIcon);
         }
 
-        // 버튼 리스너 초기화
         if (sendEnergyButton != null)
         {
             sendEnergyButton.onClick.RemoveAllListeners();
@@ -103,13 +101,7 @@ public class FriendListItemUI : MonoBehaviour
             return;
 
         if (FriendProfileWindow.Instance != null)
-        {
             FriendProfileWindow.Instance.Open(_friendUid);
-        }
-        else
-        {
-            Debug.LogError("[FriendListItemUI] FriendProfileWindow. Instance가 null입니다!");
-        }
     }
 
     private string GetDisplayNickname(string nickname, string uid)
@@ -123,19 +115,14 @@ public class FriendListItemUI : MonoBehaviour
     {
         try
         {
-            // 캐시 먼저 확인!  
             var data = LobbySceneController.GetCachedFriendProfile(_friendUid);
 
-            // 캐시에 없으면 서버에서 로드
             if (data == null)
             {
                 data = await PublicProfileService.GetPublicProfileAsync(_friendUid);
 
-                // 로드 성공하면 캐시에 저장
                 if (data != null)
-                {
                     LobbySceneController.UpdateCachedProfile(_friendUid, data);
-                }
             }
 
             if (data == null)
@@ -147,20 +134,19 @@ public class FriendListItemUI : MonoBehaviour
                 return;
             }
 
+            _displayNickname = GetDisplayNickname(data.nickname, _friendUid);
+
             if (nicknameText != null)
-                nicknameText.text = GetDisplayNickname(data.nickname, _friendUid);
+                nicknameText.text = _displayNickname;
 
             if (fanAmountText != null)
                 fanAmountText.text = $"♥ {data.fanAmount:N0}";
 
-            // GetSprite 사용
             if (iconImage != null)
             {
                 var sprite = ResourceManager.Instance?.GetSprite(data.profileIconKey);
                 if (sprite != null)
-                {
                     iconImage.sprite = sprite;
-                }
                 else
                 {
                     var defaultSprite = ResourceManager.Instance?.GetSprite("hanaicon");
@@ -174,7 +160,7 @@ public class FriendListItemUI : MonoBehaviour
         catch (OperationCanceledException)
         {
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
             Debug.LogError($"[FriendListItemUI] LoadPublicProfileAsync Error: {e}");
         }
@@ -182,16 +168,18 @@ public class FriendListItemUI : MonoBehaviour
 
     private void UpdateButtonStates()
     {
+        // 보내기 버튼
         if (sendEnergyButton != null)
         {
             bool canSend = CanSendGift();
             sendEnergyButton.interactable = canSend;
         }
 
+        // 받기 버튼 - 이 친구에게 받을 선물이 있는지 확인
         if (receiveEnergyButton != null)
         {
-            int pendingCount = DreamEnergyGiftService.GetPendingGiftCountCached();
-            receiveEnergyButton.interactable = pendingCount > 0;
+            int pendingFromThis = DreamEnergyGiftService.GetPendingGiftCountFromFriend(_friendUid);
+            receiveEnergyButton.interactable = pendingFromThis > 0;
         }
     }
 
@@ -228,15 +216,16 @@ public class FriendListItemUI : MonoBehaviour
 
             if (success)
             {
-                Debug.Log($"[FriendListItemUI] 드림 에너지 전송 성공: {_friendUid}");
-
                 if (FriendListWindow.Instance != null)
                     FriendListWindow.Instance.RefreshHeader();
+
+                _messageWindow?.OpenSuccess("선물 전송", $"{_displayNickname}님에게\n드림 에너지를 보냈습니다!");
             }
             else
             {
-                Debug.Log($"[FriendListItemUI] 드림 에너지 전송 실패");
                 UpdateButtonStates();
+
+                _messageWindow?.OpenFail("선물 전송 실패", $"오늘 이미 {_displayNickname}님에게\n선물을 보냈거나 일일 한도에 도달했습니다.");
             }
         }
         catch (OperationCanceledException)
@@ -246,6 +235,8 @@ public class FriendListItemUI : MonoBehaviour
         {
             Debug.LogError($"[FriendListItemUI] OnClickSendAsync Error: {e}");
             UpdateButtonStates();
+
+            _messageWindow?.OpenFail("오류", "선물 전송 중 오류가 발생했습니다.");
         }
     }
 
@@ -256,22 +247,23 @@ public class FriendListItemUI : MonoBehaviour
 
         try
         {
-            int received = await DreamEnergyGiftService.ClaimAllGiftsAsync()
+            // 이 친구에게 받은 선물만 수령
+            int received = await DreamEnergyGiftService.ClaimGiftFromFriendAsync(_friendUid)
                 .AttachExternalCancellation(_cts.Token);
 
             if (received > 0)
             {
-                Debug.Log($"[FriendListItemUI] 드림 에너지 수령: +{received}");
-
                 if (LobbyManager.Instance != null)
                     LobbyManager.Instance.MoneyUISet();
 
                 if (FriendListWindow.Instance != null)
                     FriendListWindow.Instance.RefreshHeader();
+
+                _messageWindow?.OpenSuccess("선물 수령", $"{_displayNickname}님에게서\n드림 에너지 +{received} 획득!");
             }
             else
             {
-                Debug.Log("[FriendListItemUI] 받을 선물이 없습니다.");
+                _messageWindow?.Open("알림", $"{_displayNickname}님에게서\n받을 선물이 없습니다.");
             }
 
             UpdateButtonStates();
@@ -283,6 +275,8 @@ public class FriendListItemUI : MonoBehaviour
         {
             Debug.LogError($"[FriendListItemUI] OnClickReceiveAsync Error: {e}");
             UpdateButtonStates();
+
+            _messageWindow?.OpenFail("오류", "선물 수령 중 오류가 발생했습니다.");
         }
     }
 }

@@ -19,12 +19,76 @@ public static class FriendService
     // 동시성 제어
     private static bool _isProcessingRequest = false;
 
+    // === 캐시 데이터 ===
+    private static List<string> _cachedFriendUids = new();
+    private static List<string> _cachedReceivedRequests = new();
+    private static List<string> _cachedSentRequests = new();
+    private static bool _isCacheLoaded = false;
+
+    // === 캐시 접근자 ===
+    public static int CachedFriendCount => _cachedFriendUids.Count;
+    public static int CachedReceivedCount => _cachedReceivedRequests.Count;
+    public static int CachedSentCount => _cachedSentRequests.Count;
+    public static int CachedTotalRequestCount => _cachedReceivedRequests.Count + _cachedSentRequests.Count;
+    public static bool IsCacheLoaded => _isCacheLoaded;
+
     private static string GetMyUid()
     {
         var user = Auth.CurrentUser;
         return user?.UserId;
     }
+    /// <summary>
+    /// 모든 친구 관련 데이터를 한 번에 로드하고 캐시
+    /// </summary>
+    public static async UniTask RefreshAllCacheAsync()
+    {
+        string myUid = GetMyUid();
+        if (string.IsNullOrEmpty(myUid))
+            return;
 
+        try
+        {
+            // 병렬로 모두 로드
+            var (friends, received, sent) = await UniTask.WhenAll(
+                GetMyFriendUidListAsync(syncLocal: true),
+                GetReceivedRequestsAsync(),
+                GetSentRequestsAsync()
+            );
+
+            _cachedFriendUids = friends;
+            _cachedReceivedRequests = received;
+            _cachedSentRequests = sent;
+            _isCacheLoaded = true;
+
+            Debug.Log($"[FriendService] 캐시 갱신 완료 - 친구: {friends.Count}, 받은 요청: {received.Count}, 보낸 요청: {sent.Count}");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[FriendService] RefreshAllCacheAsync Error: {e}");
+        }
+    }
+    /// <summary>
+    /// 캐시된 친구 목록 반환 (로드 없이)
+    /// </summary>
+    public static List<string> GetCachedFriendUids() => new(_cachedFriendUids);
+
+    /// <summary>
+    /// 캐시된 받은 요청 목록 반환 (로드 없이)
+    /// </summary>
+    public static List<string> GetCachedReceivedRequests() => new(_cachedReceivedRequests);
+
+    /// <summary>
+    /// 캐시된 보낸 요청 목록 반환 (로드 없이)
+    /// </summary>
+    public static List<string> GetCachedSentRequests() => new(_cachedSentRequests);
+
+    /// <summary>
+    /// 캐시 무효화 (액션 후 호출)
+    /// </summary>
+    public static void InvalidateCache()
+    {
+        _isCacheLoaded = false;
+    }
     /// <summary>
     /// 상대 uid로 친구 요청 보내기
     /// friendRequests/targetUid/myUid = true

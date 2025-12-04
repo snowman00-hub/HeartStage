@@ -87,18 +87,15 @@ public class FriendAddWindow : MonoBehaviour
         if (SaveLoadManager.Data is not SaveDataV1 data)
             return;
 
-        // 헤더는 캐시 데이터로 즉시 표시
         RefreshHeaderWithCache();
 
-        // 추천 친구 표시
         foreach (var candidate in _cachedCandidates)
         {
             var item = Instantiate(itemPrefab, contentRoot);
-            item.Setup(candidate);
+            item.Setup(candidate, messageWindow);  // messageWindow 전달
             _spawned.Add(item);
         }
 
-        // 캐시 사용 완료
         _isPrewarmed = false;
         _cachedCandidates = null;
 
@@ -184,14 +181,22 @@ public class FriendAddWindow : MonoBehaviour
         {
             ClearList();
 
-            if (SaveLoadManager.Data is not SaveDataV1 data)
-                return;
+            // 캐시가 없으면 갱신
+            if (!FriendService.IsCacheLoaded)
+                await FriendService.RefreshAllCacheAsync();
 
-            // 헤더 업데이트
-            await UpdateHeaderAsync();
+            // 헤더는 캐시에서
+            RefreshHeader();
 
-            // 추천 친구 표시 (캐시 활용)
-            await ShowRecommendedFriendsAsync();
+            // 추천 친구만 별도 로드
+            var candidates = await FriendSearchService.GetRandomCandidatesAsync(randomCandidateCount);
+
+            foreach (var candidate in candidates)
+            {
+                var item = Instantiate(itemPrefab, contentRoot);
+                item.Setup(candidate, messageWindow);
+                _spawned.Add(item);
+            }
         }
         catch (System.Exception e)
         {
@@ -203,6 +208,28 @@ public class FriendAddWindow : MonoBehaviour
                 loadingPanel.SetActive(false);
             _isRefreshing = false;
         }
+    }
+
+    private void RefreshHeader()
+    {
+        if (friendCountText != null)
+            friendCountText.text = $"친구 수: {FriendService.CachedFriendCount}/{FriendService.MAX_FRIEND_COUNT}";
+
+        if (requestCountText != null)
+            requestCountText.text = $"친구 신청: {FriendService.CachedTotalRequestCount}/{FriendService.MAX_REQUEST_COUNT}";
+    }
+
+    public void OnFriendRequestSent()
+    {
+        // 캐시 무효화 후 헤더만 다시 로드
+        FriendService.InvalidateCache();
+        RefreshHeaderAsync().Forget();
+    }
+
+    private async UniTaskVoid RefreshHeaderAsync()
+    {
+        await FriendService.RefreshAllCacheAsync();
+        RefreshHeader();
     }
 
     private async UniTask ShowRecommendedFriendsAsync()
@@ -222,7 +249,7 @@ public class FriendAddWindow : MonoBehaviour
         foreach (var candidate in candidates)
         {
             var item = Instantiate(itemPrefab, contentRoot);
-            item.Setup(candidate);
+            item.Setup(candidate, messageWindow);  // messageWindow 전달
             _spawned.Add(item);
         }
 
@@ -252,9 +279,6 @@ public class FriendAddWindow : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 검색 결과를 받아서 리스트에 표시
-    /// </summary>
     public void ShowSearchResults(List<PublicProfileSummary> results)
     {
         ClearList();
@@ -268,7 +292,7 @@ public class FriendAddWindow : MonoBehaviour
         foreach (var profile in results)
         {
             var item = Instantiate(itemPrefab, contentRoot);
-            item.Setup(profile);
+            item.Setup(profile, messageWindow);  // messageWindow 전달
             _spawned.Add(item);
         }
 
@@ -307,13 +331,5 @@ public class FriendAddWindow : MonoBehaviour
                 );
             }
         }
-    }
-
-    /// <summary>
-    /// 외부에서 친구 요청 성공 시 호출 (헤더 갱신용)
-    /// </summary>
-    public void OnFriendRequestSent()
-    {
-        UpdateHeaderAsync().Forget();
     }
 }

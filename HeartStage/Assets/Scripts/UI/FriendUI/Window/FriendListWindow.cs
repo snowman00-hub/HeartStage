@@ -89,7 +89,7 @@ public class FriendListWindow : MonoBehaviour
         foreach (var friendUid in _cachedFriendUids)
         {
             var item = Instantiate(itemPrefab, contentRoot);
-            item.Setup(friendUid);
+            item.Setup(friendUid, messageWindow);  // messageWindow 전달
             _spawned.Add(item);
         }
 
@@ -98,7 +98,6 @@ public class FriendListWindow : MonoBehaviour
 
         Debug.Log($"[FriendListWindow] 캐시 데이터로 표시 완료: {_spawned.Count}명");
     }
-
     public void Close()
     {
         if (root != null)
@@ -151,26 +150,21 @@ public class FriendListWindow : MonoBehaviour
         {
             ClearList();
 
-            if (SaveLoadManager.Data is not SaveDataV1 data)
-                return;
+            // 병렬로 캐시 갱신
+            await UniTask.WhenAll(
+                FriendService.RefreshAllCacheAsync(),
+                DreamEnergyGiftService.RefreshPendingGiftsByFriendAsync()
+            );
 
-            List<string> friendUids;
-            if (_isPrewarmed && _cachedFriendUids != null)
-            {
-                friendUids = _cachedFriendUids;
-                _isPrewarmed = false;
-            }
-            else
-            {
-                friendUids = await FriendService.GetMyFriendUidListAsync(syncLocal: true);
-            }
+            var friendUids = FriendService.GetCachedFriendUids();
 
-            RefreshHeader(friendUids.Count);
+            RefreshHeader();
+            // UpdateClaimButtonState();  ← 삭제!
 
             foreach (var friendUid in friendUids)
             {
                 var item = Instantiate(itemPrefab, contentRoot);
-                item.Setup(friendUid);
+                item.Setup(friendUid, messageWindow);
                 _spawned.Add(item);
             }
         }
@@ -193,7 +187,7 @@ public class FriendListWindow : MonoBehaviour
 
         if (friendCountText != null)
         {
-            int currentCount = actualFriendCount ?? data.friendUidList.Count;
+            int currentCount = actualFriendCount ?? FriendService.CachedFriendCount;
             friendCountText.text = $"친구 수: {currentCount}/{FriendService.MAX_FRIEND_COUNT}";
         }
 
