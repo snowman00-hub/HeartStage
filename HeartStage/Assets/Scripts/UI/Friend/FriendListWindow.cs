@@ -35,6 +35,10 @@ public class FriendListWindow : MonoBehaviour
     private readonly List<FriendListItemUI> _spawned = new();
     private bool _isRefreshing = false;
 
+    // 캐시된 친구 UIDs (로컬 데이터 기준)
+    private List<string> _cachedFriendUids;
+    private bool _isPrewarmed = false;
+
     private void Awake()
     {
         Instance = this;
@@ -58,18 +62,67 @@ public class FriendListWindow : MonoBehaviour
             loadingPanel.SetActive(false);
     }
 
-    public async void Open()
+    public void Open()
     {
-        if (root != null)
-            root.SetActive(true);
+        Debug.Log($"[FriendListWindow] root == null? {root == null}");
+        Debug.Log($"[FriendListWindow] root name: {root?.name}");
+        Debug.Log($"[FriendListWindow] this.gameObject name: {gameObject.name}");
+        Debug.Log($"[FriendListWindow] root == gameObject? {root == gameObject}");
 
-        await RefreshAsync();
+        if (root != null)
+        {
+            root.SetActive(true);
+            Debug.Log($"[FriendListWindow] SetActive 후 activeSelf: {root.activeSelf}");
+        }
+
+        Debug.Log($"[FriendListWindow] root.SetActive(true) 완료, activeSelf: {root?.activeSelf}");
+
+        if (_isPrewarmed && _cachedFriendUids != null)
+        {
+            Debug.Log($"[FriendListWindow] 캐시 사용");
+            ShowCachedData();
+        }
+        else
+        {
+            Debug.Log($"[FriendListWindow] RefreshAsync 시작");
+            RefreshAsync().Forget();
+        }
+    }
+    private void ShowCachedData()
+    {
+        ClearList();
+
+        if (SaveLoadManager.Data is not SaveDataV1 data)
+            return;
+
+        // 헤더 업데이트
+        RefreshHeader(_cachedFriendUids.Count);
+
+        // 친구 아이템 생성
+        foreach (var friendUid in _cachedFriendUids)
+        {
+            var item = Instantiate(itemPrefab, contentRoot);
+            item.Setup(friendUid);
+            _spawned.Add(item);
+        }
+
+        // 캐시 사용 완료 - 다음 Open에서는 새로 로드
+        _isPrewarmed = false;
+        _cachedFriendUids = null;
+
+        Debug.Log($"[FriendListWindow] 캐시 데이터로 표시 완료: {_spawned.Count}명");
     }
 
     public void Close()
     {
         if (root != null)
             root.SetActive(false);
+    }
+
+    public void Show()
+    { 
+        if(root != null)
+            root.SetActive(true);
     }
 
     private void ClearList()
@@ -80,6 +133,26 @@ public class FriendListWindow : MonoBehaviour
                 Destroy(item.gameObject);
         }
         _spawned.Clear();
+    }
+    public async UniTask PrewarmAsync()
+    {
+        if (_isPrewarmed) return;
+
+        try
+        {
+            // 친구 목록 미리 로드
+            _cachedFriendUids = await FriendService.GetMyFriendUidListAsync(syncLocal: true);
+
+            // 드림 에너지 카운터 동기화
+            await DreamEnergyGiftService.SyncCounterFromServerAsync();
+
+            _isPrewarmed = true;
+            Debug.Log($"[FriendListWindow] Prewarm 완료: 친구 {_cachedFriendUids.Count}명");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[FriendListWindow] PrewarmAsync Error: {e}");
+        }
     }
 
     public async UniTask RefreshAsync()
@@ -97,10 +170,19 @@ public class FriendListWindow : MonoBehaviour
             if (SaveLoadManager.Data is not SaveDataV1 data)
                 return;
 
-            // 서버 기준 친구 목록 가져오기 (이게 Source of Truth)
-            List<string> friendUids = await FriendService.GetMyFriendUidListAsync(syncLocal: true);
+            // Prewarm된 데이터가 있으면 사용, 없으면 서버에서 로드
+            List<string> friendUids;
+            if (_isPrewarmed && _cachedFriendUids != null)
+            {
+                friendUids = _cachedFriendUids;
+                _isPrewarmed = false; // 한 번 사용 후 다음엔 서버에서 새로 로드
+            }
+            else
+            {
+                friendUids = await FriendService.GetMyFriendUidListAsync(syncLocal: true);
+            }
 
-            // 헤더 업데이트 (서버에서 가져온 실제 친구 수 사용)
+            // 헤더 업데이트
             RefreshHeader(friendUids.Count);
 
             // 친구 아이템 생성

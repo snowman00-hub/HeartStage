@@ -785,19 +785,21 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 81037589}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1739925137}
-        m_TargetAssemblyTypeName: FriendListWindow, Assembly-CSharp
-        m_MethodName: Open
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
+--- !u!114 &81037594
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 81037587}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb63c91e58ccff24c98b5cc23c6f7baa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  friendListButton: {fileID: 81037591}
+  friendListWindow: {fileID: 1739925137}
 --- !u!1 &92845936
 GameObject:
   m_ObjectHideFlags: 0
@@ -4294,6 +4296,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 7096357804517343790, guid: 95e3442b01481af4b89b9a2d8a7686ec, type: 3}
       insertIndex: -1
       addedObject: {fileID: 81037591}
+    - targetCorrespondingSourceObject: {fileID: 7096357804517343790, guid: 95e3442b01481af4b89b9a2d8a7686ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 81037594}
     - targetCorrespondingSourceObject: {fileID: 5810505937986541874, guid: 95e3442b01481af4b89b9a2d8a7686ec, type: 3}
       insertIndex: -1
       addedObject: {fileID: 827369156}
@@ -14133,6 +14138,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4514743308300566641, guid: 852e1554831568141b6858c9e521fad9, type: 3}
+      propertyPath: m_RaycastTarget
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5809644317495375863, guid: 852e1554831568141b6858c9e521fad9, type: 3}
       propertyPath: messageWindow
       value: 
@@ -14463,37 +14472,9 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 339559873}
     m_Modifications:
-    - target: {fileID: 1066205194891590524, guid: 15ee094d30d31d64e8db17e80b41998e, type: 3}
-      propertyPath: m_AnchorMax.x
-      value: 0.82422227
-      objectReference: {fileID: 0}
-    - target: {fileID: 1066205194891590524, guid: 15ee094d30d31d64e8db17e80b41998e, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0.28635412
-      objectReference: {fileID: 0}
-    - target: {fileID: 1066205194891590524, guid: 15ee094d30d31d64e8db17e80b41998e, type: 3}
-      propertyPath: m_AnchorMin.x
-      value: 0.546
-      objectReference: {fileID: 0}
-    - target: {fileID: 1066205194891590524, guid: 15ee094d30d31d64e8db17e80b41998e, type: 3}
-      propertyPath: m_AnchorMin.y
-      value: 0.22437504
-      objectReference: {fileID: 0}
-    - target: {fileID: 1066205194891590524, guid: 15ee094d30d31d64e8db17e80b41998e, type: 3}
-      propertyPath: m_SizeDelta.x
+    - target: {fileID: 251351210221026760, guid: 15ee094d30d31d64e8db17e80b41998e, type: 3}
+      propertyPath: m_RaycastTarget
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1066205194891590524, guid: 15ee094d30d31d64e8db17e80b41998e, type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1066205194891590524, guid: 15ee094d30d31d64e8db17e80b41998e, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1066205194891590524, guid: 15ee094d30d31d64e8db17e80b41998e, type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: -0.4199829
       objectReference: {fileID: 0}
     - target: {fileID: 3086465292056351675, guid: 15ee094d30d31d64e8db17e80b41998e, type: 3}
       propertyPath: messageWindow
@@ -14510,10 +14491,6 @@ PrefabInstance:
     - target: {fileID: 4678128378172545729, guid: 15ee094d30d31d64e8db17e80b41998e, type: 3}
       propertyPath: m_Name
       value: FriendAddWindow
-      objectReference: {fileID: 0}
-    - target: {fileID: 4678128378172545729, guid: 15ee094d30d31d64e8db17e80b41998e, type: 3}
-      propertyPath: m_IsActive
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9091258923812045198, guid: 15ee094d30d31d64e8db17e80b41998e, type: 3}
       propertyPath: m_Pivot.x
@@ -14875,6 +14852,14 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1230047105}
     - target: {fileID: 7327365038867505067, guid: bef6c06cfaef2a94389a8e20b6dfcbdf, type: 3}
+      propertyPath: friendAddWindow
+      value: 
+      objectReference: {fileID: 7029646091739542406}
+    - target: {fileID: 7327365038867505067, guid: bef6c06cfaef2a94389a8e20b6dfcbdf, type: 3}
+      propertyPath: friendListWindow
+      value: 
+      objectReference: {fileID: 1739925137}
+    - target: {fileID: 7327365038867505067, guid: bef6c06cfaef2a94389a8e20b6dfcbdf, type: 3}
       propertyPath: dailyQuestsComponent
       value: 
       objectReference: {fileID: 1897083883}
@@ -14903,6 +14888,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 339559873}
     m_Modifications:
+    - target: {fileID: 1306311898054261407, guid: b927cc61f624fd14b90ea4db3511efb0, type: 3}
+      propertyPath: m_RaycastTarget
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4211086005085803336, guid: b927cc61f624fd14b90ea4db3511efb0, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5

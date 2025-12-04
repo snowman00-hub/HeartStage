@@ -49,6 +49,7 @@ public class CharacterAttack : MonoBehaviour
 
         // 범위 설정
         circleCollider.radius = StatCalc.GetFinalStat(gameObject, StatType.AttackRange, data.atk_range);
+
         // 캐릭터 이미지 추가
         var imageGo = ResourceManager.Instance.Get<GameObject>(data.image_PrefabName);
         Instantiate(imageGo, gameObject.transform);
@@ -106,7 +107,9 @@ public class CharacterAttack : MonoBehaviour
                 }
             }
 
-            nextAttackTime = Time.time + data.atk_speed;
+            var atkSpeedStat = StatCalc.GetFinalStat(gameObject, StatType.AttackSpeed, data.atk_speed);
+
+            nextAttackTime = Time.time + atkSpeedStat;
         }
 
         editorTimer += Time.deltaTime;

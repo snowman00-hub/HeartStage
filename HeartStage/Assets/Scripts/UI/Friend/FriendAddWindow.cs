@@ -38,6 +38,11 @@ public class FriendAddWindow : MonoBehaviour
     private readonly List<FriendAddItemUI> _spawned = new();
     private bool _isRefreshing = false;
 
+    // 캐시된 추천 후보 및 받은 요청 (로컬 데이터 기준)
+    private List<PublicProfileSummary> _cachedCandidates;
+    private List<string> _cachedReceivedRequests;
+    private bool _isPrewarmed = false;
+
     private void Awake()
     {
         Instance = this;
@@ -58,13 +63,63 @@ public class FriendAddWindow : MonoBehaviour
         if (loadingPanel != null)
             loadingPanel.SetActive(false);
     }
-
-    public async void Open()
+    public void Open()
     {
         if (root != null)
             root.SetActive(true);
 
-        await RefreshAsync();
+        // 캐시가 있으면 빠르게 표시, 없으면 서버에서 로드
+        if (_isPrewarmed && _cachedCandidates != null)
+        {
+            ShowCachedData();
+        }
+        else
+        {
+            RefreshAsync().Forget();
+        }
+    }
+    private void ShowCachedData()
+    {
+        ClearList();
+
+        if (SaveLoadManager.Data is not SaveDataV1 data)
+            return;
+
+        // 헤더는 캐시 데이터로 즉시 표시
+        RefreshHeaderWithCache();
+
+        // 추천 친구 표시
+        foreach (var candidate in _cachedCandidates)
+        {
+            var item = Instantiate(itemPrefab, contentRoot);
+            item.Setup(candidate);
+            _spawned.Add(item);
+        }
+
+        // 캐시 사용 완료
+        _isPrewarmed = false;
+        _cachedCandidates = null;
+        _cachedReceivedRequests = null;
+
+        Debug.Log($"[FriendAddWindow] 캐시 데이터로 표시 완료: {_spawned.Count}명");
+    }
+
+    // 캐시로 헤더 즉시 표시 (서버 호출 없음)
+    private void RefreshHeaderWithCache()
+    {
+        if (SaveLoadManager.Data is not SaveDataV1 data)
+            return;
+
+        if (friendCountText != null)
+        {
+            friendCountText.text = $"친구 수: {data.friendUidList.Count}/{FriendService.MAX_FRIEND_COUNT}";
+        }
+
+        if (requestCountText != null)
+        {
+            int requestCount = _cachedReceivedRequests?.Count ?? 0;
+            requestCountText.text = $"친구 신청: {requestCount}/??";
+        }
     }
 
     public void Close()
@@ -72,9 +127,14 @@ public class FriendAddWindow : MonoBehaviour
         if (root != null)
             root.SetActive(false);
 
-        friendListWindow.Open();
+        friendListWindow?.Show();
     }
 
+    public void Show()
+    {
+        if (root != null)
+            root.SetActive(true);
+    }
     /// <summary>
     /// 리스트 클리어
     /// </summary>
@@ -88,9 +148,30 @@ public class FriendAddWindow : MonoBehaviour
         _spawned.Clear();
     }
 
-    /// <summary>
-    /// 추천 친구 목록 새로 고침
-    /// </summary>
+    public async UniTask PrewarmAsync()
+    {
+        if (_isPrewarmed) return;
+
+        try
+        {
+            // 병렬로 로드 - WhenAll 튜플 반환 사용
+            var (candidates, receivedRequests) = await UniTask.WhenAll(
+                FriendSearchService.GetRandomCandidatesAsync(randomCandidateCount),
+                FriendService.GetReceivedRequestsAsync()
+            );
+
+            _cachedCandidates = candidates;
+            _cachedReceivedRequests = receivedRequests;
+
+            _isPrewarmed = true;
+            Debug.Log($"[FriendAddWindow] Prewarm 완료: 추천 {_cachedCandidates.Count}명, 받은 요청 {_cachedReceivedRequests.Count}개");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[FriendAddWindow] PrewarmAsync Error: {e}");
+        }
+    }
+    // RefreshAsync 수정 - 캐시 활용
     public async UniTask RefreshAsync()
     {
         if (_isRefreshing) return;
@@ -109,7 +190,7 @@ public class FriendAddWindow : MonoBehaviour
             // 헤더 업데이트
             await UpdateHeaderAsync();
 
-            // 추천 친구 표시
+            // 추천 친구 표시 (캐시 활용)
             await ShowRecommendedFriendsAsync();
         }
         catch (System.Exception e)
@@ -124,15 +205,20 @@ public class FriendAddWindow : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 추천 친구 목록 표시
-    /// </summary>
     private async UniTask ShowRecommendedFriendsAsync()
     {
-        // 랜덤 추천 친구 가져오기
-        var candidates = await FriendSearchService.GetRandomCandidatesAsync(randomCandidateCount);
+        List<PublicProfileSummary> candidates;
 
-        // 친구 아이템 생성
+        if (_isPrewarmed && _cachedCandidates != null)
+        {
+            candidates = _cachedCandidates;
+            _isPrewarmed = false; // 한 번 사용 후 리셋
+        }
+        else
+        {
+            candidates = await FriendSearchService.GetRandomCandidatesAsync(randomCandidateCount);
+        }
+
         foreach (var candidate in candidates)
         {
             var item = Instantiate(itemPrefab, contentRoot);
@@ -143,26 +229,32 @@ public class FriendAddWindow : MonoBehaviour
         Debug.Log($"[FriendAddWindow] 추천 친구 {candidates.Count}명 로드 완료");
     }
 
-    /// <summary>
-    /// 헤더 정보 업데이트
-    /// </summary>
     private async UniTask UpdateHeaderAsync()
     {
         if (SaveLoadManager.Data is not SaveDataV1 data)
             return;
 
-        // 친구 수 (서버에서 가져오기)
+        // 친구 수
         var friendUids = await FriendService.GetMyFriendUidListAsync(syncLocal: true);
         if (friendCountText != null)
         {
             friendCountText.text = $"친구 수: {friendUids.Count}/{FriendService.MAX_FRIEND_COUNT}";
         }
 
-        // 친구 신청 수 (받은 요청)
-        var receivedRequests = await FriendService.GetReceivedRequestsAsync();
+        // 받은 요청 수 (캐시 활용)
+        List<string> receivedRequests;
+        if (_cachedReceivedRequests != null)
+        {
+            receivedRequests = _cachedReceivedRequests;
+            _cachedReceivedRequests = null; // 사용 후 클리어
+        }
+        else
+        {
+            receivedRequests = await FriendService.GetReceivedRequestsAsync();
+        }
+
         if (requestCountText != null)
         {
-            // TODO: 보낸 요청도 합쳐서 표시할지 결정
             requestCountText.text = $"친구 신청: {receivedRequests.Count}/??";
         }
     }
