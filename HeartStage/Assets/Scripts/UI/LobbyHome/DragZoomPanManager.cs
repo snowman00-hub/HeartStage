@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class DragZoomPanManager : MonoBehaviour
@@ -13,7 +15,7 @@ public class DragZoomPanManager : MonoBehaviour
     [SerializeField] private float minSize = 1.5f; // 최소 줌 크기
     private float maxSize = 7.94f; // 최대 줌 크기(바꾸지 말기)
 
-    [SerializeField] private float edgeSize = 85f; // RawImage edge 영역 px
+    [SerializeField] private float edgeSize = 150f; // RawImage edge 영역 px
     [SerializeField] private float edgePanSpeed = 1f; // 에지 패닝 속도
 
     [SerializeField] private SpriteRenderer background;
@@ -139,8 +141,13 @@ public class DragZoomPanManager : MonoBehaviour
     private void HandleTouchInput()
     {
         // UI가 클릭 중이면 월드 조작 금지
-        if (Input.touchCount > 0 && UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject(Input.GetTouch(0).fingerId))
-            return;
+        if (Input.touchCount > 0)
+        {
+            Touch t = Input.GetTouch(0);
+
+            if (IsTouchOverUI(t))
+                return;
+        }
 
         // 핀치 줌
         if (Input.touchCount == 2)
@@ -362,5 +369,17 @@ public class DragZoomPanManager : MonoBehaviour
                 }
             }
         }
+    }
+
+    // UI 터치중인지 확인
+    private bool IsTouchOverUI(Touch touch)
+    {
+        PointerEventData eventData = new PointerEventData(EventSystem.current);
+        eventData.position = touch.position;
+
+        List<RaycastResult> results = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(eventData, results);
+
+        return results.Count > 0;
     }
 }

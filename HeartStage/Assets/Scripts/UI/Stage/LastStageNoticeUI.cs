@@ -23,6 +23,7 @@ public class LastStageNoticeUI : GenericWindow
     private void OnLobbyButtonClicked()
     {
         Close();
+        WindowManager.currentWindow = WindowType.LobbyHome;
         GameSceneManager.ChangeScene(SceneType.LobbyScene);
     }
 }
