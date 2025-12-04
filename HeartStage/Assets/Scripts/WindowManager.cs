@@ -56,9 +56,6 @@ public class WindowManager : MonoBehaviour
         if (!IsValidWindow(id))
             return;
 
-        if(id == currentWindow) 
-            return;
-
         // 현재 윈도우 닫기
         if (IsValidWindow(currentWindow))
         {
