@@ -15,6 +15,10 @@ public class LobbySceneController : MonoBehaviour
     [Header("프로필 UI")]
     [SerializeField] private ProfileWindow profileWindow;
 
+    [Header("친구 UI")]
+    [SerializeField] private FriendListWindow friendListWindow;
+    [SerializeField] private FriendAddWindow friendAddWindow;
+
 
     private async void Awake()
     {
@@ -55,6 +59,7 @@ public class LobbySceneController : MonoBehaviour
             await weeklyQuestsComponent.InitializeAsync();
 
             await SyncPublicProfileIfPossible();
+            await SyncDreamEnergyCounterAsync();
 
             go.SetActive(wasActive); // 다시 원래 상태(false)로 돌려두기
         }
@@ -64,6 +69,7 @@ public class LobbySceneController : MonoBehaviour
             Debug.Log("[LobbySceneController] DailyQuests 이미 초기화됨. 로딩 스킵");
         }
 
+        // 공지창 UI 초기화 추가
         if (noticeWindow != null)
         {
             var go = noticeWindow.gameObject;
@@ -74,11 +80,22 @@ public class LobbySceneController : MonoBehaviour
             go.SetActive(wasActive);                   // 다시 원래 상태(false)로
         }
 
+        // 프로필 관련 Window Prewarm 추가
         if (profileWindow != null)
         {
             tasks.Add(profileWindow.PrewarmAsync());
         }
 
+        // 친구 관련 Window Prewarm 추가
+        if (friendListWindow != null)
+        {
+            tasks.Add(friendListWindow.PrewarmAsync());
+        }
+
+        if (friendAddWindow != null)
+        {
+            tasks.Add(friendAddWindow.PrewarmAsync());
+        }
         if (tasks.Count > 0)
             await UniTask.WhenAll(tasks);
 
@@ -128,5 +145,12 @@ public class LobbySceneController : MonoBehaviour
 
         await PublicProfileService.UpdateMyPublicProfileAsync(data, achievementCount);
         Debug.Log("[Lobby] publicProfiles 동기화 완료");
+    }
+
+    // ➕ 여기에 추가
+    private async UniTask SyncDreamEnergyCounterAsync()
+    {
+        await DreamEnergyGiftService.SyncCounterFromServerAsync();
+        Debug.Log("[Lobby] DreamEnergyGiftService 카운터 동기화 완료");
     }
 }

@@ -10,6 +10,12 @@ public static class FriendService
     private static DatabaseReference Root => FirebaseDatabase.DefaultInstance.RootReference;
     private static FirebaseAuth Auth => FirebaseAuth.DefaultInstance;
 
+    // 최대 친구 수 제한
+    public const int MAX_FRIEND_COUNT = 20;
+
+    // 동시성 제어
+    private static bool _isProcessingRequest = false;
+
     private static string GetMyUid()
     {
         var user = Auth.CurrentUser;
@@ -24,13 +30,20 @@ public static class FriendService
     {
         string myUid = GetMyUid();
         if (string.IsNullOrEmpty(myUid) || string.IsNullOrEmpty(targetUid))
+        {
+            Debug.LogWarning("[FriendService] 유효하지 않은 UID입니다.");
             return false;
+        }
+
         if (myUid == targetUid)
+        {
+            Debug.LogWarning("[FriendService] 자기 자신에게 친구 요청을 보낼 수 없습니다.");
             return false;
+        }
 
         try
         {
-            // 이미 친구면 패스
+            // 이미 친구인지 확인
             var myFriendRef = Root.Child("friends").Child(myUid).Child(targetUid);
             var snap = await myFriendRef.GetValueAsync();
             if (snap.Exists)
@@ -39,10 +52,19 @@ public static class FriendService
                 return false;
             }
 
-            await Root.Child("friendRequests").Child(targetUid).Child(myUid)
-                .SetValueAsync(true);
+            // 이미 요청을 보냈는지 확인
+            var requestRef = Root.Child("friendRequests").Child(targetUid).Child(myUid);
+            var requestSnap = await requestRef.GetValueAsync();
+            if (requestSnap.Exists)
+            {
+                Debug.Log("[FriendService] 이미 친구 요청을 보냈습니다.");
+                return false;
+            }
 
-            Debug.Log("[FriendService] 친구 요청 전송 완료");
+            // 친구 요청 전송
+            await requestRef.SetValueAsync(true);
+
+            Debug.Log($"[FriendService] 친구 요청 전송 완료: {targetUid}");
             return true;
         }
         catch (Exception e)
@@ -73,6 +95,8 @@ public static class FriendService
                 string fromUid = child.Key;
                 result.Add(fromUid);
             }
+
+            Debug.Log($"[FriendService] 받은 친구 요청: {result.Count}개");
         }
         catch (Exception e)
         {
@@ -87,12 +111,40 @@ public static class FriendService
     /// </summary>
     public static async UniTask<bool> AcceptFriendRequestAsync(string fromUid)
     {
+        if (_isProcessingRequest)
+        {
+            Debug.Log("[FriendService] 이미 요청 처리 중입니다.");
+            return false;
+        }
+
         string myUid = GetMyUid();
         if (string.IsNullOrEmpty(myUid) || string.IsNullOrEmpty(fromUid))
             return false;
 
+        _isProcessingRequest = true;
+
         try
         {
+            if (SaveLoadManager.Data is not SaveDataV1 data)
+                return false;
+
+            // 친구 수 한도 체크
+            if (data.friendUidList.Count >= MAX_FRIEND_COUNT)
+            {
+                Debug.Log($"[FriendService] 친구 수가 최대치({MAX_FRIEND_COUNT}명)입니다.");
+                return false;
+            }
+
+            // 이미 친구인지 확인
+            if (data.friendUidList.Contains(fromUid))
+            {
+                Debug.Log("[FriendService] 이미 친구 상태입니다.");
+                // 요청은 삭제
+                await Root.Child("friendRequests").Child(myUid).Child(fromUid).SetValueAsync(null);
+                return false;
+            }
+
+            // Firebase 업데이트 (friends 양방향 + 요청 삭제)
             var updates = new Dictionary<string, object>
             {
                 [$"friends/{myUid}/{fromUid}"] = true,
@@ -102,21 +154,21 @@ public static class FriendService
 
             await Root.UpdateChildrenAsync(updates);
 
-            if (SaveLoadManager.Data is SaveDataV1 data)
-            {
-                if (!data.friendUidList.Contains(fromUid))
-                    data.friendUidList.Add(fromUid);
+            // 로컬 데이터 업데이트
+            data.friendUidList.Add(fromUid);
+            await SaveLoadManager.SaveToServer();
 
-                await SaveLoadManager.SaveToServer();
-            }
-
-            Debug.Log("[FriendService] 친구 요청 수락 완료");
+            Debug.Log($"[FriendService] 친구 요청 수락 완료: {fromUid}");
             return true;
         }
         catch (Exception e)
         {
             Debug.LogError($"[FriendService] AcceptFriendRequestAsync Error: {e}");
             return false;
+        }
+        finally
+        {
+            _isProcessingRequest = false;
         }
     }
 
@@ -133,7 +185,8 @@ public static class FriendService
         {
             await Root.Child("friendRequests").Child(myUid).Child(fromUid)
                 .SetValueAsync(null);
-            Debug.Log("[FriendService] 친구 요청 거절 완료");
+
+            Debug.Log($"[FriendService] 친구 요청 거절 완료: {fromUid}");
             return true;
         }
         catch (Exception e)
@@ -143,6 +196,9 @@ public static class FriendService
         }
     }
 
+    /// <summary>
+    /// 내 친구 목록 가져오기 (서버 기준)
+    /// </summary>
     public static async UniTask<List<string>> GetMyFriendUidListAsync(bool syncLocal = true)
     {
         var result = new List<string>();
@@ -164,15 +220,15 @@ public static class FriendService
                 }
             }
 
-            // 로컬 세이브와 동기화 옵션
+            // 로컬 세이브와 동기화
             if (syncLocal && SaveLoadManager.Data is SaveDataV1 data)
             {
                 data.friendUidList.Clear();
                 data.friendUidList.AddRange(result);
                 // 굳이 여기서 SaveToServer까지 안 해도 됨 (friends가 진짜 소스라서)
-                // 필요하면 아래 주석 해제
-                // await SaveLoadManager.SaveToServer();
             }
+
+            Debug.Log($"[FriendService] 친구 목록 로드 완료: {result.Count}명");
         }
         catch (Exception e)
         {
@@ -207,7 +263,7 @@ public static class FriendService
                 await SaveLoadManager.SaveToServer();
             }
 
-            Debug.Log("[FriendService] 친구 삭제 완료");
+            Debug.Log($"[FriendService] 친구 삭제 완료: {friendUid}");
             return true;
         }
         catch (Exception e)
@@ -215,5 +271,16 @@ public static class FriendService
             Debug.LogError($"[FriendService] RemoveFriendAsync Error: {e}");
             return false;
         }
+    }
+
+    /// <summary>
+    /// 친구 수 체크 (로컬 기준)
+    /// </summary>
+    public static bool CanAddMoreFriends()
+    {
+        if (SaveLoadManager.Data is not SaveDataV1 data)
+            return false;
+
+        return data.friendUidList.Count < MAX_FRIEND_COUNT;
     }
 }
