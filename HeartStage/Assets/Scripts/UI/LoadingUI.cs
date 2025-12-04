@@ -19,10 +19,11 @@ public class LoadingUI : MonoBehaviour
     [Header("퍼센트 텍스트 (슬라이더 안/위)")]
     [SerializeField] private TextMeshProUGUI percentText;
 
-    [Header("선택: 로딩 팁 텍스트")]
-    [SerializeField] private TextMeshProUGUI tipText;
-    [TextArea]
-    [SerializeField] private string[] tips;
+    // 현재 팁 비활성
+    //[Header("선택: 로딩 팁 텍스트")]
+    //[SerializeField] private TextMeshProUGUI tipText;
+    //[TextArea]
+    //[SerializeField] private string[] tips;
 
     private void Awake()
     {
@@ -50,7 +51,9 @@ public class LoadingUI : MonoBehaviour
             percentText.text = "0%";
 
         SetupRandomImage();
-        SetupRandomTip();
+
+        //현재 팁 비활성
+        //SetupRandomTip();
     }
 
     public void Hide()
@@ -80,12 +83,13 @@ public class LoadingUI : MonoBehaviour
         loadingArtImage.sprite = loadingSprites[idx];
     }
 
-    private void SetupRandomTip()
-    {
-        if (tipText == null || tips == null || tips.Length == 0)
-            return;
+    //현재 팁 비활성
+    //private void SetupRandomTip()
+    //{
+    //    if (tipText == null || tips == null || tips.Length == 0)
+    //        return;
 
-        int idx = Random.Range(0, tips.Length);
-        tipText.text = tips[idx];
-    }
+    //    int idx = Random.Range(0, tips.Length);
+    //    tipText.text = tips[idx];
+    //}
 }

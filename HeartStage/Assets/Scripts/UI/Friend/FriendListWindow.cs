@@ -6,31 +6,34 @@ using UnityEngine.UI;
 
 public class FriendListWindow : MonoBehaviour
 {
-    public static FriendListWindow Instance;
+    public static FriendListWindow Instance { get; private set; }
 
     [Header("Root")]
     [SerializeField] private GameObject root;
 
+    [Header("연결된 창")]
+    [SerializeField] private FriendAddWindow friendAddWindow;
+    [SerializeField] private MessageWindow messageWindow;
+
     [Header("상단 정보")]
-    [SerializeField] private TMP_Text friendCountText;    // 예: "친구 수 3/20"
-    [SerializeField] private TMP_Text dailyLimitText;     // 예: "일일 한도 5/20"
-    [SerializeField] private TMP_Text dreamEnergyText;    // 예: "드림 에너지 1,234"
+    [SerializeField] private TMP_Text friendCountText;    // 친구 수: 3/20
+    [SerializeField] private TMP_Text dailyLimitText;     // 일일 한도: 5/20
 
     [Header("리스트")]
     [SerializeField] private Transform contentRoot;
     [SerializeField] private FriendListItemUI itemPrefab;
-    [SerializeField] private GameObject emptyMessageRoot; // "등록된 친구가 없습니다" 같은 오브젝트
 
     [Header("버튼")]
     [SerializeField] private Button closeButton;
-    [SerializeField] private Button refreshButton;
-    [SerializeField] private Button claimAllButton;       // 모두 받기 버튼
+    [SerializeField] private Button claimAllButton;
+    [SerializeField] private Button addFriendButton;    // 친구 추가 화면으로 이동
+    [SerializeField] private Button manageFriendButton; // 친구 관리 화면으로 이동
 
-    // 최대 친구 수 (기획 기준 20명)
-    [Header("설정")]
-    [SerializeField] private int maxFriendCount = 20;
+    [Header("로딩")]
+    [SerializeField] private GameObject loadingPanel;
 
     private readonly List<FriendListItemUI> _spawned = new();
+    private bool _isRefreshing = false;
 
     private void Awake()
     {
@@ -42,19 +45,25 @@ public class FriendListWindow : MonoBehaviour
         if (closeButton != null)
             closeButton.onClick.AddListener(Close);
 
-        if (refreshButton != null)
-            refreshButton.onClick.AddListener(() => RefreshAsync().Forget());
-
         if (claimAllButton != null)
-            claimAllButton.onClick.AddListener(() => OnClickClaimAll().Forget());
+            claimAllButton.onClick.AddListener(() => OnClickClaimAllAsync().Forget());
+
+        if (addFriendButton != null)
+            addFriendButton.onClick.AddListener(OnClickAddFriend);
+
+        if (manageFriendButton != null)
+            manageFriendButton.onClick.AddListener(OnClickManageFriend);
+
+        if (loadingPanel != null)
+            loadingPanel.SetActive(false);
     }
 
-    public void Open()
+    public async void Open()
     {
         if (root != null)
             root.SetActive(true);
 
-        RefreshAsync().Forget();
+        await RefreshAsync();
     }
 
     public void Close()
@@ -65,71 +74,77 @@ public class FriendListWindow : MonoBehaviour
 
     private void ClearList()
     {
-        foreach (var it in _spawned)
+        foreach (var item in _spawned)
         {
-            if (it != null)
-                Destroy(it.gameObject);
+            if (item != null)
+                Destroy(item.gameObject);
         }
         _spawned.Clear();
     }
 
-    private async UniTask RefreshAsync()
+    public async UniTask RefreshAsync()
     {
-        ClearList();
+        if (_isRefreshing) return;
+        _isRefreshing = true;
 
-        if (SaveLoadManager.Data is not SaveDataV1 data)
-            return;
+        if (loadingPanel != null)
+            loadingPanel.SetActive(true);
 
-        // 우선 상단 정보 갱신 (친구 수는 서버 목록 받은 뒤 다시 업데이트)
-        UpdateHeader(data, currentFriendCount: data.friendUidList.Count);
-
-        // 서버 기준 친구 목록 가져오기 (동시에 SaveDataV1.friendUidList도 덮어씀)
-        List<string> friendUids = await FriendService.GetMyFriendUidListAsync(syncLocal: true);
-
-        // 서버에서 가져온 수 기준으로 다시 헤더 갱신
-        UpdateHeader(data, currentFriendCount: friendUids.Count);
-
-        // 친구가 하나도 없으면 빈 메시지 On
-        if (friendUids.Count == 0)
+        try
         {
-            if (emptyMessageRoot != null)
-                emptyMessageRoot.SetActive(true);
-            return;
+            ClearList();
+
+            if (SaveLoadManager.Data is not SaveDataV1 data)
+                return;
+
+            // 서버 기준 친구 목록 가져오기 (이게 Source of Truth)
+            List<string> friendUids = await FriendService.GetMyFriendUidListAsync(syncLocal: true);
+
+            // 헤더 업데이트 (서버에서 가져온 실제 친구 수 사용)
+            RefreshHeader(friendUids.Count);
+
+            // 친구 아이템 생성
+            foreach (var friendUid in friendUids)
+            {
+                var item = Instantiate(itemPrefab, contentRoot);
+                item.Setup(friendUid);
+                _spawned.Add(item);
+            }
         }
-
-        if (emptyMessageRoot != null)
-            emptyMessageRoot.SetActive(false);
-
-        // 슬롯 생성
-        foreach (var friendUid in friendUids)
+        catch (System.Exception e)
         {
-            var item = Instantiate(itemPrefab, contentRoot);
-            item.Setup(friendUid);
-            _spawned.Add(item);
+            Debug.LogError($"[FriendListWindow] RefreshAsync Error: {e}");
+        }
+        finally
+        {
+            if (loadingPanel != null)
+                loadingPanel.SetActive(false);
+            _isRefreshing = false;
         }
     }
 
-    private void UpdateHeader(SaveDataV1 data, int currentFriendCount)
+    /// <summary>
+    /// 헤더 정보만 갱신 (친구 수, 일일 한도)
+    /// </summary>
+    /// <param name="actualFriendCount">서버에서 가져온 실제 친구 수 (null이면 로컬 데이터 사용)</param>
+    public void RefreshHeader(int? actualFriendCount = null)
     {
-        // 친구 수
+        if (SaveLoadManager.Data is not SaveDataV1 data)
+            return;
+
+        // 친구 수 - 서버에서 가져온 실제 값 우선 사용
         if (friendCountText != null)
         {
-            friendCountText.text = $"친구 수 {currentFriendCount}/{maxFriendCount}";
+            int currentCount = actualFriendCount ?? data.friendUidList.Count;
+            friendCountText.text = $"친구 수: {currentCount}/{FriendService.MAX_FRIEND_COUNT}";
         }
 
-        // 일일 한도: 오늘 보낸 횟수 / 최대
-        int limit = data.dreamSendDailyLimit;
-        int todayCount = GetTodaySendCount(data);
-
+        // 일일 한도
         if (dailyLimitText != null)
         {
-            dailyLimitText.text = $"일일 한도 {todayCount}/{limit}";
-        }
-
-        // 내 현재 드림 에너지
-        if (dreamEnergyText != null)
-        {
-            dreamEnergyText.text = data.dreamEnergy.ToString("N0");
+            int limit = data.dreamSendDailyLimit;
+            int todayCount = GetTodaySendCount(data);
+            dailyLimitText.text = $"일일 한도: {todayCount}/{limit}";
         }
     }
 
@@ -137,10 +152,7 @@ public class FriendListWindow : MonoBehaviour
     {
         int today = GetTodayYmd();
         if (data.dreamLastSendDate != today)
-        {
-            // 날짜가 바뀌었으면 아직 안 보낸 것으로
             return 0;
-        }
         return data.dreamSendTodayCount;
     }
 
@@ -153,14 +165,94 @@ public class FriendListWindow : MonoBehaviour
     /// <summary>
     /// "모두 받기" 버튼
     /// </summary>
-    private async UniTaskVoid OnClickClaimAll()
+    private async UniTaskVoid OnClickClaimAllAsync()
     {
-        int gained = await DreamEnergyGiftService.ClaimAllGiftsAsync();
-        if (gained > 0 && SaveLoadManager.Data is SaveDataV1 data)
+        // 버튼 중복 클릭 방지
+        claimAllButton.interactable = false;
+
+        try
         {
-            // 드림 에너지 숫자 갱신
-            UpdateHeader(data, currentFriendCount: data.friendUidList.Count);
-            // TODO: 토스트/팝업 "드림 에너지 xN 획득" 같은 연출 원하면 여기서 처리
+            int gained = await DreamEnergyGiftService.ClaimAllGiftsAsync();
+
+            if (gained > 0)
+            {
+                Debug.Log($"[FriendListWindow] 드림 에너지 +{gained} 획득");
+
+                // 헤더 갱신
+                RefreshHeader();
+
+                // TODO: 성공 토스트/팝업
+                // ShowToast($"드림 에너지 +{gained} 획득!");
+            }
+            else
+            {
+                Debug.Log("[FriendListWindow] 받을 선물이 없습니다.");
+
+                // TODO: 안내 토스트
+                // ShowToast("받을 선물이 없습니다.");
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[FriendListWindow] OnClickClaimAllAsync Error: {e}");
+
+            // TODO: 에러 토스트
+            // ShowToast("선물 수령에 실패했습니다.");
+        }
+        finally
+        {
+            claimAllButton.interactable = true;
         }
     }
+
+    /// <summary>
+    /// 친구 추가 버튼 - 친구 검색 화면으로 이동
+    /// </summary>
+    private void OnClickAddFriend()
+    {
+        if (!FriendService.CanAddMoreFriends())
+        {
+            Debug.Log($"[FriendListWindow] 친구가 이미 {FriendService.MAX_FRIEND_COUNT}명입니다.");
+
+            // ✏️ 이 부분 수정
+            if (messageWindow != null)
+            {
+                messageWindow.OpenFail(
+                    "친구 수 제한",
+                    $"친구는 최대 {FriendService.MAX_FRIEND_COUNT}명까지 추가할 수 있습니다."
+                );
+            }
+            return;
+        }
+
+        Close();
+
+        // ✏️ 이 부분 수정
+        if (friendAddWindow != null)
+        {
+            friendAddWindow.Open();
+        }
+        else
+        {
+            Debug.LogError("[FriendListWindow] FriendAddWindow가 연결되지 않았습니다!", this);
+        }
+    }
+
+    /// <summary>
+    /// 친구 관리 버튼 - 친구 관리 화면으로 이동
+    /// </summary>
+    private void OnClickManageFriend()
+    {
+        // 친구 관리 창 열기
+        Close();
+        // TODO: 친구 관리 창 구현 후 연결
+        // FriendManageWindow.Instance?.Open();
+        Debug.Log("[FriendListWindow] 친구 관리 화면으로 이동");
+    }
+
+    // TODO: 토스트 메시지 시스템 연동
+    // private void ShowToast(string message)
+    // {
+    //     ToastManager.Instance?.Show(message);
+    // }
 }
