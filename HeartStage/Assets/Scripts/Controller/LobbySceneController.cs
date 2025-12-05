@@ -19,122 +19,82 @@ public class LobbySceneController : MonoBehaviour
     [SerializeField] private FriendListWindow friendListWindow;
     [SerializeField] private FriendAddWindow friendAddWindow;
 
+    // 친구 프로필 캐시 (uid → PublicProfileData)
+    private static Dictionary<string, PublicProfileData> _friendProfileCache = new Dictionary<string, PublicProfileData>();
 
     private async void Awake()
     {
-        // 로비에서는 멈출 일 없으면 그냥 1 유지
         Time.timeScale = 1f;
 
-        var tasks = new List<UniTask>();
+        // 1. 퀘스트/기본 로직
+        InitializeQuestManager();
 
-        // 1) 퀘스트 매니저 로직 초기화 (SaveLoad 끝난 상태라고 가정)
+        // 2.  Daily/Weekly/업적 카드 실제 생성 (최초 1회만)
+        await InitializeQuestsIfNeeded();
+
+        // 3. PublicProfile & DreamEnergy 카운터 동기화 (서버 → 로컬)
+        await SyncPublicProfileIfPossible();
+        await SyncDreamEnergyCounterAsync();
+
+        // 4. 친구 프로필 프리로드 (추가!)
+        await PreloadFriendProfilesAsync();
+
+        // 5. UI 프리워밍 (실제 창들은 안 보이게)
+        await PrewarmWindowsAsync();
+
+        // 6. 로딩바 마무리 & 로비 준비 알림
+        await FinishLoadingSequenceAsync();
+    }
+
+    #region 1) 퀘스트 매니저
+
+    private void InitializeQuestManager()
+    {
         if (QuestManager.Instance != null)
         {
             QuestManager.Instance.Initialize();
         }
+    }
 
-        // --- 여기서 분기 포인트 ---
-        bool needInitDaily = dailyQuestsComponent != null &&
-                             !dailyQuestsComponent.IsInitialized;
-        bool needInitWeekly = weeklyQuestsComponent != null &&
-                             !weeklyQuestsComponent.IsInitialized;
-        bool needInitArchivement = archivementQuestsComponent != null &&
-                                 !archivementQuestsComponent.IsInitialized;
+    private async UniTask InitializeQuestsIfNeeded()
+    {
+        bool needInitDaily = dailyQuestsComponent != null && !dailyQuestsComponent.IsInitialized;
+        bool needInitWeekly = weeklyQuestsComponent != null && !weeklyQuestsComponent.IsInitialized;
+        bool needInitArchivement = archivementQuestsComponent != null && !archivementQuestsComponent.IsInitialized;
 
         if (needInitDaily && needInitWeekly && needInitArchivement)
         {
-            // 아직 한 번도 안 초기화된 상태라면 → 진짜 로딩
-            var go = dailyQuestsComponent.gameObject;
-            bool wasActive = go.activeSelf;
-
-            go.SetActive(true); // 로딩창 뒤에서 몰래 켜기
-            await dailyQuestsComponent.InitializeAsync(); // 카드/아이콘 전부 생성
-            go.SetActive(wasActive); // 다시 원래 상태(false)로 돌려두기
-
-
-            go = weeklyQuestsComponent.gameObject;
-            wasActive = go.activeSelf;
-
-            go.SetActive(true);
-            await weeklyQuestsComponent.InitializeAsync();
-
-            await SyncPublicProfileIfPossible();
-            await SyncDreamEnergyCounterAsync();
-
-            go.SetActive(wasActive); // 다시 원래 상태(false)로 돌려두기
+            await InitializeQuestComponentAsync(dailyQuestsComponent);
+            await InitializeQuestComponentAsync(weeklyQuestsComponent);
         }
         else
         {
-            // 이미 초기화 된 상태라면 여기선 아무것도 안 해도 됨
-            Debug.Log("[LobbySceneController] DailyQuests 이미 초기화됨. 로딩 스킵");
+            Debug.Log("[LobbySceneController] 퀘스트 UI 이미 초기화됨.  로딩 스킵");
         }
-
-        // 공지창 UI 초기화 추가
-        if (noticeWindow != null)
-        {
-            var go = noticeWindow.gameObject;
-            bool wasActive = go.activeSelf;
-
-            go.SetActive(true);                        // 잠깐 켜서 Awake/레이아웃 돌리고
-            tasks.Add(noticeWindow.InitializeAsync()); // 리스트 생성
-            go.SetActive(wasActive);                   // 다시 원래 상태(false)로
-        }
-
-        // 프로필 관련 Window Prewarm 추가
-        if (profileWindow != null)
-        {
-            tasks.Add(profileWindow.PrewarmAsync());
-        }
-
-        // 친구 관련 Window Prewarm 추가
-        if (friendListWindow != null)
-        {
-            tasks.Add(friendListWindow.PrewarmAsync());
-        }
-
-        if (friendAddWindow != null)
-        {
-            tasks.Add(friendAddWindow.PrewarmAsync());
-        }
-        if (tasks.Count > 0)
-            await UniTask.WhenAll(tasks);
-
-
-        // 여기까지 오면
-        // - needInitDaily == true 면 방금 로딩 끝난 상태
-        // - needInitDaily == false 면 이미 끝난 상태였음
-
-        // 한 프레임 정도 양보해서 로비 UI Start()들(MoneyUISet 같은거) 한 번 돌리게 함
-        await UniTask.Yield();
-
-        // --- 공통: 0.6 → 1.0까지 0.7초 동안 부드럽게 채우기 ---
-
-        const float start = 0.6f;     // 씬 로딩이 0~0.6 쓰고 있다고 가정한 값
-        const float end = 1.0f;
-        const float duration = 0.7f;  // 0.7초 동안 쭉 채우기
-
-        float t = 0f;
-        while (t < duration)
-        {
-            t += Time.unscaledDeltaTime;
-            float lerp01 = Mathf.Clamp01(t / duration);
-            float progress = Mathf.Lerp(start, end, lerp01);
-
-            SceneLoader.SetProgressExternal(progress);
-
-            await UniTask.Yield();
-        }
-
-        // 3) 안전하게 100% 한 번 더 찍고
-        SceneLoader.SetProgressExternal(1.0f);
-
-        // 4) 100% 상태를 잠깐 보여준 다음
-        await UniTask.Delay(300, DelayType.UnscaledDeltaTime);
-
-        // 5) 로비 씬 준비 완료 알림 + 로딩창 닫기
-        GameSceneManager.NotifySceneReady(SceneType.LobbyScene, 100);
-        await SceneLoader.HideLoadingWithDelay(0);
     }
+
+    private async UniTask InitializeQuestComponentAsync(MonoBehaviour questComponent)
+    {
+        if (questComponent == null)
+            return;
+
+        var go = questComponent.gameObject;
+        bool wasActive = go.activeSelf;
+
+        go.SetActive(true);
+        if (questComponent is DailyQuests dq)
+            await dq.InitializeAsync();
+        else if (questComponent is WeeklyQuests wq)
+            await wq.InitializeAsync();
+        else if (questComponent is ArchivementQuests aq)
+            await aq.InitializeAsync();
+
+        go.SetActive(wasActive);
+    }
+
+    #endregion
+
+    #region 2) 서버 동기화
 
     private async UniTask SyncPublicProfileIfPossible()
     {
@@ -147,10 +107,173 @@ public class LobbySceneController : MonoBehaviour
         Debug.Log("[Lobby] publicProfiles 동기화 완료");
     }
 
-    // ➕ 여기에 추가
     private async UniTask SyncDreamEnergyCounterAsync()
     {
-        await DreamEnergyGiftService.SyncCounterFromServerAsync();
-        Debug.Log("[Lobby] DreamEnergyGiftService 카운터 동기화 완료");
+        try
+        {
+            await DreamEnergyGiftService.SyncCounterFromServerAsync();
+            Debug.Log("[Lobby] DreamEnergyGiftService 카운터 동기화 완료");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[Lobby] DreamEnergyGiftService 동기화 실패: {e}");
+        }
     }
+
+    #endregion
+
+    #region 3) 친구 프로필 프리로드
+
+    private async UniTask PreloadFriendProfilesAsync()
+    {
+        var data = SaveLoadManager.Data as SaveDataV1;
+        if (data == null || data.friendUidList == null || data.friendUidList.Count == 0)
+        {
+            Debug.Log("[Lobby] 친구 목록이 비어있음.  프리로드 스킵");
+            return;
+        }
+
+        _friendProfileCache.Clear();
+
+        var tasks = new List<UniTask<PublicProfileData>>();
+        foreach (var uid in data.friendUidList)
+        {
+            tasks.Add(PublicProfileService.GetPublicProfileAsync(uid));
+        }
+
+        try
+        {
+            var results = await UniTask.WhenAll(tasks);
+
+            for (int i = 0; i < data.friendUidList.Count; i++)
+            {
+                var uid = data.friendUidList[i];
+                var profile = results[i];
+
+                if (profile != null)
+                {
+                    _friendProfileCache[uid] = profile;
+                }
+            }
+
+            Debug.Log($"[Lobby] 친구 프로필 {_friendProfileCache.Count}명 프리로드 완료");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[Lobby] 친구 프로필 프리로드 실패: {e}");
+        }
+    }
+
+    /// <summary>
+    /// 캐시된 친구 프로필 가져오기 (FriendListItemUI에서 사용)
+    /// </summary>
+    public static PublicProfileData GetCachedFriendProfile(string uid)
+    {
+        if (_friendProfileCache.TryGetValue(uid, out var profile))
+            return profile;
+        return null;
+    }
+
+    /// <summary>
+    /// 캐시에 프로필이 있는지 확인
+    /// </summary>
+    public static bool HasCachedProfile(string uid)
+    {
+        return _friendProfileCache.ContainsKey(uid);
+    }
+
+    /// <summary>
+    /// 캐시 갱신 (친구 추가 후 등)
+    /// </summary>
+    public static void UpdateCachedProfile(string uid, PublicProfileData profile)
+    {
+        if (profile != null)
+            _friendProfileCache[uid] = profile;
+    }
+
+    /// <summary>
+    /// 캐시에서 제거 (친구 삭제 후)
+    /// </summary>
+    public static void RemoveCachedProfile(string uid)
+    {
+        _friendProfileCache.Remove(uid);
+    }
+
+    #endregion
+
+    #region 4) UI 프리워밍
+
+    private async UniTask PrewarmWindowsAsync()
+    {
+        var tasks = new List<UniTask>();
+
+        if (noticeWindow != null)
+        {
+            var go = noticeWindow.gameObject;
+            bool wasActive = go.activeSelf;
+
+            go.SetActive(true);
+            tasks.Add(noticeWindow.InitializeAsync());
+            go.SetActive(wasActive);
+        }
+
+        if (profileWindow != null)
+        {
+            tasks.Add(profileWindow.PrewarmAsync());
+        }
+
+        if (friendListWindow != null)
+        {
+            tasks.Add(friendListWindow.PrewarmAsync());
+        }
+
+        if (friendAddWindow != null)
+        {
+            tasks.Add(friendAddWindow.PrewarmAsync());
+        }
+
+        if (tasks.Count == 0)
+            return;
+
+        try
+        {
+            await UniTask.WhenAll(tasks);
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[Lobby] PrewarmWindowsAsync 중 일부 실패: {e}");
+        }
+
+        await UniTask.Yield();
+    }
+
+    #endregion
+
+    #region 5) 로딩 마무리
+
+    private async UniTask FinishLoadingSequenceAsync()
+    {
+        const float start = 0.6f;
+        const float end = 1.0f;
+        const float duration = 0.7f;
+
+        float t = 0f;
+        while (t < duration)
+        {
+            t += Time.unscaledDeltaTime;
+            float lerp01 = Mathf.Clamp01(t / duration);
+            float progress = Mathf.Lerp(start, end, lerp01);
+
+            SceneLoader.SetProgressExternal(progress);
+            await UniTask.Yield();
+        }
+
+        SceneLoader.SetProgressExternal(1.0f);
+        await UniTask.Delay(300, DelayType.UnscaledDeltaTime);
+
+        GameSceneManager.NotifySceneReady(SceneType.LobbyScene, 100);
+        await SceneLoader.HideLoadingWithDelay(0);
+    }
+
+    #endregion
 }

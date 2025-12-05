@@ -854,7 +854,7 @@ MonoBehaviour:
   friendCountText: {fileID: 6463773631564904724}
   requestCountText: {fileID: 4906335594311417300}
   contentRoot: {fileID: 5719332865018517835}
-  itemPrefab: {fileID: 2405083562501141682, guid: db03f0d75f528b44fa349aa95e152911, type: 3}
+  itemPrefab: {fileID: 6401239605042336572, guid: 48b40e5db743dfa4091b4ce8e382eaf5, type: 3}
   closeButton: {fileID: 1938754789678729594}
   refreshButton: {fileID: 8501043030340735810}
   searchButton: {fileID: 1842781488328308758}
@@ -1246,6 +1246,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5719332865018517835}
   - component: {fileID: 8153834222124900576}
+  - component: {fileID: 7528102121233173554}
   m_Layer: 5
   m_Name: Content
   m_TagString: Untagged
@@ -1270,7 +1271,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0.000038146973}
-  m_SizeDelta: {x: 0, y: 720}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &8153834222124900576
 MonoBehaviour:
@@ -1298,6 +1299,20 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &7528102121233173554
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5810572183627075595}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_HorizontalFit: 0
+  m_VerticalFit: 2
 --- !u!1 &6009936867585072057
 GameObject:
   m_ObjectHideFlags: 0
@@ -2093,7 +2108,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Content: {fileID: 5719332865018517835}
-  m_Horizontal: 1
+  m_Horizontal: 0
   m_Vertical: 1
   m_MovementType: 1
   m_Elasticity: 0.1

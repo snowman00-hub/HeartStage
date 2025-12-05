@@ -3,19 +3,23 @@ using Firebase.Auth;
 using Firebase.Database;
 using System;
 using System.Collections.Generic;
+using UnityEngine;
+
 public class PublicProfileData
 {
     public string uid;
     public string nickname;
+    public string statusMessage;
+    public string profileIconKey;
     public int fanAmount;
     public int equippedTitleId;
-    public string profileIconKey;
     public int mainStageStep1;
     public int mainStageStep2;
     public int achievementCompletedCount;
     public int bestFanMeetingSeconds;
     public int specialStageBestSeconds;
 }
+
 public static partial class PublicProfileService
 {
     private static DatabaseReference Root => FirebaseDatabase.DefaultInstance.RootReference;
@@ -33,25 +37,19 @@ public static partial class PublicProfileService
         long now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
         string effectiveNickname = ProfileNameUtil.GetEffectiveNickname(data);
+        string iconKey = string.IsNullOrEmpty(data.profileIconKey) ? "hanaicon" : data.profileIconKey;
 
         var dict = new Dictionary<string, object>
         {
-            // 상단
             ["nickname"] = effectiveNickname,
             ["fanAmount"] = data.fanAmount,
             ["equippedTitleId"] = data.equippedTitleId,
-            ["statusMessage"] = data.statusMessage,
-            ["profileIconId"] = data.profileIconKey,
-
-            // 공연 기록 박스
+            ["statusMessage"] = data.statusMessage ?? "",
+            ["profileIconId"] = iconKey,
             ["mainStageStep1"] = data.mainStageStep1,
             ["mainStageStep2"] = data.mainStageStep2,
             ["achievementCompletedCount"] = achievementCompletedCount,
             ["bestFanMeetingSeconds"] = data.bestFanMeetingSeconds,
-
-            // 🔹 specialStageBestSeconds는 지금은 안 올림 (공석)
-            // 나중에 필요하면 ["specialStageBestSeconds"] 추가
-
             ["lastLoginUnixMillis"] = now,
         };
 
@@ -60,33 +58,52 @@ public static partial class PublicProfileService
             .Child("publicProfiles")
             .Child(uid)
             .UpdateChildrenAsync(dict);
+
+        Debug.Log($"[PublicProfileService] 프로필 업데이트: {effectiveNickname}, 아이콘: {iconKey}");
     }
 
     public static async UniTask<PublicProfileData> GetPublicProfileAsync(string uid)
     {
-        var snap = await Root.Child("publicProfiles").Child(uid).GetValueAsync();
-        if (!snap.Exists) return null;
+        try
+        {
+            var snap = await Root.Child("publicProfiles").Child(uid).GetValueAsync();
+            if (!snap.Exists)
+            {
+                Debug.LogWarning($"[PublicProfileService] 프로필이 존재하지 않음: {uid}");
+                return null;
+            }
 
-        var data = new PublicProfileData();
-        data.uid = uid;
-        data.nickname = snap.Child("nickname").Value?.ToString() ?? uid;
-        data.profileIconKey = snap.Child("profileIconId").Value?.ToString() ?? "ProfileIcon_Default";
+            var data = new PublicProfileData();
+            data.uid = uid;
+            data.nickname = snap.Child("nickname").Value?.ToString() ?? uid;
+            data.statusMessage = snap.Child("statusMessage").Value?.ToString() ?? "";
 
-        if (snap.Child("fanAmount").Value is long fa)
-            data.fanAmount = (int)fa;
-        if (snap.Child("equippedTitleId").Value is long t)
-            data.equippedTitleId = (int)t;
-        if (snap.Child("mainStageStep1").Value is long s1)
-            data.mainStageStep1 = (int)s1;
-        if (snap.Child("mainStageStep2").Value is long s2)
-            data.mainStageStep2 = (int)s2;
-        if (snap.Child("achievementCompletedCount").Value is long ac)
-            data.achievementCompletedCount = (int)ac;
-        if (snap.Child("bestFanMeetingSeconds").Value is long bf)
-            data.bestFanMeetingSeconds = (int)bf;
-        if (snap.Child("specialStageBestSeconds").Value is long sp)
-            data.specialStageBestSeconds = (int)sp;
+            // 그대로 가져온다.  변환 안 함.
+            data.profileIconKey = snap.Child("profileIconId").Value?.ToString() ?? "hanaicon";
 
-        return data;
+            if (snap.Child("fanAmount").Value is long fa)
+                data.fanAmount = (int)fa;
+            if (snap.Child("equippedTitleId").Value is long t)
+                data.equippedTitleId = (int)t;
+            if (snap.Child("mainStageStep1").Value is long s1)
+                data.mainStageStep1 = (int)s1;
+            if (snap.Child("mainStageStep2").Value is long s2)
+                data.mainStageStep2 = (int)s2;
+            if (snap.Child("achievementCompletedCount").Value is long ac)
+                data.achievementCompletedCount = (int)ac;
+            if (snap.Child("bestFanMeetingSeconds").Value is long bf)
+                data.bestFanMeetingSeconds = (int)bf;
+            if (snap.Child("specialStageBestSeconds").Value is long sp)
+                data.specialStageBestSeconds = (int)sp;
+
+            Debug.Log($"[PublicProfileService] 프로필 로드: {data.nickname}, 아이콘: {data.profileIconKey}");
+
+            return data;
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[PublicProfileService] GetPublicProfileAsync Error: {e}");
+            return null;
+        }
     }
 }

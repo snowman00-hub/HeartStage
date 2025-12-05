@@ -13,15 +13,82 @@ public static class FriendService
     // 최대 친구 수 제한
     public const int MAX_FRIEND_COUNT = 20;
 
+    // 최대 친구 요청 수 제한 (받은 + 보낸)
+    public const int MAX_REQUEST_COUNT = 20;
+
     // 동시성 제어
     private static bool _isProcessingRequest = false;
+
+    // === 캐시 데이터 ===
+    private static List<string> _cachedFriendUids = new();
+    private static List<string> _cachedReceivedRequests = new();
+    private static List<string> _cachedSentRequests = new();
+    private static bool _isCacheLoaded = false;
+
+    // === 캐시 접근자 ===
+    public static int CachedFriendCount => _cachedFriendUids.Count;
+    public static int CachedReceivedCount => _cachedReceivedRequests.Count;
+    public static int CachedSentCount => _cachedSentRequests.Count;
+    public static int CachedTotalRequestCount => _cachedReceivedRequests.Count + _cachedSentRequests.Count;
+    public static bool IsCacheLoaded => _isCacheLoaded;
 
     private static string GetMyUid()
     {
         var user = Auth.CurrentUser;
         return user?.UserId;
     }
+    /// <summary>
+    /// 모든 친구 관련 데이터를 한 번에 로드하고 캐시
+    /// </summary>
+    public static async UniTask RefreshAllCacheAsync()
+    {
+        string myUid = GetMyUid();
+        if (string.IsNullOrEmpty(myUid))
+            return;
 
+        try
+        {
+            // 병렬로 모두 로드
+            var (friends, received, sent) = await UniTask.WhenAll(
+                GetMyFriendUidListAsync(syncLocal: true),
+                GetReceivedRequestsAsync(),
+                GetSentRequestsAsync()
+            );
+
+            _cachedFriendUids = friends;
+            _cachedReceivedRequests = received;
+            _cachedSentRequests = sent;
+            _isCacheLoaded = true;
+
+            Debug.Log($"[FriendService] 캐시 갱신 완료 - 친구: {friends.Count}, 받은 요청: {received.Count}, 보낸 요청: {sent.Count}");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[FriendService] RefreshAllCacheAsync Error: {e}");
+        }
+    }
+    /// <summary>
+    /// 캐시된 친구 목록 반환 (로드 없이)
+    /// </summary>
+    public static List<string> GetCachedFriendUids() => new(_cachedFriendUids);
+
+    /// <summary>
+    /// 캐시된 받은 요청 목록 반환 (로드 없이)
+    /// </summary>
+    public static List<string> GetCachedReceivedRequests() => new(_cachedReceivedRequests);
+
+    /// <summary>
+    /// 캐시된 보낸 요청 목록 반환 (로드 없이)
+    /// </summary>
+    public static List<string> GetCachedSentRequests() => new(_cachedSentRequests);
+
+    /// <summary>
+    /// 캐시 무효화 (액션 후 호출)
+    /// </summary>
+    public static void InvalidateCache()
+    {
+        _isCacheLoaded = false;
+    }
     /// <summary>
     /// 상대 uid로 친구 요청 보내기
     /// friendRequests/targetUid/myUid = true
@@ -61,8 +128,14 @@ public static class FriendService
                 return false;
             }
 
-            // 친구 요청 전송
-            await requestRef.SetValueAsync(true);
+            // 친구 요청 전송 (양쪽에 저장)
+            var updates = new Dictionary<string, object>
+            {
+                [$"friendRequests/{targetUid}/{myUid}"] = true,
+                [$"sentRequests/{myUid}/{targetUid}"] = true,
+            };
+
+            await Root.UpdateChildrenAsync(updates);
 
             Debug.Log($"[FriendService] 친구 요청 전송 완료: {targetUid}");
             return true;
@@ -107,7 +180,7 @@ public static class FriendService
 
     /// <summary>
     /// 친구 요청 수락
-    /// friends 양쪽 추가 + friendRequests 삭제 + SaveData.friendUidList 추가
+    /// friends 양쪽 추가 + friendRequests 삭제 + sentRequests 삭제 + SaveData. friendUidList 추가
     /// </summary>
     public static async UniTask<bool> AcceptFriendRequestAsync(string fromUid)
     {
@@ -140,16 +213,22 @@ public static class FriendService
             {
                 Debug.Log("[FriendService] 이미 친구 상태입니다.");
                 // 요청은 삭제
-                await Root.Child("friendRequests").Child(myUid).Child(fromUid).SetValueAsync(null);
+                var cleanupUpdates = new Dictionary<string, object>
+                {
+                    [$"friendRequests/{myUid}/{fromUid}"] = null,
+                    [$"sentRequests/{fromUid}/{myUid}"] = null,
+                };
+                await Root.UpdateChildrenAsync(cleanupUpdates);
                 return false;
             }
 
-            // Firebase 업데이트 (friends 양방향 + 요청 삭제)
+            // Firebase 업데이트 (friends 양방향 + 요청 삭제 + 보낸 요청도 삭제)
             var updates = new Dictionary<string, object>
             {
                 [$"friends/{myUid}/{fromUid}"] = true,
                 [$"friends/{fromUid}/{myUid}"] = true,
                 [$"friendRequests/{myUid}/{fromUid}"] = null,
+                [$"sentRequests/{fromUid}/{myUid}"] = null,  // 상대방의 보낸 요청도 삭제
             };
 
             await Root.UpdateChildrenAsync(updates);
@@ -183,8 +262,14 @@ public static class FriendService
 
         try
         {
-            await Root.Child("friendRequests").Child(myUid).Child(fromUid)
-                .SetValueAsync(null);
+            // 요청 삭제 + 상대방의 보낸 요청도 삭제
+            var updates = new Dictionary<string, object>
+            {
+                [$"friendRequests/{myUid}/{fromUid}"] = null,
+                [$"sentRequests/{fromUid}/{myUid}"] = null,
+            };
+
+            await Root.UpdateChildrenAsync(updates);
 
             Debug.Log($"[FriendService] 친구 요청 거절 완료: {fromUid}");
             return true;
@@ -225,7 +310,6 @@ public static class FriendService
             {
                 data.friendUidList.Clear();
                 data.friendUidList.AddRange(result);
-                // 굳이 여기서 SaveToServer까지 안 해도 됨 (friends가 진짜 소스라서)
             }
 
             Debug.Log($"[FriendService] 친구 목록 로드 완료: {result.Count}명");
@@ -282,5 +366,91 @@ public static class FriendService
             return false;
 
         return data.friendUidList.Count < MAX_FRIEND_COUNT;
+    }
+
+    /// <summary>
+    /// 내가 보낸 친구 요청 목록
+    /// </summary>
+    public static async UniTask<List<string>> GetSentRequestsAsync()
+    {
+        string myUid = GetMyUid();
+        var result = new List<string>();
+        if (string.IsNullOrEmpty(myUid))
+            return result;
+
+        try
+        {
+            var snap = await Root.Child("sentRequests").Child(myUid).GetValueAsync();
+            if (!snap.Exists) return result;
+
+            foreach (var child in snap.Children)
+            {
+                string toUid = child.Key;
+                result.Add(toUid);
+            }
+
+            Debug.Log($"[FriendService] 보낸 친구 요청: {result.Count}개");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[FriendService] GetSentRequestsAsync Error: {e}");
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// 보낸 친구 요청 취소
+    /// </summary>
+    public static async UniTask<bool> CancelSentRequestAsync(string toUid)
+    {
+        string myUid = GetMyUid();
+        if (string.IsNullOrEmpty(myUid) || string.IsNullOrEmpty(toUid))
+            return false;
+
+        try
+        {
+            var updates = new Dictionary<string, object>
+            {
+                [$"friendRequests/{toUid}/{myUid}"] = null,
+                [$"sentRequests/{myUid}/{toUid}"] = null,
+            };
+
+            await Root.UpdateChildrenAsync(updates);
+
+            Debug.Log($"[FriendService] 보낸 요청 취소 완료: {toUid}");
+            return true;
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[FriendService] CancelSentRequestAsync Error: {e}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 받은 요청 수 + 보낸 요청 수 합계 가져오기
+    /// </summary>
+    public static async UniTask<(int received, int sent)> GetRequestCountsAsync()
+    {
+        string myUid = GetMyUid();
+        if (string.IsNullOrEmpty(myUid))
+            return (0, 0);
+
+        try
+        {
+            var receivedSnap = await Root.Child("friendRequests").Child(myUid).GetValueAsync();
+            var sentSnap = await Root.Child("sentRequests").Child(myUid).GetValueAsync();
+
+            int receivedCount = receivedSnap.Exists ? (int)receivedSnap.ChildrenCount : 0;
+            int sentCount = sentSnap.Exists ? (int)sentSnap.ChildrenCount : 0;
+
+            Debug.Log($"[FriendService] 요청 수 조회: 받은 {receivedCount}개, 보낸 {sentCount}개");
+            return (receivedCount, sentCount);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[FriendService] GetRequestCountsAsync Error: {e}");
+            return (0, 0);
+        }
     }
 }

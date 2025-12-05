@@ -9,20 +9,22 @@ public class FriendAddItemUI : MonoBehaviour
 {
     [Header("텍스트")]
     [SerializeField] private TextMeshProUGUI nicknameText;
-    [SerializeField] private TextMeshProUGUI fanAmountText;         
-    [SerializeField] private TextMeshProUGUI lastLoginText;      // 최근 접속 시간
+    [SerializeField] private TextMeshProUGUI fanAmountText;
+    [SerializeField] private TextMeshProUGUI lastLoginText;
 
     [Header("아이콘")]
     [SerializeField] private Image iconImage;
+    [SerializeField] private Button iconButton;
 
     [Header("버튼")]
-    [SerializeField] private Button requestButton;        // 친구 신청 버튼
+    [SerializeField] private Button requestButton;
 
     [Header("버튼 텍스트")]
-    [SerializeField] private TextMeshProUGUI requestButtonText;  // "친구 신청" 텍스트
+    [SerializeField] private TextMeshProUGUI requestButtonText;
 
     private PublicProfileSummary _profileData;
     private CancellationTokenSource _cts;
+    private MessageWindow _messageWindow;
 
     private void OnDestroy()
     {
@@ -30,29 +32,24 @@ public class FriendAddItemUI : MonoBehaviour
         _cts?.Dispose();
     }
 
-    /// <summary>
-    /// PublicProfileSummary 데이터로 셋업
-    /// </summary>
-    public void Setup(PublicProfileSummary profileData)
+    public void Setup(PublicProfileSummary profileData, MessageWindow messageWindow = null)
     {
         _profileData = profileData;
+        _messageWindow = messageWindow;
 
-        // 이전 토큰 취소
         _cts?.Cancel();
         _cts?.Dispose();
         _cts = new CancellationTokenSource();
 
-        // 기본 표시값
         if (nicknameText != null)
-            nicknameText.text = profileData.nickname;
+            nicknameText.text = GetDisplayNickname(profileData.nickname, profileData.uid);
 
         if (fanAmountText != null)
             fanAmountText.text = $"팬: {CalculateLevel(profileData.fanAmount)}";
 
         if (lastLoginText != null)
-            lastLoginText.text = "최근 접속 시간\n방금 전"; // TODO: 실제 시간 계산
+            lastLoginText.text = "최근 접속 시간\n방금 전";
 
-        // 아이콘 설정
         if (iconImage != null)
         {
             var sprite = ResourceManager.Instance.Get<Sprite>(profileData.profileIconKey);
@@ -66,7 +63,12 @@ public class FriendAddItemUI : MonoBehaviour
             }
         }
 
-        // 버튼 설정
+        if (iconButton != null)
+        {
+            iconButton.onClick.RemoveAllListeners();
+            iconButton.onClick.AddListener(OnClickIcon);
+        }
+
         if (requestButton != null)
         {
             requestButton.onClick.RemoveAllListeners();
@@ -78,26 +80,34 @@ public class FriendAddItemUI : MonoBehaviour
             requestButtonText.text = "친구\n신청";
     }
 
-    /// <summary>
-    /// 팬 수로 레벨 계산 (임시 로직)
-    /// </summary>
+    private void OnClickIcon()
+    {
+        if (_profileData == null || string.IsNullOrEmpty(_profileData.uid))
+            return;
+
+        if (FriendProfileWindow.Instance != null)
+            FriendProfileWindow.Instance.Open(_profileData.uid);
+    }
+
+    private string GetDisplayNickname(string nickname, string uid)
+    {
+        if (string.IsNullOrEmpty(nickname) || nickname == uid)
+            return "하트스테이지팬";
+        return nickname;
+    }
+
     private int CalculateLevel(int fanAmount)
     {
-        // 간단한 레벨 계산 예시
-        // 실제 게임 로직에 맞게 수정 필요
         return Mathf.Min(999, fanAmount / 100 + 1);
     }
 
-    /// <summary>
-    /// 친구 신청 버튼 클릭
-    /// </summary>
     private async UniTaskVoid OnClickRequestAsync()
     {
         if (_profileData == null)
             return;
 
-        // 버튼 중복 클릭 방지
         requestButton.interactable = false;
+        string displayName = GetDisplayNickname(_profileData.nickname, _profileData.uid);
 
         try
         {
@@ -106,26 +116,21 @@ public class FriendAddItemUI : MonoBehaviour
 
             if (success)
             {
-                Debug.Log($"[FriendAddItemUI] 친구 요청 전송 성공: {_profileData.nickname}");
-
-                // 버튼 텍스트 변경
                 if (requestButtonText != null)
                     requestButtonText.text = "신청\n완료";
 
-                // TODO: 성공 이펙트/토스트
-                // ShowToast("친구 요청을 보냈습니다");
-
-                // 친구 추가 창 헤더 갱신
                 if (FriendAddWindow.Instance != null)
                     FriendAddWindow.Instance.OnFriendRequestSent();
+
+                // 성공 메시지
+                _messageWindow?.OpenSuccess("친구 신청", $"{displayName}님에게\n친구 신청을 보냈습니다!");
             }
             else
             {
-                Debug.Log($"[FriendAddItemUI] 친구 요청 전송 실패: {_profileData.nickname}");
-                // TODO: 실패 토스트
-                // ShowToast("친구 요청을 보낼 수 없습니다");
+                requestButton.interactable = true;
 
-                requestButton.interactable = true; // 실패 시 다시 활성화
+                // 실패 메시지 (이미 친구이거나 이미 요청을 보낸 경우)
+                _messageWindow?.OpenFail("친구 신청 실패", $"{displayName}님에게 이미 친구 신청을 보냈거나\n이미 친구 상태입니다.");
             }
         }
         catch (OperationCanceledException)
@@ -136,12 +141,11 @@ public class FriendAddItemUI : MonoBehaviour
         {
             Debug.LogError($"[FriendAddItemUI] OnClickRequestAsync Error: {e}");
             requestButton.interactable = true;
+
+            _messageWindow?.OpenFail("오류", "친구 신청 중 오류가 발생했습니다.");
         }
     }
 
-    /// <summary>
-    /// 마지막 접속 시간 표시 (옵션)
-    /// </summary>
     public void SetLastLoginTime(long unixMillis)
     {
         if (lastLoginText == null)

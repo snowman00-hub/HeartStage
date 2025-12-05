@@ -111,7 +111,7 @@ public class LobbyManager : MonoBehaviour
         var charTable = DataTableManager.CharacterTable;
 
         charTable.BuildDefaultSaveDictionaries(
-            new[] { "하나" },                   // 스타터 이름만 여기
+            new[] {"하나", "세라", "리아" },                   // 스타터 이름만 여기
             out var unlockedByName,
             out var expById,
             out var ownedBaseIds
