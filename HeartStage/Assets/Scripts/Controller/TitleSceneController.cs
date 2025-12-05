@@ -222,7 +222,7 @@ public class TitleSceneController : MonoBehaviour
             var charTable = DataTableManager.CharacterTable;
 
             charTable.BuildDefaultSaveDictionaries(
-                new[] { "하나" },
+                new[] { "하나", "세라", "리아" },
                 out var unlockedByName,
                 out var expById,
                 out var ownedBaseIds

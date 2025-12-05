@@ -204,7 +204,7 @@ public class BootStrap : MonoBehaviour
             var charTable = DataTableManager.CharacterTable;
 
             charTable.BuildDefaultSaveDictionaries(
-                new[] { "하나" },          // 처음 해금할 캐릭터 이름
+                new[] { "하나", "세라", "리아" },          // 처음 해금할 캐릭터 이름
                 out var unlockedByName,
                 out var expById,
                 out var ownedBaseIds
